@@ -10,6 +10,11 @@ typedef struct {
   float rearRight;
 } MotorSpeeds;
 
+typedef struct {
+  float thrust; // 1.0 = max thrust, 0.0 = no thrust
+  // FIXME: add desired and actual quaternions or Euler vectors (or just angles?
+} PIDInputs;
+
 // The result returned from each call to the PID loop.
 typedef struct {
   int errorCode; // 0 = no error, anything else = error
