@@ -5,9 +5,10 @@
 
 ```
 // This creates a new branch if the name of this branch does not already exist
-git branch "new_branch_name_here" 
+git branch new_branch_name_here
 
-// This pushes your new branch to the repository (thus, you can actually push any changes you make to this branch to the respository).
+// This pushes your new branch to the repository (thus, you can actually push
+// any changes you make to this branch to the respository).
 git push --set-upstream origin new_branch_name_here 
 
 ```
