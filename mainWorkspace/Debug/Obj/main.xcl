@@ -1,14 +1,14 @@
-"C:\Users\David R Joslin\Desktop\ee_475\capstone-quadcopter\main.cpp"
+"C:\Users\David R Joslin\Desktop\ee_475\capstone-quadcopter\mainWorkspace\main.cpp"
 -std=c++17
 -ferror-limit=0
 -fbracket-depth=512
 -MD
 -MF
-C:\Users\David R Joslin\Desktop\ee_475\capstone-quadcopter\Debug\Obj\main.pbi.dep
+C:\Users\David R Joslin\Desktop\ee_475\capstone-quadcopter\mainWorkspace\Debug\Obj\main.pbi.dep
 -o
 main.pbi
 -I
-C:\Users\David R Joslin\Desktop\ee_475\capstone-quadcopter
+C:\Users\David R Joslin\Desktop\ee_475\capstone-quadcopter\mainWorkspace
 -I
 C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.4_3\arm\inc
 -I
