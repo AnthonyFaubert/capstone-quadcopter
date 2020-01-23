@@ -5,21 +5,11 @@
     <configuration>
         <name>Debug</name>
         <outputs>
-            <file>$PROJ_DIR$\Debug\Obj\TemplateProject.pbd</file>
+            <file>$PROJ_DIR$\main.cpp</file>
             <file>$PROJ_DIR$\Debug\Obj\main.o</file>
             <file>$PROJ_DIR$\Debug\Obj\main.xcl</file>
             <file>$PROJ_DIR$\Debug\Exe\TemplateProject.out</file>
-            <file>$PROJ_DIR$\main.cpp</file>
         </outputs>
-        <file>
-            <name>[ROOT_NODE]</name>
-            <outputs>
-                <tool>
-                    <name>ILINK</name>
-                    <file> 3</file>
-                </tool>
-            </outputs>
-        </file>
         <file>
             <name>$PROJ_DIR$\main.cpp</name>
             <outputs>
@@ -30,6 +20,15 @@
                 <tool>
                     <name>BICOMP</name>
                     <file> 2</file>
+                </tool>
+            </outputs>
+        </file>
+        <file>
+            <name>[ROOT_NODE]</name>
+            <outputs>
+                <tool>
+                    <name>ILINK</name>
+                    <file> 3</file>
                 </tool>
             </outputs>
         </file>

@@ -1,4 +1,4 @@
-"C:\Users\David R Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\WorkStation\SourceCode\main.cpp"
+"C:\Users\David R Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\Src\main.c"
 -std=c11
 -ferror-limit=0
 -fbracket-depth=512
@@ -8,7 +8,7 @@ C:\Users\David R Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalControll
 -o
 main.pbi
 -I
-C:\Users\David R Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\WorkStation\SourceCode
+C:\Users\David R Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\Src
 -I
 C:\Users\David R Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM/../Inc
 -I

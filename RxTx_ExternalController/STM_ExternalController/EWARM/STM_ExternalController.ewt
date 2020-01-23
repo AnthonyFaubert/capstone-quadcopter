@@ -1320,7 +1320,7 @@
         <group>
             <name>SourceCode</name>
             <file>
-                <name>$PROJ_DIR$\..\WorkStation\SourceCode\main.cpp</name>
+                <name>$PROJ_DIR$\..\WorkStation\SourceCode\actuateMCU.cpp</name>
             </file>
         </group>
     </group>

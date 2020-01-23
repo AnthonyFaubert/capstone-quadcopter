@@ -1,0 +1,558 @@
+###############################################################################
+#
+# IAR ELF Linker V8.42.1.236/W32 for ARM                  23/Jan/2020  11:18:03
+# Copyright 2007-2019 IAR Systems AB.
+#
+#    Output file  =
+#        C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Exe\STM_ExternalController.out
+#    Map file     =
+#        C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\List\STM_ExternalController.map
+#    Command line =
+#        -f C:\Users\DAVIDR~1\AppData\Local\Temp\EW2442.tmp ("C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\actuateMCU.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\main.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\startup_stm32f407xx.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_cortex.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_dma.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_dma_ex.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_exti.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_flash.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_flash_ex.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_flash_ramfunc.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_gpio.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_hcd.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_i2c.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_i2c_ex.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_i2s.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_i2s_ex.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_msp.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_pwr.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_pwr_ex.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_rcc.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_rcc_ex.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_spi.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_tim.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_hal_tim_ex.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_it.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\stm32f4xx_ll_usb.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\system_stm32f4xx.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\usb_host.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\usbh_cdc.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\usbh_conf.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\usbh_core.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\usbh_ctlreq.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\usbh_ioreq.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\usbh_pipes.o"
+#        "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj\usbh_platform.o"
+#        --redirect _Printf=_PrintfFull --redirect _Scanf=_ScanfFull
+#        --no_out_extension -o "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Exe\STM_ExternalController.out"
+#        --map "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\List\STM_ExternalController.map"
+#        --config "C:\Users\David R
+#        Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM/stm32f407xx_flash.icf"
+#        --semihosting --entry __iar_program_start --vfe --text_out locale)
+#
+###############################################################################
+
+*******************************************************************************
+*** RUNTIME MODEL ATTRIBUTES
+***
+
+CppFlavor       = *
+__Heap_Handler  = Basic
+__SystemLibrary = DLib
+__dlib_version  = 6
+
+
+*******************************************************************************
+*** HEAP SELECTION
+***
+
+The basic heap was selected because some modules are built with
+size limitations (and not runtime checking), and --advanced_heap
+was not specified.
+
+
+*******************************************************************************
+*** PLACEMENT SUMMARY
+***
+
+"A0":  place at address 0x800'0000 { ro section .intvec };
+"P1":  place in [from 0x800'0000 to 0x80f'ffff] { ro };
+define block CSTACK with size = 1K, alignment = 8 { };
+define block HEAP with size = 512, alignment = 8 { };
+"P2":  place in [from 0x2000'0000 to 0x2001'ffff] {
+          rw, block CSTACK, block HEAP };
+initialize by copy { rw };
+
+  Section            Kind         Address    Size  Object
+  -------            ----         -------    ----  ------
+"A0":                                       0x188
+  .intvec            ro code   0x800'0000   0x188  startup_stm32f407xx.o [1]
+                             - 0x800'0188   0x188
+
+"P1":                                      0x2cf8
+  .text              ro code   0x800'0188   0x6dc  stm32f4xx_hal_hcd.o [1]
+  .text              ro code   0x800'0864   0x4a4  stm32f4xx_ll_usb.o [1]
+  .text              ro code   0x800'0d08    0xd8  usbh_conf.o [1]
+  .text              ro code   0x800'0de0    0x28  stm32f4xx_hal.o [1]
+  .text              ro code   0x800'0e08   0x31e  usbh_core.o [1]
+  .text              ro code   0x800'1126    0x3a  zero_init3.o [4]
+  .text              ro code   0x800'1160     0xc  stm32f4xx_hal.o [1]
+  .text              ro code   0x800'116c     0x6  ABImemclr4.o [4]
+  .text              ro code   0x800'1172    0x6a  usbh_pipes.o [1]
+  .text              ro code   0x800'11dc   0x3f4  usbh_ctlreq.o [1]
+  .text              ro code   0x800'15d0    0x32  ABImemset48.o [4]
+  .text              ro code   0x800'1602    0x70  usbh_ioreq.o [1]
+  .text              ro code   0x800'1672    0x2e  copy_init3.o [4]
+  .text              ro code   0x800'16a0   0x310  stm32f4xx_hal_rcc.o [1]
+  .text              ro code   0x800'19b0   0x2e8  main.o [1]
+  .text              ro code   0x800'1c98    0x14  memset.o [4]
+  .text              ro code   0x800'1cac   0x1e4  stm32f4xx_hal_gpio.o [1]
+  .text              ro code   0x800'1e90   0x150  stm32f4xx_hal_i2c.o [1]
+  .text              ro code   0x800'1fe0   0x278  stm32f4xx_hal_i2s.o [1]
+  .text              ro code   0x800'2258    0x82  stm32f4xx_hal_spi.o [1]
+  .text              ro code   0x800'22dc     0xc  usb_host.o [1]
+  .text              ro code   0x800'22e8   0x1a0  stm32f4xx_hal_rcc.o [1]
+  .text              ro code   0x800'2488   0x174  stm32f4xx_hal_rcc_ex.o [1]
+  .text              ro code   0x800'25fc    0x66  ABImemset.o [4]
+  .text              ro code   0x800'2664   0x164  stm32f4xx_hal_msp.o [1]
+  .text              ro code   0x800'27c8     0x2  stm32f4xx_hal_i2s.o [1]
+  .text              ro code   0x800'27ca     0x2  stm32f4xx_hal_i2s.o [1]
+  .text              ro code   0x800'27cc     0x2  stm32f4xx_hal_i2s.o [1]
+  .text              ro code   0x800'27d0    0x40  stm32f4xx_hal.o [1]
+  .text              ro code   0x800'2810   0x106  I64DivMod_small.o [4]
+  .text              ro code   0x800'2918    0x8c  stm32f4xx_hal_cortex.o [1]
+  .text              ro code   0x800'29a4     0x2  I64DivZer.o [4]
+  .text              ro code   0x800'29a8   0x244  stm32f4xx_hal_i2s_ex.o [1]
+  .text              ro code   0x800'2bec     0x2  stm32f4xx_hal_i2s_ex.o [1]
+  .text              ro code   0x800'2bf0    0x2c  system_stm32f4xx.o [1]
+  .text              ro code   0x800'2c1c    0x28  data_init.o [4]
+  .text              ro code   0x800'2c44    0x22  fpinit_M.o [3]
+  .iar.init_table    const     0x800'2c68    0x24  - Linker created -
+  .text              ro code   0x800'2c8c    0x20  stm32f4xx_it.o [1]
+  .text              ro code   0x800'2cac    0x10  stm32f4xx_hal.o [1]
+  .text              ro code   0x800'2cbc    0x1e  cmain.o [4]
+  .text              ro code   0x800'2cda     0x4  low_level_init.o [2]
+  .text              ro code   0x800'2cde     0x8  actuateMCU.o [1]
+  .text              ro code   0x800'2ce6     0x4  exit.o [2]
+  .text              ro code   0x800'2cec     0xa  cexit.o [4]
+  .text              ro code   0x800'2cf8    0x14  exit.o [5]
+  .text              ro code   0x800'2d0c    0x10  startup_stm32f407xx.o [1]
+  Initializer bytes  const     0x800'2d1c    0x10  <for P2-1>
+  .text              ro code   0x800'2d2c     0xc  cstartup_M.o [4]
+  .rodata            const     0x800'2d38     0x8  system_stm32f4xx.o [1]
+  .text              ro code   0x800'2d40     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d44     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d48     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d4c     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d50     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d54     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d58     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d5c     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d60     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d64     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d68     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d6c     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d70     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d74     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d78     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d7c     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d80     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d84     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d88     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d8c     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d90     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d94     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d98     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2d9c     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2da0     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2da4     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2da8     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2dac     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2db0     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2db4     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2db8     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2dbc     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2dc0     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2dc4     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2dc8     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2dcc     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2dd0     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2dd4     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2dd8     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2ddc     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2de0     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2de4     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2de8     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2dec     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2df0     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2df4     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2df8     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2dfc     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e00     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e04     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e08     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e0c     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e10     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e14     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e18     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e1c     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e20     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e24     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e28     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e2c     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e30     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e34     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e38     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e3c     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e40     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e44     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e48     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e4c     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e50     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e54     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e58     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e5c     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e60     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e64     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e68     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e6c     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e70     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e74     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e78     0x4  startup_stm32f407xx.o [1]
+  .text              ro code   0x800'2e7c     0x4  startup_stm32f407xx.o [1]
+  .rodata            const     0x800'2e80     0x0  zero_init3.o [4]
+  .rodata            const     0x800'2e80     0x0  copy_init3.o [4]
+                             - 0x800'2e80  0x2cf8
+
+"P2", part 1 of 3:                           0x10
+  P2-1                        0x2000'0000    0x10  <Init block>
+    .data            inited   0x2000'0000     0xc  stm32f4xx_hal.o [1]
+    .data            inited   0x2000'000c     0x4  system_stm32f4xx.o [1]
+                            - 0x2000'0010    0x10
+
+"P2", part 2 of 3:                          0x788
+  .bss               zero     0x2000'0010   0x3cc  usb_host.o [1]
+  .bss               zero     0x2000'03dc   0x2c4  usbh_conf.o [1]
+  .bss               zero     0x2000'06a0    0xf4  main.o [1]
+  .bss               zero     0x2000'0794     0x4  stm32f4xx_ll_usb.o [1]
+                            - 0x2000'0798   0x788
+
+"P2", part 3 of 3:                          0x400
+  CSTACK                      0x2000'0798   0x400  <Block>
+    CSTACK           uninit   0x2000'0798   0x400  <Block tail>
+                            - 0x2000'0b98   0x400
+
+Unused ranges:
+
+         From           To      Size
+         ----           --      ----
+   0x800'2e80   0x80f'ffff  0xf'd180
+  0x2000'0b98  0x2001'ffff  0x1'f468
+
+
+*******************************************************************************
+*** INIT TABLE
+***
+
+          Address      Size
+          -------      ----
+Zero (__iar_zero_init3)
+    1 destination range, total size 0x788:
+          0x2000'0010  0x788
+
+Copy (__iar_copy_init3)
+    1 source range, total size 0x10:
+           0x800'2d1c   0x10
+    1 destination range, total size 0x10:
+          0x2000'0000   0x10
+
+
+
+*******************************************************************************
+*** MODULE SUMMARY
+***
+
+    Module                  ro code  ro data  rw data
+    ------                  -------  -------  -------
+command line/config:
+    -------------------------------------------------
+    Total:
+
+C:\Users\David R Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj: [1]
+    actuateMCU.o                  8
+    main.o                      744               244
+    startup_stm32f407xx.o       728
+    stm32f4xx_hal.o             132       12       12
+    stm32f4xx_hal_cortex.o      140
+    stm32f4xx_hal_gpio.o        484
+    stm32f4xx_hal_hcd.o       1'756
+    stm32f4xx_hal_i2c.o         336
+    stm32f4xx_hal_i2s.o         638
+    stm32f4xx_hal_i2s_ex.o      582
+    stm32f4xx_hal_msp.o         356
+    stm32f4xx_hal_rcc.o       1'200
+    stm32f4xx_hal_rcc_ex.o      372
+    stm32f4xx_hal_spi.o         130
+    stm32f4xx_it.o               32
+    stm32f4xx_ll_usb.o        1'188                 4
+    system_stm32f4xx.o           44       12        4
+    usb_host.o                   12               972
+    usbh_conf.o                 216               708
+    usbh_core.o                 798
+    usbh_ctlreq.o             1'012
+    usbh_ioreq.o                112
+    usbh_pipes.o                106
+    -------------------------------------------------
+    Total:                   11'126       24    1'944
+
+dl7M_tlf.a: [2]
+    exit.o                        4
+    low_level_init.o              4
+    -------------------------------------------------
+    Total:                        8
+
+m7M_tls.a: [3]
+    fpinit_M.o                   34
+    -------------------------------------------------
+    Total:                       34
+
+rt7M_tl.a: [4]
+    ABImemclr4.o                  6
+    ABImemset.o                 102
+    ABImemset48.o                50
+    I64DivMod_small.o           262
+    I64DivZer.o                   2
+    cexit.o                      10
+    cmain.o                      30
+    copy_init3.o                 46
+    cstartup_M.o                 12
+    data_init.o                  40
+    memset.o                     20
+    zero_init3.o                 58
+    -------------------------------------------------
+    Total:                      638
+
+shb_l.a: [5]
+    exit.o                       20
+    -------------------------------------------------
+    Total:                       20
+
+    Gaps                         16        2
+    Linker created                        36    1'024
+-----------------------------------------------------
+    Grand Total:             11'842       62    2'968
+
+
+*******************************************************************************
+*** ENTRY LIST
+***
+
+Entry                       Address   Size  Type      Object
+-----                       -------   ----  ----      ------
+.iar.init_table$$Base    0x800'2c68          --   Gb  - Linker created -
+.iar.init_table$$Limit   0x800'2c8c          --   Gb  - Linker created -
+?main                    0x800'2cbd         Code  Gb  cmain.o [4]
+AHBPrescTable            0x800'2c0c   0x10  Data  Gb  system_stm32f4xx.o [1]
+APBPrescTable            0x800'2d38    0x8  Data  Gb  system_stm32f4xx.o [1]
+BusFault_Handler         0x800'2c93    0x2  Code  Gb  stm32f4xx_it.o [1]
+CSTACK$$Base            0x2000'0798          --   Gb  - Linker created -
+CSTACK$$Limit           0x2000'0b98          --   Gb  - Linker created -
+DeInitStateMachine       0x800'0e09   0x42  Code  Lc  usbh_core.o [1]
+DebugMon_Handler         0x800'2c99    0x2  Code  Gb  stm32f4xx_it.o [1]
+HAL_Delay                0x800'0de1   0x28  Code  Wk  stm32f4xx_hal.o [1]
+HAL_GPIO_Init            0x800'1cad  0x1ae  Code  Gb  stm32f4xx_hal_gpio.o [1]
+HAL_GPIO_WritePin        0x800'1e5b    0x8  Code  Gb  stm32f4xx_hal_gpio.o [1]
+HAL_GetTick              0x800'1161    0xc  Code  Wk  stm32f4xx_hal.o [1]
+HAL_HCD_Connect_Callback
+                         0x800'0d11    0x8  Code  Gb  usbh_conf.o [1]
+HAL_HCD_Disconnect_Callback
+                         0x800'0d19    0x8  Code  Gb  usbh_conf.o [1]
+HAL_HCD_GetCurrentSpeed
+                         0x800'085f    0x6  Code  Gb  stm32f4xx_hal_hcd.o [1]
+HAL_HCD_HC_GetURBState   0x800'0853    0xc  Code  Gb  stm32f4xx_hal_hcd.o [1]
+HAL_HCD_HC_Init          0x800'0189   0x68  Code  Gb  stm32f4xx_hal_hcd.o [1]
+HAL_HCD_HC_NotifyURBChange_Callback
+                         0x800'0d21    0x2  Code  Gb  usbh_conf.o [1]
+HAL_HCD_HC_SubmitRequest
+                         0x800'01f1   0x8a  Code  Gb  stm32f4xx_hal_hcd.o [1]
+HAL_HCD_IRQHandler       0x800'027b  0x534  Code  Gb  stm32f4xx_hal_hcd.o [1]
+HAL_HCD_PortDisabled_Callback
+                         0x800'0d2b    0x8  Code  Gb  usbh_conf.o [1]
+HAL_HCD_PortEnabled_Callback
+                         0x800'0d23    0x8  Code  Gb  usbh_conf.o [1]
+HAL_HCD_ResetPort        0x800'084d    0x6  Code  Gb  stm32f4xx_hal_hcd.o [1]
+HAL_HCD_SOF_Callback     0x800'0d09    0x8  Code  Gb  usbh_conf.o [1]
+HAL_HCD_Start            0x800'07ff   0x1c  Code  Gb  stm32f4xx_hal_hcd.o [1]
+HAL_HCD_Stop             0x800'0837   0x16  Code  Gb  stm32f4xx_hal_hcd.o [1]
+HAL_I2C_Init             0x800'1e91  0x12c  Code  Gb  stm32f4xx_hal_i2c.o [1]
+HAL_I2C_MspInit          0x800'2665   0x5e  Code  Gb  stm32f4xx_hal_msp.o [1]
+HAL_I2SEx_FullDuplex_IRQHandler
+                         0x800'29a9  0x1f8  Code  Gb  stm32f4xx_hal_i2s_ex.o [1]
+HAL_I2S_ErrorCallback    0x800'27cb    0x2  Code  Wk  stm32f4xx_hal_i2s.o [1]
+HAL_I2S_Init             0x800'1fe1  0x15a  Code  Gb  stm32f4xx_hal_i2s.o [1]
+HAL_I2S_MspInit          0x800'26c3   0x7a  Code  Gb  stm32f4xx_hal_msp.o [1]
+HAL_IncTick              0x800'2cad   0x10  Code  Wk  stm32f4xx_hal.o [1]
+HAL_InitTick             0x800'27d1   0x40  Code  Wk  stm32f4xx_hal.o [1]
+HAL_NVIC_SetPriority     0x800'2933   0x3a  Code  Gb  stm32f4xx_hal_cortex.o [1]
+HAL_RCCEx_GetPeriphCLKFreq
+                         0x800'2591   0x3a  Code  Gb  stm32f4xx_hal_rcc_ex.o [1]
+HAL_RCCEx_PeriphCLKConfig
+                         0x800'2489  0x108  Code  Gb  stm32f4xx_hal_rcc_ex.o [1]
+HAL_RCC_ClockConfig      0x800'22e9  0x100  Code  Gb  stm32f4xx_hal_rcc.o [1]
+HAL_RCC_GetPCLK1Freq     0x800'23f5   0x10  Code  Gb  stm32f4xx_hal_rcc.o [1]
+HAL_RCC_OscConfig        0x800'16a1  0x310  Code  Wk  stm32f4xx_hal_rcc.o [1]
+HAL_SPI_Init             0x800'2259   0x76  Code  Gb  stm32f4xx_hal_spi.o [1]
+HAL_SPI_MspInit          0x800'2751   0x4a  Code  Gb  stm32f4xx_hal_msp.o [1]
+HAL_SYSTICK_Config       0x800'296d   0x28  Code  Gb  stm32f4xx_hal_cortex.o [1]
+HardFault_Handler        0x800'2c8f    0x2  Code  Gb  stm32f4xx_it.o [1]
+I2S_IRQHandler           0x800'2151   0xf6  Code  Lc  stm32f4xx_hal_i2s.o [1]
+MX_USB_HOST_Process      0x800'22dd    0x6  Code  Gb  usb_host.o [1]
+MemManage_Handler        0x800'2c91    0x2  Code  Gb  stm32f4xx_it.o [1]
+NMI_Handler              0x800'2c8d    0x2  Code  Gb  stm32f4xx_it.o [1]
+OTG_FS_IRQHandler        0x800'2ca1    0x6  Code  Gb  stm32f4xx_it.o [1]
+PendSV_Handler           0x800'2c9b    0x2  Code  Gb  stm32f4xx_it.o [1]
+Region$$Table$$Base      0x800'2c68          --   Gb  - Linker created -
+Region$$Table$$Limit     0x800'2c8c          --   Gb  - Linker created -
+STM_Config               0x800'19b1  0x1e6  Code  Gb  main.o [1]
+SVC_Handler              0x800'2c97    0x2  Code  Gb  stm32f4xx_it.o [1]
+SysTick_Handler          0x800'2c9d    0x4  Code  Gb  stm32f4xx_it.o [1]
+SystemClock_Config       0x800'1ba7   0xb4  Code  Gb  main.o [1]
+SystemCoreClock         0x2000'000c    0x4  Data  Gb  system_stm32f4xx.o [1]
+SystemInit               0x800'2bf1   0x14  Code  Gb  system_stm32f4xx.o [1]
+USBH_AllocPipe           0x800'118f   0x36  Code  Gb  usbh_pipes.o [1]
+USBH_CtlReceiveData      0x800'1625    0xa  Code  Gb  usbh_ioreq.o [1]
+USBH_CtlReq              0x800'1431  0x198  Code  Gb  usbh_ctlreq.o [1]
+USBH_CtlSendData         0x800'1619    0xc  Code  Gb  usbh_ioreq.o [1]
+USBH_CtlSendSetup        0x800'1603   0x16  Code  Gb  usbh_ioreq.o [1]
+USBH_Delay               0x800'0dcb    0x4  Code  Gb  usbh_conf.o [1]
+USBH_FreePipe            0x800'11c5   0x18  Code  Gb  usbh_pipes.o [1]
+USBH_GetDescriptor       0x800'13a5   0x36  Code  Gb  usbh_ctlreq.o [1]
+USBH_GetNextDesc         0x800'1421    0xe  Code  Gb  usbh_ctlreq.o [1]
+USBH_Get_CfgDesc         0x800'1253  0x106  Code  Gb  usbh_ctlreq.o [1]
+USBH_Get_DevDesc         0x800'11dd   0x76  Code  Gb  usbh_ctlreq.o [1]
+USBH_Get_StringDesc      0x800'1359   0x4c  Code  Gb  usbh_ctlreq.o [1]
+USBH_Get_USB_Status      0x800'0dcf   0x12  Code  Gb  usbh_conf.o [1]
+USBH_LL_Connect          0x800'10c5   0x28  Code  Gb  usbh_core.o [1]
+USBH_LL_Disconnect       0x800'10ed   0x32  Code  Gb  usbh_core.o [1]
+USBH_LL_GetSpeed         0x800'0d4f   0x1c  Code  Gb  usbh_conf.o [1]
+USBH_LL_GetURBState      0x800'0dc3    0x8  Code  Gb  usbh_conf.o [1]
+USBH_LL_IncTimer         0x800'109d   0x1c  Code  Gb  usbh_core.o [1]
+USBH_LL_OpenPipe         0x800'0d77   0x22  Code  Gb  usbh_conf.o [1]
+USBH_LL_PortDisabled     0x800'10bd    0x2  Code  Gb  usbh_core.o [1]
+USBH_LL_PortEnabled      0x800'10b9    0x4  Code  Gb  usbh_core.o [1]
+USBH_LL_ResetPort        0x800'0d6b    0xc  Code  Gb  usbh_conf.o [1]
+USBH_LL_Start            0x800'0d33    0xa  Code  Gb  usbh_conf.o [1]
+USBH_LL_Stop             0x800'0d43    0xc  Code  Gb  usbh_conf.o [1]
+USBH_LL_SubmitURB        0x800'0d99   0x2a  Code  Gb  usbh_conf.o [1]
+USBH_OpenPipe            0x800'1173   0x1c  Code  Gb  usbh_pipes.o [1]
+USBH_Process             0x800'0e4d  0x248  Code  Gb  usbh_core.o [1]
+USBH_SetAddress          0x800'13db   0x16  Code  Gb  usbh_ctlreq.o [1]
+USBH_SetCfg              0x800'13f1   0x14  Code  Gb  usbh_ctlreq.o [1]
+USBH_SetFeature          0x800'140b   0x16  Code  Gb  usbh_ctlreq.o [1]
+USB_DoPing               0x800'0c5f   0x18  Code  Gb  stm32f4xx_ll_usb.o [1]
+USB_DriveVbus            0x800'096b   0x40  Code  Gb  stm32f4xx_ll_usb.o [1]
+USB_EnableGlobalInt      0x800'0865    0x8  Code  Gb  stm32f4xx_ll_usb.o [1]
+USB_FlushRxFifo          0x800'0891   0x1a  Code  Gb  stm32f4xx_ll_usb.o [1]
+USB_FlushTxFifo          0x800'0873   0x1e  Code  Gb  stm32f4xx_ll_usb.o [1]
+USB_GetHostSpeed         0x800'09ab   0x18  Code  Gb  stm32f4xx_ll_usb.o [1]
+USB_GetMode              0x800'08fd    0x8  Code  Gb  stm32f4xx_ll_usb.o [1]
+USB_HC_Halt              0x800'0bd7   0x6e  Code  Gb  stm32f4xx_ll_usb.o [1]
+USB_HC_Init              0x800'09c5   0xd6  Code  Gb  stm32f4xx_ll_usb.o [1]
+USB_HC_ReadInterrupt     0x800'0bcd    0xa  Code  Gb  stm32f4xx_ll_usb.o [1]
+USB_HC_StartXfer         0x800'0a9d  0x130  Code  Gb  stm32f4xx_ll_usb.o [1]
+USB_HC_StartXfer::tmpreg
+                        0x2000'0794    0x4  Data  Lc  stm32f4xx_ll_usb.o [1]
+USB_InitFSLSPClkSel      0x800'0905   0x30  Code  Gb  stm32f4xx_ll_usb.o [1]
+USB_ReadInterrupts       0x800'08f3    0xa  Code  Gb  stm32f4xx_ll_usb.o [1]
+USB_ReadPacket           0x800'08cf   0x1e  Code  Gb  stm32f4xx_ll_usb.o [1]
+USB_ResetPort            0x800'0935   0x36  Code  Gb  stm32f4xx_ll_usb.o [1]
+USB_StopHost             0x800'0c89   0x74  Code  Gb  stm32f4xx_ll_usb.o [1]
+USB_WritePacket          0x800'08ab   0x24  Code  Gb  stm32f4xx_ll_usb.o [1]
+UsageFault_Handler       0x800'2c95    0x2  Code  Gb  stm32f4xx_it.o [1]
+__NVIC_SetPriority       0x800'2919   0x1a  Code  Lc  stm32f4xx_hal_cortex.o [1]
+__aeabi_ldiv0            0x800'29a5         Code  Gb  I64DivZer.o [4]
+__aeabi_memclr4          0x800'116d         Code  Gb  ABImemclr4.o [4]
+__aeabi_memset           0x800'25fd         Code  Gb  ABImemset.o [4]
+__cmain                  0x800'2cbd         Code  Gb  cmain.o [4]
+__exit                   0x800'2cf9   0x14  Code  Gb  exit.o [5]
+__iar_Memset             0x800'25fd         Code  Gb  ABImemset.o [4]
+__iar_Memset4_word       0x800'15d1         Code  Gb  ABImemset48.o [4]
+__iar_Memset8_word       0x800'15d1         Code  Gb  ABImemset48.o [4]
+__iar_Memset_word        0x800'2605         Code  Gb  ABImemset.o [4]
+__iar_copy_init3         0x800'1673   0x2e  Code  Gb  copy_init3.o [4]
+__iar_data_init3         0x800'2c1d   0x28  Code  Gb  data_init.o [4]
+__iar_init_vfp           0x800'2c45         Code  Gb  fpinit_M.o [3]
+__iar_program_start      0x800'2d2d         Code  Gb  cstartup_M.o [4]
+__iar_small_uldivmod     0x800'2811         Code  Gb  I64DivMod_small.o [4]
+__iar_zero_init3         0x800'1127   0x3a  Code  Gb  zero_init3.o [4]
+__low_level_init         0x800'2cdb    0x4  Code  Gb  low_level_init.o [2]
+__vector_table           0x800'0000         Data  Gb  startup_stm32f407xx.o [1]
+_call_main               0x800'2cc9         Code  Gb  cmain.o [4]
+_exit                    0x800'2ced         Code  Gb  cexit.o [4]
+_main                    0x800'2cd7         Code  Gb  cmain.o [4]
+exit                     0x800'2ce7    0x4  Code  Gb  exit.o [2]
+hUsbHostFS              0x2000'0010  0x3cc  Data  Gb  usb_host.o [1]
+hhcd_USB_OTG_FS         0x2000'03dc  0x2c4  Data  Gb  usbh_conf.o [1]
+hi2c1                   0x2000'06f8   0x54  Data  Gb  main.o [1]
+hi2s3                   0x2000'074c   0x48  Data  Gb  main.o [1]
+hspi1                   0x2000'06a0   0x58  Data  Gb  main.o [1]
+main                     0x800'2cdf    0x8  Code  Gb  actuateMCU.o [1]
+memset                   0x800'1c99   0x14  Code  Gb  memset.o [4]
+uwTick                  0x2000'0004    0x4  Data  Gb  stm32f4xx_hal.o [1]
+uwTickFreq              0x2000'0000    0x1  Data  Gb  stm32f4xx_hal.o [1]
+uwTickPrio              0x2000'0008    0x4  Data  Gb  stm32f4xx_hal.o [1]
+
+
+[1] = C:\Users\David R Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController\Obj
+[2] = dl7M_tlf.a
+[3] = m7M_tls.a
+[4] = rt7M_tl.a
+[5] = shb_l.a
+
+  11'842 bytes of readonly  code memory
+      62 bytes of readonly  data memory
+   2'968 bytes of readwrite data memory
+
+Errors: none
+Warnings: none
