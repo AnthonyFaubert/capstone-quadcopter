@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workspace>
     <project>
+        <path>$WS_DIR$\..\RxTx_ExternalController\STM_ExternalController\EWARM\STM_ExternalController.ewp</path>
+    </project>
+    <project>
         <path>$WS_DIR$\TemplateProject.ewp</path>
     </project>
     <batchBuild />
