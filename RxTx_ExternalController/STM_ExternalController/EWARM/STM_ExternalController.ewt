@@ -1257,12 +1257,6 @@
                 <name>$PROJ_DIR$\..\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_hcd.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_i2c.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_i2c_ex.c</name>
-            </file>
-            <file>
                 <name>$PROJ_DIR$\..\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_i2s.c</name>
             </file>
             <file>
@@ -1288,6 +1282,9 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_tim_ex.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_uart.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_usb.c</name>
@@ -1321,6 +1318,15 @@
             <name>SourceCode</name>
             <file>
                 <name>$PROJ_DIR$\..\WorkStation\SourceCode\actuateMCU.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\WorkStation\SourceCode\DMA.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\WorkStation\SourceCode\testLibrary.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\WorkStation\SourceCode\USART.cpp</name>
             </file>
         </group>
     </group>
