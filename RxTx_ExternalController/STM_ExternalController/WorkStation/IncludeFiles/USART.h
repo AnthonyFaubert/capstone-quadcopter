@@ -18,8 +18,10 @@ extern "C" {
 /*  Declared Functions  */
 
 void txCharUSART6(char sendChar);
-void txBufferUSART6(int bufferSize, char * sendAddress);
-void USART6_Config(void);
+void txBufferUSART6(uint32_t bufferSize, char * sendAddress);
+
+void USART6_RX_Config(uint32_t bufferSize, char * targetAddress);
+
 void USART6_IT_HANDLER(void);
 
 #ifdef __cplusplus

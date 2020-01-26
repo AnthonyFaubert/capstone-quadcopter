@@ -15,9 +15,12 @@ extern "C" {
 // Local Inc
 
 /*  Declared Functions  */
-void DMA_Config_USART6_RX(int bufferSize, char * targetAddress);
+void DMA_Config_USART6_RX(uint32_t bufferSize, char * targetAddress);
 
 void DMA_TX_USART6(int bufferSize, char * sendAddress);
+
+void DMA2_STREAM1_IT_HANDLER(void);
+void DMA2_STREAM6_IT_HANDLER(void);
 
 #ifdef __cplusplus
 }

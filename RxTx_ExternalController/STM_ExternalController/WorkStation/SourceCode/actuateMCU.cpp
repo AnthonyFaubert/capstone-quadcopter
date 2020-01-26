@@ -13,13 +13,16 @@ int main()
   STM_Config();
 
   /*     CONFIGURATION_CODE_HERE    */
-  //USART6_Config();
+  //USART6_RX_Config();
+
+  /*  Tx_Functions  */
   txBufferUSART6(sizeof(test0Array), test0Array);
   txBufferUSART6(sizeof(test1Array), test1Array);
 
   // Main loop
   while(1)
   {
+    // LED Display
     turnOnGPIO_LEDs(clkDelay);
     turnOffGPIO_LEDs(clkDelay);
   }
