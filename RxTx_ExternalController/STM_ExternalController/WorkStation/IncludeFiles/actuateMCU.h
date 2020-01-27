@@ -16,6 +16,7 @@ extern "C" {
 #include "./testLibrary.h"
 #include "./DMA.h"
 #include "./USART.h"
+#include "./C1101.h"
 
 /*   Declared Functions   */
 
