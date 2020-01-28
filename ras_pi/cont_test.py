@@ -1,6 +1,9 @@
-import os
 import time
+import subprocess
 
-os.system("sc-controller")
+sc_proc = subprocess.Popen('sc-controller', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 time.sleep(5)
-os.system("jstest-gtk")
+sc_proc.kill()
+js_proc = subprocess.Popen('jstest-gtk' stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+time.sleep(3)
+js_proc.kill()
