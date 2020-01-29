@@ -1,17 +1,17 @@
-
 import pygame
 import time
 import serial
 import subprocess
+import struct
 
 # open the steam controller driver
 sc_proc = subprocess.Popen('sc-controller', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-time.sleep(5)
+time.sleep(1)
 sc_proc.kill()
 
 # open the jstest-gtk program to ensure that the controller is connected
 js_proc = subprocess.Popen('jstest-gtk', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-time.sleep(3)
+time.sleep(1)
 js_proc.kill()
 
 # intialize pygame
@@ -26,7 +26,10 @@ clock = pygame.time.Clock()
 joystick = pygame.joystick.Joystick(0)
 joystick.init()
 
-ser = serial.Serial(port = "/dev/ttyS0", baudrate = 9600, write_timeout = 0)
+ser = serial.Serial(port = "/dev/ttyS0", baudrate = 115200, write_timeout = 0)
+
+def hexify(bs):
+    return ''.join('{:02x}'.format(x) for x in bs)
 
 def get_tilt(): # left analog stick, axes 0 and 1. Axis 1 is up/down and is inverted with fully up being -1
     lr_motion = int(joystick.get_axis(0) * 32767)
@@ -38,8 +41,12 @@ def get_yt(): # right trackpad used as stick, axes 3 and 4. Axis 4 is up/down an
     ud_motion = int(joystick.get_axis(4) * -32767)
     return (lr_motion, ud_motion)
 
+def send_data(dataValue):
+    ser.write(dataValue)
+    print(hexify(dataValue))
+    
 while not done:
-    clock.tick(60)
+    clock.tick(1) #integer value is the frames per second
     
     for event in pygame.event.get(): # User did something.
         if event.type == pygame.QUIT: # If user clicked close.
@@ -47,14 +54,11 @@ while not done:
     
     if ready_to_send:
         tilt = get_tilt()
-        ser.write(tilt[0]) # left/right on stick
-        send_data(tilt[1]) # up/down on stick
-	print(tilt[0])
-	print(tilt[1])
+        print("tilt lr = " + str(tilt[0]))
         yt = get_yt()
-        send_data(yt[0]) # left/right on stick
-        send_data(yt[1]) # up/down on stick
-        ready_to_send = False
+        ready_to_send = True #needs to be set to False eventually
+        data = struct.pack('<hhhh', tilt[0], tilt[1], yt[0], yt[1])
+        send_data(data)
         print("sent one set")
     
     if (ser.in_waiting > 0):
@@ -66,4 +70,3 @@ while not done:
 #turn off motors
 ser.close()
 pygame.quit()
-
