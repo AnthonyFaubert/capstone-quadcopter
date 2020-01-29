@@ -1,9 +1,4 @@
 
-# coding: utf-8
-
-# In[ ]:
-
-
 import pygame
 import time
 import serial
@@ -51,9 +46,11 @@ while not done:
             done = True # Flag that we are done so we exit this loop.
     
     if ready_to_send:
-        #tilt = bytearray(get_tilt())
+        tilt = get_tilt()
         ser.write(tilt[0]) # left/right on stick
         send_data(tilt[1]) # up/down on stick
+	print(tilt[0])
+	print(tilt[1])
         yt = get_yt()
         send_data(yt[0]) # left/right on stick
         send_data(yt[1]) # up/down on stick
