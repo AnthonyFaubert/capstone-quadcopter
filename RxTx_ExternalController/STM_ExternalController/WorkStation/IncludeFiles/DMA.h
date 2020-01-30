@@ -22,6 +22,19 @@ void DMA_TX_USART6(int bufferSize, char * sendAddress);
 void DMA2_STREAM1_IT_HANDLER(void);
 void DMA2_STREAM6_IT_HANDLER(void);
 
+void DMA_RX_Config_SPI1(int bufferSize, uint32_t targetAddress);
+
+void DMA_TX_ONE_SHOT_SPI1(int bufferSize, uint32_t propagationAddress);
+
+void DMA_TX_CONTINUOUS_SPI1(
+                            int bufferSize,
+                            uint32_t propagationAddress0,
+                            uint32_t propagationAddress1
+                           );
+
+void DMA2_STREAM0_IT_HANDLER(void);
+void DMA2_STREAM3_IT_HANDLER(void);
+
 #ifdef __cplusplus
 }
 #endif

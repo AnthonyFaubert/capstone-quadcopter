@@ -1,7 +1,7 @@
 
 
-#ifndef C1101_H
-#define C1101_H
+#ifndef GPIO_H
+#define GPIO_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,8 +13,7 @@ extern "C" {
 #include "./../../CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
 
 // Local Inc
-#include "./DMA.h"
-#include "./USART6.h"
+
 
 /*  Declared Functions  */
 
@@ -22,4 +21,4 @@ extern "C" {
 }
 #endif
 
-#endif // C1101_H
+#endif // GPIO_H
