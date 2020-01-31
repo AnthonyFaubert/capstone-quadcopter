@@ -7,6 +7,10 @@
 extern "C" {
 #endif
 
+/*    Declareed Variables    */
+extern int rxReceived;
+extern int LED_ON;
+
 /*  Include Files  */
 
 // Non-Local Inc

@@ -14,7 +14,7 @@ extern "C" {
 
 // Local Inc
 #include "./DMA.h"
-#include "./USART6.h"
+#include "./USART.h"
 #include "./GPIO.h"
 
 /*  Declared Functions  */

@@ -7,12 +7,17 @@
 extern "C" {
 #endif
 
+/*    Declared_Variables     */
+
+//int rxReceived;
+
 /*  Include Files  */
 
 // Non-Local Inc
 #include "./../../CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
 
 // Local Inc
+#include "./actuateMCU.h"
 
 /*  Declared Functions  */
 void DMA_Config_USART6_RX(uint32_t bufferSize, char * targetAddress);

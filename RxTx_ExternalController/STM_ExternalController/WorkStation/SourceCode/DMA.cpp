@@ -18,8 +18,9 @@ void DMA_Config_USART6_RX(uint32_t bufferSize, char * targetAddress)
 {
   RX_BUFFER = bufferSize & 0xFFFFFFFFUL;
   RX_POINTER = (uint32_t) targetAddress;
+  rxReceived = 0;
   DMA2_Stream1->CR &= ~DMA_SxCR_EN; // Disable DMA, Stream1 (if on for some reason)
-  DMA2_Stream6->CR |= DMA_SxCR_TCIE; // Activate TC Interrupt
+  DMA2_Stream1->CR |= DMA_SxCR_TCIE; // Activate TC Interrupt
   DMA2_Stream1->NDTR = RX_BUFFER; // Number of transfers
   DMA2_Stream1->PAR = (uint32_t) &(USART6->DR); // Set Peripheral Address
   DMA2_Stream1->M0AR = RX_POINTER; // Target Memory Address
@@ -35,6 +36,7 @@ void DMA_TX_USART6(int bufferSize, char * sendAddress)
   DMA2_Stream6->PAR = (uint32_t) &(USART6->DR); // Set Peripheral Address
   DMA2_Stream6->M0AR = (uint32_t) sendAddress; // Data-Propagation Address
   DMA2_Stream6->CR |= DMA_SxCR_EN; // Send-Data Signal
+  rxReceived = 0;
 }
 
 // Reset DMA2 to stream data from USART6
@@ -43,6 +45,7 @@ void DMA2_STREAM1_IT_HANDLER(void)
   DMA2->LIFCR |= (DMA_LIFCR_CTCIF1 + DMA_LIFCR_CHTIF1);
   DMA2_Stream1->NDTR = RX_BUFFER;
   DMA2_Stream1->M0AR = RX_POINTER;
+  rxReceived = 1;
   DMA2_Stream1->CR |= DMA_SxCR_EN;
 }
 
