@@ -13,11 +13,20 @@ extern "C" {
 #include "./../../CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
 
 // Local Inc
-#include "./DMA.h"
 #include "./USART.h"
 #include "./GPIO.h"
+#include "./SPI.h"
 
 /*  Declared Functions  */
+void CC1101_Configure(
+                      uint32_t propagationAddress, uint32_t PA_Size
+                      uint32_t targetAddress, uint32_t TA_Size
+                     );
+
+void readSPI(short readAddress);
+void burstReadSPI(void);
+void writeSPI(short writeAddress, short data);
+void burstWriteSPI(void);
 
 #ifdef __cplusplus
 }

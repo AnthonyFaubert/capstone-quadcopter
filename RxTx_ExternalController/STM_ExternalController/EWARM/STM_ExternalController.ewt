@@ -1257,12 +1257,6 @@
                 <name>$PROJ_DIR$\..\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_hcd.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_i2s.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_i2s_ex.c</name>
-            </file>
-            <file>
                 <name>$PROJ_DIR$\..\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_pwr.c</name>
             </file>
             <file>
@@ -1320,7 +1314,13 @@
                 <name>$PROJ_DIR$\..\WorkStation\SourceCode\actuateMCU.cpp</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\..\WorkStation\SourceCode\CC1101.cpp</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\WorkStation\SourceCode\DMA.cpp</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\WorkStation\SourceCode\SPI.cpp</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\WorkStation\SourceCode\testLibrary.cpp</name>

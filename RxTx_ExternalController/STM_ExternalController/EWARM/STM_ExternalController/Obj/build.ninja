@@ -52,7 +52,9 @@ build usbh_ctlreq.pbi : index usbh_ctlreq.xcl
 build usbh_ioreq.pbi : index usbh_ioreq.xcl
 build usbh_pipes.pbi : index usbh_pipes.xcl
 build actuateMCU.pbi : index actuateMCU.xcl
+build CC1101.pbi : index CC1101.xcl
 build DMA.pbi : index DMA.xcl
+build SPI.pbi : index SPI.xcl
 build testLibrary.pbi : index testLibrary.xcl
 build USART.pbi : index USART.xcl
 build STM_ExternalController_part0.pbi : link main.pbi stm32f4xx_hal_msp.pbi stm32f4xx_it.pbi usb_host.pbi usbh_conf.pbi usbh_platform.pbi
@@ -60,8 +62,9 @@ build STM_ExternalController_part1.pbi : link system_stm32f4xx.pbi stm32f4xx_hal
 build STM_ExternalController_part2.pbi : link stm32f4xx_hal_flash.pbi stm32f4xx_hal_flash_ex.pbi stm32f4xx_hal_flash_ramfunc.pbi stm32f4xx_hal_gpio.pbi stm32f4xx_hal_hcd.pbi stm32f4xx_hal_pwr.pbi
 build STM_ExternalController_part3.pbi : link stm32f4xx_hal_pwr_ex.pbi stm32f4xx_hal_rcc.pbi stm32f4xx_hal_rcc_ex.pbi stm32f4xx_hal_spi.pbi stm32f4xx_hal_tim.pbi stm32f4xx_hal_tim_ex.pbi
 build STM_ExternalController_part4.pbi : link stm32f4xx_hal_uart.pbi stm32f4xx_ll_usb.pbi usbh_cdc.pbi usbh_core.pbi usbh_ctlreq.pbi usbh_ioreq.pbi
-build STM_ExternalController_part5.pbi : link usbh_pipes.pbi actuateMCU.pbi DMA.pbi testLibrary.pbi USART.pbi
-build STM_ExternalController.pbd : link STM_ExternalController_part0.pbi STM_ExternalController_part1.pbi STM_ExternalController_part2.pbi STM_ExternalController_part3.pbi STM_ExternalController_part4.pbi STM_ExternalController_part5.pbi
+build STM_ExternalController_part5.pbi : link usbh_pipes.pbi actuateMCU.pbi CC1101.pbi DMA.pbi SPI.pbi testLibrary.pbi
+build STM_ExternalController_part6.pbi : link USART.pbi
+build STM_ExternalController.pbd : link STM_ExternalController_part0.pbi STM_ExternalController_part1.pbi STM_ExternalController_part2.pbi STM_ExternalController_part3.pbi STM_ExternalController_part4.pbi STM_ExternalController_part5.pbi STM_ExternalController_part6.pbi
 build STM_ExternalController.pbw : browsedata STM_ExternalController.pbd
 
 

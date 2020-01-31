@@ -46,4 +46,5 @@ USART.pbi: \
   C:\Users\David\ R\ Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\WorkStation\SourceCode/./../IncludeFiles/./testLibrary.h \
   C:\Users\David\ R\ Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\WorkStation\SourceCode/./../IncludeFiles/./USART.h \
   C:\Users\David\ R\ Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\WorkStation\SourceCode/./../IncludeFiles/./CC1101.h \
-  C:\Users\David\ R\ Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\WorkStation\SourceCode/./../IncludeFiles/./GPIO.h
+  C:\Users\David\ R\ Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\WorkStation\SourceCode/./../IncludeFiles/./GPIO.h \
+  C:\Users\David\ R\ Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\WorkStation\SourceCode/./../IncludeFiles/./SPI.h
