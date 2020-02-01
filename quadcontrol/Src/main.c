@@ -61,41 +61,65 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+#ifdef __GNUC__
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif /* __GNUC__ */
+
+PUTCHAR_PROTOTYPE {
+        while (HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 10) != HAL_OK) {};
+ return ch;
+}
+
 extern uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
-extern int8_t CDC_Receive_FS(uint8_t* pbuf, uint32_t *Len);
-//extern USBD_HandleTypeDef hUsbDeviceFS;
-/*
-// Overwrite FILE IO function for printf
-int _write(int file, char* data, int len) {
-  // Send it back (While the UART in reception process, user can transmit data through the uartBuf buffer)
-  if (CDC_Transmit_FS((uint8_t*) data, len) != USBD_OK) {
-    Error_Handler();
-    return -1;
-  }
-  return len;
+uint8_t strBuf[500];
+
+void usbprintln(const char* str) {
+  uint16_t len = sprintf((char*) strBuf, "%s\n", str);
+  CDC_Transmit_FS(strBuf, len);
 }
-/*
-int _read(int file, char* data, int len) {
-  if (HAL_UART_Receive_IT(&huart2, data, len) != HAL_OK) {
-    Error_Handler();
-  }
-  // Wait for end of transfer
-  while (UartReady != SET);
-  // Reset transfer flag
-  UartReady = RESET;
-  return len;
+
+int isUserButtonPressed() {
+  return HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_SET;
 }
-int _write(int file, char* data, int len) {
-  // Send it back (While the UART in reception process, user can transmit data through the uartBuf buffer)
-  if (HAL_UART_Transmit_IT(&UartHandle, data, len)!= HAL_OK) {
+
+void SetPWM(uint16_t ch1, uint16_t ch2, uint16_t ch3, uint16_t ch4) {
+  HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_4);
+  
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  
+  sConfigOC.Pulse = ch1;
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) {
     Error_Handler();
   }
-  //HAL_UART_Transmit(&huart1, (uint8_t*)data, len, 1000) != HAL_OK
-  while (UartReady != SET);
-  UartReady = RESET;
-  return len;
+  
+  sConfigOC.Pulse = ch2;
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK) {
+    Error_Handler();
+  }
+  
+  sConfigOC.Pulse = ch3;
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK) {
+    Error_Handler();
+  }
+  
+  sConfigOC.Pulse = ch4;
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4) != HAL_OK) {
+    Error_Handler();
+  }
+  
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
 }
-*/
 /* USER CODE END 0 */
 
 /**
@@ -134,21 +158,38 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
-  uint8_t buffer[] = "Hello, dumbass world!\n";
+  
+  usbprintln("Started.");
+  int i = 0;
+  while (!isUserButtonPressed()) {
+    if ((i % 10) == 0) usbprintln("Waiting for button press...");
+    i++;
+    HAL_Delay(100);
+  }
+  
+  usbprintln("Calibrating ESCs...");
+  for (uint16_t pwm = 1000; pwm <= 2000; pwm += 200) {
+    SetPWM(pwm, pwm, pwm, pwm);
+    HAL_Delay(100);
+  }
+  SetPWM(1000, 1000, 1000, 1000);
+  usbprintln("ESCs calibrated.");
   /* USER CODE END 2 */
  
  
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  uint16_t ch2pwm = 1000;
   while (1) {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    CDC_Receive_FS(buffer, 1);
-    CDC_Transmit_FS(buffer, 1);
-    //printf("Hello world!\r\n");
-    //HAL_Delay(1000);
+    HAL_Delay(1000);
+    SetPWM(1000, ch2pwm, 1500, 2000);
+    ch2pwm += 200;
+    if (ch2pwm > 2000) ch2pwm = 1000;
+    usbprintln("Looped.");
   }
   /* USER CODE END 3 */
 }
