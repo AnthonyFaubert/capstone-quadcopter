@@ -26,6 +26,8 @@ Class for FS IP = communication device class (virtual port com)
 Project Manager tab {
 proj location = .../capstone-quadcopter/quadcontrol
 proj name = quadcontrol
+min heap size = 0x1000
+min stack size = 0x500
 Code generator left tab > turn on "Generate peripheral initialization as a pair of '.c/.h' files per peripheral"
 Advanced settings left tab > make sure USB_DEVICE IP has "Visibility (Static)" set to true
 }
