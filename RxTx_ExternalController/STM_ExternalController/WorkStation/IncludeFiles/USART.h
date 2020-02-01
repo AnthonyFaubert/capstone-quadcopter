@@ -24,6 +24,9 @@ void USART6_RX_Config(uint32_t bufferSize, char * targetAddress);
 
 void USART6_IT_HANDLER(void);
 
+/*  Declared Variables  */
+extern int rxReceived;
+
 #ifdef __cplusplus
 }
 #endif

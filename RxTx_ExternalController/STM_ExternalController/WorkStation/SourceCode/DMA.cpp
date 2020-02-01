@@ -84,12 +84,11 @@ void DMA_Config_SPI1_TX(int bufferSize, uint32_t propagationAddress)
   DMA2_Stream3->NDTR = TX_BUFFER_SPI; // Number of transfers
   DMA2_Stream3->PAR = (uint32_t) &(SPI1->DR); // Set Peripheral Address
   DMA2_Stream3->M0AR = TX_POINTER_SPI; // Data-Propagation Address
-  //DMA2_Stream3->CR |= DMA_SxCR_EN; // Send-Data Signal
 }
 
-void DMA_TX_ONE_SHOT_SPI1(int bufferSize, uint32_t propagationAddress)
+void FLUSH_DMA_SPI1()
 {
-
+  DMA2_Stream3->CR |= DMA_SxCR_EN;
 }
 
 void DMA_TX_CONTINUOUS_SPI1(

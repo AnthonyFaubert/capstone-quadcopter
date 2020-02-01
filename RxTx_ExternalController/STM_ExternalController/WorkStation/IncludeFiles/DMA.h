@@ -21,16 +21,14 @@ extern "C" {
 
 /*  Declared Functions  */
 void DMA_Config_USART6_RX(uint32_t bufferSize, char * targetAddress);
-
 void DMA_TX_USART6(int bufferSize, char * sendAddress);
-
 void DMA2_STREAM1_IT_HANDLER(void);
 void DMA2_STREAM6_IT_HANDLER(void);
 
-void DMA_RX_Config_SPI1(int bufferSize, uint32_t targetAddress);
 
-void DMA_TX_ONE_SHOT_SPI1(int bufferSize, uint32_t propagationAddress);
-
+void DMA_Config_SPI1_RX(int bufferSize, uint32_t targetAddress);
+void DMA_Config_SPI1_TX(int bufferSize, uint32_t propagationAddress);
+void FLUSH_DMA_SPI1(void);
 void DMA_TX_CONTINUOUS_SPI1(
                             int bufferSize,
                             uint32_t propagationAddress0,

@@ -3,6 +3,16 @@
 
 #include "./../IncludeFiles/testLibrary.h"
 
+void LED_Display()
+{
+  int clkDelay = 100 * 100000; // 1,000,000
+  while(1)
+  {
+    turnOnGPIO_LEDs(clkDelay);
+    turnOffGPIO_LEDs(clkDelay);
+  }
+}
+
 void wait(int ticks)
 {
   for(int i = 0; i < ticks; i++);

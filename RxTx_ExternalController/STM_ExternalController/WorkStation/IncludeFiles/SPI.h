@@ -16,10 +16,14 @@ extern "C" {
 #include "./GPIO.h"
 
 /*  Declared Functions  */
-void SPI_Init(
-              uint32_t txBufferSize, uint32_t txBuffer,
-              uint32_t rxBufferSize, uint32_t rxBuffer
-             );
+void SPI_Init(void);
+void SPI_TX(void);
+void SPI_DMA_Config(
+                    uint32_t rxBufferSize,
+                    uint32_t rxBuffer,
+                    uint32_t txBufferSize,
+                    uint32_t txBuffer
+                   );
 
 #ifdef __cplusplus
 }

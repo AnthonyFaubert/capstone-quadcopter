@@ -18,6 +18,7 @@ extern "C" {
 
 /*  Declared Functions  */
 
+void LED_Display(void);
 void wait(int clkDelay);
 void turnOnGPIO_LEDs(int clkDelay);
 void turnOffGPIO_LEDs(int clkDelay);

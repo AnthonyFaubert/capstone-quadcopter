@@ -7,10 +7,6 @@
 extern "C" {
 #endif
 
-/*    Declareed Variables    */
-extern int rxReceived;
-extern int LED_ON;
-
 /*  Include Files  */
 
 // Non-Local Inc
@@ -23,6 +19,8 @@ extern int LED_ON;
 #include "./CC1101.h"
 
 /*   Declared Functions   */
+
+/*    Declareed Variables    */
 
 #ifdef __cplusplus
 }
