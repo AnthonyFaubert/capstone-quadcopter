@@ -1,0 +1,24 @@
+BNO055 Configuration Instructions:
+
+Video Tutorial:
+https://www.youtube.com/watch?v=NUAeER-1e4c
+
+Project foundation github open-source (from tutorial) link: 
+https://gitlab.pld.ttu.ee/iotcenter/bno055
+
+Post-Tutorial Instructions:
+
+1. accel.c edits:
+	a. For absolute orientation, BNO055 NDOF mode needs to be enabled (nine-degrees of freedom)
+		change variable: uint8_t OPRMode = NDOF
+	b. BNO055_Init_I2C does NOT need to be edited - leave as is
+	c. Added get functions for register information on other IMU sensor data
+		Use GetAccelData function from provided code for format
+
+		Registers to use (from Arduino BNO055 sensor library) & registers are defined in bno055 header file:
+			Replace the BNO055_ACC_DATA_X_LSB parameter register in the HAL_I2C_Mem_Read function 
+
+		For Euler Vectors: BNO055_EUL_HEADING_LSB
+		For Gyroscope Data (Angular Velocity): BNO055_GYR_DATA_X_LSB
+		For 
+

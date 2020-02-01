@@ -1,0 +1,65 @@
+BNO055 Configuration Instructions:
+
+Video Tutorial:
+https://www.youtube.com/watch?v=NUAeER-1e4c
+
+Project foundation github open-source (from tutorial) link: 
+https://gitlab.pld.ttu.ee/iotcenter/bno055
+
+Post-Tutorial Instructions:
+
+NOTE: CODE MUST BE WRITTEN IN DESIGNATED LOCATIONS SPECIFIED BY /* USER CODE BEGIN _ */ and /* USER CODE END _ */ 
+SO THAT NEWLY GENERATED CODE DOES NOT OVERLAP ADDED CODE
+
+1. accel.c edits:
+	a. For absolute orientation, BNO055 NDOF mode needs to be enabled (nine-degrees of freedom)
+		change variable: uint8_t OPRMode = NDOF
+	b. BNO055_Init_I2C does NOT need to be edited - leave as is
+	c. Added get functions for register information on other IMU sensor data
+		Use GetAccelData function from provided code for format
+
+		Registers to use (from Arduino BNO055 sensor library) & registers are defined in bno055 header file:
+			Replace the BNO055_ACC_DATA_X_LSB parameter register in the HAL_I2C_Mem_Read function 
+			Other parameters can remain the same
+
+		For Euler Vectors: BNO055_EUL_HEADING_LSB
+		For Gyroscope Data (Angular Velocity): BNO055_GYR_DATA_X_LSB
+		For Quaternion Data: BNO055_QUA_DATA_W_LSB
+	d. accel.h file needs to be edited to include the new functions
+
+2. main.c edits:
+	a. You can follow the format for the acceleration vector from the provided code as a format (i.e. usages of uint8_t and etc.)
+
+	ADD NECESSARY VARIABLES WHERE NEEDED
+
+	b. Euler Data register information:
+		
+		1. Read from the correct register
+		2. X coordinate: Euler reading[1] << 8 | Euler reading[0]
+		   Y coordinate: Euler reading[3] << 8 | Euler reading[2]
+		   Z coordinate: Euler reading[5] << 8 | Euler reading[4]
+		3. Actual values need to be scaled based on their units
+			For Euler Vector, a division by 16.0 is needed for all coordinates 
+				(similar to how acc_x, acc_y, and acc_z in the example is divided by 100)
+
+	c. Gyroscope Data register information goes through the same indexing and adjustment as Euler Vectors
+		Only difference is that the register read is different
+
+	d. Quaternion Data information: 
+
+		1. Read from the correct register
+		2. Four coordinates for quaternion:
+			W coordinate: Euler reading[1] << 8 | Euler reading[0]
+		   	X coordinate: Euler reading[3] << 8 | Euler reading[2]
+		   	Y coordinate: Euler reading[5] << 8 | Euler reading[4] 
+			Z coordinate: Euler reading[7] << 8 | Euler reading[6]
+		3. Multiply with the scale 
+			From the Arduino library
+				const float scale = (1.0/(1<<14))
+				multiply all coordinates with this scale
+
+3. Adding new STM32CubeMX generated code (errors can be solved by changing to softfp)
+	a. Project > Properties > C/C++ Build > Settings > Tool Settings > MCU Settings > Floating-point ABI > softfp
+
+
+
