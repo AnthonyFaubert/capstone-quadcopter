@@ -20,6 +20,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "i2c.h"
 #include "i2s.h"
 #include "spi.h"
@@ -30,7 +31,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "bno055.h"
+#include "accel.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -151,6 +153,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_I2C1_Init();
   MX_I2S3_Init();
   MX_SPI1_Init();
@@ -158,6 +161,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
+  BNO055_Init_I2C(&hi2c1);
   
   usbprintln("Started.");
   int i = 0;
@@ -174,6 +178,10 @@ int main(void)
   }
   SetPWM(1000, 1000, 1000, 1000);
   usbprintln("ESCs calibrated.");
+  uint8_t imu_readings[IMU_NUMBER_OF_BYTES];
+  int16_t accel_data[3];
+  float acc_x, acc_y, acc_z;
+
   /* USER CODE END 2 */
  
  
@@ -190,6 +198,16 @@ int main(void)
     ch2pwm += 200;
     if (ch2pwm > 2000) ch2pwm = 1000;
     usbprintln("Looped.");
+    
+    GetAccelData(&hi2c1, (uint8_t*)imu_readings);
+    accel_data[0] = (((int16_t)((uint8_t *)(imu_readings))[1] << 8) | ((uint8_t *)(imu_readings))[0]);      // Turn the MSB and LSB into a signed 16-bit value
+    accel_data[1] = (((int16_t)((uint8_t *)(imu_readings))[3] << 8) | ((uint8_t *)(imu_readings))[2]);
+    accel_data[2] = (((int16_t)((uint8_t *)(imu_readings))[5] << 8) | ((uint8_t *)(imu_readings))[4]);
+    acc_x = ((float)(accel_data[0]))/100.0f; //m/s2
+    acc_y = ((float)(accel_data[1]))/100.0f;
+    acc_z = ((float)(accel_data[2]))/100.0f;
+    int len = sprintf((char*) strBuf, "X: %.2f Y: %.2f Z: %.2f\r\n", acc_x, acc_y, acc_z);
+    CDC_Transmit_FS(strBuf, len);
   }
   /* USER CODE END 3 */
 }
