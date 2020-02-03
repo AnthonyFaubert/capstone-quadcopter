@@ -18,7 +18,7 @@ uint8_t MPwrMode 	= Normal;    		// Select magnetometer power mode
 uint8_t Modr 			= MODR_30Hz;    // Select magnetometer ODR when in BNO055 bypass mode
 
 uint8_t PWRMode 	= Normalpwr;  	// Select BNO055 power mode
-uint8_t OPRMode 	= ACCGYRO;    	// specify operation mode for sensors [ACCONLY|MAGONLY|GYROONLY|ACCMAG|ACCGYRO|MAGGYRO|AMG|NDOF|NDOF_FMC_OFF]
+uint8_t OPRMode 	= NDOF;    	// specify operation mode for sensors [ACCONLY|MAGONLY|GYROONLY|ACCMAG|ACCGYRO|MAGGYRO|AMG|NDOF|NDOF_FMC_OFF]
 
 uint8_t status;               // BNO055 data status register
 float aRes, gRes, mRes; 			// scale resolutions per LSB for the sensors

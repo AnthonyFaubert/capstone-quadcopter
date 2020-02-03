@@ -82,6 +82,9 @@ acc_y = ((float)(accel_data[1]))/100.0f;
 acc_z = ((float)(accel_data[2]))/100.0f;
 int len = sprintf((char*) strBuf, "X: %.2f Y: %.2f Z: %.2f\r\n", acc_x, acc_y, acc_z);
 CDC_Transmit_FS(strBuf, len);
+}
+In accel.c, change uint8_t OPRMode definition to:
+uint8_t OPRMode = NDOF;
 /////////////////
 
 /* Repo version */
