@@ -208,6 +208,39 @@ void emergencyStop() {
   while (1);
 }
 
+/*
+ CW0  CCW1
+CCW2   CW3
+ */
+
+float ROLL_VECTOR[4] = {-1.0f, 1.0f, 1.0f, -1.0f};
+float PITCH_VECTOR[4] = {1.0f, 1.0f, -1.0f, -1.0f};
+float YAW_VECTOR[4] = {1.0f, -1.0f, 1.0f, -1.0f};
+float GAIN_PROPORTIONAL_ROLL = 0.01f;
+float GAIN_PROPORTIONAL_PITCH = 0.01f;
+float GAIN_PROPORTIONAL_YAW = 0.01f;
+void multiplyVectors(float* result, float* v, float* u) {
+  for (int i = 0; i < 4; i++) {
+    result[i] = v[i] * u[i];
+  }
+}
+void scaleVector(float* result, float scalar, float* v) {
+  for (int i = 0; i < 4; i++) {
+    result[i] = scalar * v[i];
+  }
+}
+void addVectors(float* result, float* v, float* u) {
+  for (int i = 0; i < 4; i++) {
+    result[i] = v[i] + u[i];
+  }
+} 
+void PID(float* motorVals, RollPitchYaw rotations, float thrust) { // TODO: derivative
+  float rollVect[4], pitchVect[4], yawVect[4], result[4];
+  scaleVector(rollVect, GAIN_PROPORTIONAL_ROLL * rotations.roll, ROLL_VECTOR);
+  scaleVector(pitchVect, PROPORTIONAL_GAIN * rotations.pitch, ROLL_VECTOR);
+  scaleVector(yawVect, PROPORTIONAL_GAIN * rotations.yaw, ROLL_VECTOR);
+}
+
 // Main program entry point
 void quadcontrol() {
   BNO055_Init_I2C(&hi2c1);
