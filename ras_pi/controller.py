@@ -51,13 +51,18 @@ while not done:
     for event in pygame.event.get(): # User did something.
         if event.type == pygame.QUIT: # If user clicked close.
             done = True # Flag that we are done so we exit this loop.
+	if event.type == pygame.JOYBUTTONDOWN: # If the user pushes a button
+		if event.button == 0: 
+			done = True
+		elif event.button == 1:
+			
     
     if ready_to_send:
         tilt = get_tilt()
         print("tilt lr = " + str(tilt[0]))
         yt = get_yt()
         ready_to_send = True #needs to be set to False eventually
-        data = struct.pack('<hhhh', tilt[0], tilt[1], yt[0], yt[1])
+        data = struct.pack(‘>hhhh', tilt[0], tilt[1], yt[0], yt[1]) #currently big-endian
         send_data(data)
         print("sent one set")
     
