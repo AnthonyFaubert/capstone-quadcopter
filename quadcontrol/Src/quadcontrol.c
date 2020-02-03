@@ -95,6 +95,53 @@ void SetPWM(uint16_t ch1, uint16_t ch2, uint16_t ch3, uint16_t ch4) {
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
 }
 
+
+
+uint8_t getQuaternions(Quaternions* quatDat) {
+  const float scale = 1.0f / (1<<14);
+  uint8_t readings[IMU_NUMBER_OF_BYTES];
+  uint8_t status = HAL_I2C_Mem_Read(&hi2c1, BNO055_I2C_ADDR_LO<<1, BNO055_QUA_DATA_W_LSB, I2C_MEMADD_SIZE_8BIT, readings, IMU_NUMBER_OF_BYTES, 100);
+  
+  uint16_t w = readings[1] << 8 | readings[0];
+  uint16_t x = readings[3] << 8 | readings[2];
+  uint16_t y = readings[5] << 8 | readings[4];
+  uint16_t z = readings[7] << 8 | readings[6];
+  quatDat->w = scale * ((float) w);
+  quatDat->x = scale * ((float) x);
+  quatDat->y = scale * ((float) y);
+  quatDat->z = scale * ((float) z);
+  //while (HAL_I2C_GetState(hi2c_device) != HAL_I2C_STATE_READY) {} 
+  return status;
+}
+uint8_t getGyro(GyroData* gyroData) {
+  const float scale = 1.0f / 16.0f;
+  uint8_t readings[IMU_NUMBER_OF_BYTES];
+  uint8_t status = HAL_I2C_Mem_Read(&hi2c1, BNO055_I2C_ADDR_LO<<1, BNO055_GYR_DATA_X_LSB, I2C_MEMADD_SIZE_8BIT, readings, IMU_NUMBER_OF_BYTES, 100);
+  
+  uint16_t x = readings[1] << 8 | readings[0];
+  uint16_t y = readings[3] << 8 | readings[2];
+  uint16_t z = readings[5] << 8 | readings[4];
+  gyroData->x = scale * ((float) x);
+  gyroData->y = scale * ((float) y);
+  gyroData->z = scale * ((float) z);
+  //while (HAL_I2C_GetState(hi2c_device) != HAL_I2C_STATE_READY) {} 
+  return status;
+}
+uint8_t getEuler(EulerData* eulerData) {
+  const float scale = 1.0f / 16.0f;
+  uint8_t readings[IMU_NUMBER_OF_BYTES];
+  uint8_t status = HAL_I2C_Mem_Read(&hi2c1, BNO055_I2C_ADDR_LO<<1, BNO055_EUL_HEADING_LSB, I2C_MEMADD_SIZE_8BIT, readings, IMU_NUMBER_OF_BYTES, 100);
+  
+  uint16_t x = readings[1] << 8 | readings[0];
+  uint16_t y = readings[3] << 8 | readings[2];
+  uint16_t z = readings[5] << 8 | readings[4];
+  eulerData->x = scale * ((float) x);
+  eulerData->y = scale * ((float) y);
+  eulerData->z = scale * ((float) z);
+  //while (HAL_I2C_GetState(hi2c_device) != HAL_I2C_STATE_READY) {} 
+  return status;
+}
+
 void emergencyStop() {
   SetPWM(0, 0, 0, 0);
   usbprintln("EMERGENCY STOP ACTIVATED!");
@@ -118,26 +165,20 @@ void quadcontrol() {
   SetPWM(1000, 1000, 1000, 1000);
   usbprintln("ESCs calibrated.");
 
-  
-  uint8_t imu_readings[IMU_NUMBER_OF_BYTES];
-  int16_t accel_data[3];
-  float acc_x, acc_y, acc_z;
-
   uint16_t ch2pwm = 1000;
+  Quaternions imuOrientation;
+  GyroData imuGyroData;
   while (1) {
     waitWithEStopCheck(1000);
     SetPWM(1000, ch2pwm, 1500, 2000);
     ch2pwm += 200;
     if (ch2pwm > 2000) ch2pwm = 1000;
     
-    GetAccelData(&hi2c1, (uint8_t*)imu_readings);
-    accel_data[0] = (((int16_t)((uint8_t *)(imu_readings))[1] << 8) | ((uint8_t *)(imu_readings))[0]);      // Turn the MSB and LSB into a signed 16-bit value
-    accel_data[1] = (((int16_t)((uint8_t *)(imu_readings))[3] << 8) | ((uint8_t *)(imu_readings))[2]);
-    accel_data[2] = (((int16_t)((uint8_t *)(imu_readings))[5] << 8) | ((uint8_t *)(imu_readings))[4]);
-    acc_x = ((float)(accel_data[0]))/100.0f; //m/s2
-    acc_y = ((float)(accel_data[1]))/100.0f;
-    acc_z = ((float)(accel_data[2]))/100.0f;
-    int len = sprintf((char*) strBuf, "X: %.2f Y: %.2f Z: %.2f\r\n", acc_x, acc_y, acc_z);
+    getQuaternions(&imuOrientation);
+    getGyro(&imuGyroData);
+    int len = sprintf((char*) strBuf, "QUATS: W: %.2f X: %.2f Y: %.2f Z: %.2f\r\n", imuOrientation.w, imuOrientation.x, imuOrientation.y, imuOrientation.z);
+    CDC_Transmit_FS(strBuf, len);
+    len = sprintf((char*) strBuf, "GYRO: X: %.2f Y: %.2f Z: %.2f\r\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
     CDC_Transmit_FS(strBuf, len);
   }
 }
