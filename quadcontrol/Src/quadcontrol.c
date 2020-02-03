@@ -13,6 +13,7 @@
 #include "bno055.h"
 #include "accel.h"
 #include "quadcontrol.h"
+#include "math.h" // for acosf() and sqrtf()
 
 
 #ifdef __GNUC__
@@ -95,9 +96,68 @@ void SetPWM(uint16_t ch1, uint16_t ch2, uint16_t ch3, uint16_t ch4) {
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
 }
 
+// WARNING: ab != ba
+// <1,0,0,0>*x = x*<1,0,0,0> = x
+void multiplyQuaternions(Quaternion* result, Quaternion a, Quaternion b) {
+  result->w = (a.w * b.w) - (a.x * b.x) - (a.y * b.y) - (a.z * b.z);
+  result->x = (a.w * b.x) + (a.x * b.w) + (a.y * b.z) - (a.z * b.y);
+  result->y = (a.w * b.y) + (a.y * b.w) + (a.z * b.x) - (a.x * b.z);
+  result->z = (a.w * b.z) + (a.z * b.w) + (a.x * b.y) - (a.y * b.x);
+}
+// conj(a*b) = conj(b)*conj(a), normalized quaternions: q*conj(q) = q*(q^-1) = (q^-1)*q = 1
+void conjugateQuaternion(Quaternion* result, Quaternion a) {
+  result->w = a.w;
+  result->x = -a.x;
+  result->y = -a.y;
+  result->z = -a.z;
+}
+void quaternionRotationAxis(RotationAxis* result, Quaternion q) {
+  // W = cos(alpha/2), X = x*sin(alpha/2), Y = y*sin(alpha/2), Z = z*sin(alpha/2)
+  // W = cos(alpha/2) => alpha/2 = acos(W), X = x*sin(alpha/2) = x*sin(acos(W)) = x*sqrt(1 - W^2) => x = X/sqrt(1 - W^2)
+  result->alpha = 2.0f * acosf(q.w);
+  float sqrtOneMinusWSquared = sqrtf(1.0f - q.w*q.w);
+  result->x = q.x / sqrtOneMinusWSquared;
+  if (result->x == NAN) {
+    // then sin(alpha/2) must have been 0 => cos(alpha/2) = 1, which means X,Y,Z were 0 because of normalization,
+    //  which means no rotation, so pick a default axis and then don't rotate
+    result->x = 1.0f;
+    result->y = 0.0f;
+    result->z = 0.0f;
+  } else {
+    result->y = q.y / sqrtOneMinusWSquared;
+    result->z = q.z / sqrtOneMinusWSquared;
+  }
+}
+// Assuming that the natural orientation is (FIXME), what are the roll, pitch, and yaw errors between this quaternion and the natural orientation
+void getQuaternionError(RollPitchYaw* result, Quaternion actual, Quaternion desired) {
+  // Rotate actual by the opposite of desired, then desired is <1,0,0,0> (rotate by q is q*a*conj(q))
+  // Compute the rotation from actual to desired (invert actual to get back to straight and then go to desired)
+  Quaternion correctionRotation;
+  conjugateQuaternion(&actual, actual);
+  multiplyQuaternions(&correctionRotation, desired, actual); // Overall rotation of (q*p) is rotate by p and then q
+
+  // Convert the quaternion back into something we understand by using it to rotate <0,0,1> (for roll & pitch) and <1,0,0> (for yaw)
+  Quaternion straight, tmpA, tmpB, rotatedVector;
+  straight.w = 0.0f;
+  straight.x = 0.0f;
+  straight.y = 0.0f;
+  straight.z = 1.0f;
+  multiplyQuaternions(&tmpA, correctionRotation, straight);
+  straight.x = 1.0f;
+  straight.z = 0.0f;
+  multiplyQuaternions(&tmpB, correctionRotation, straight);
+  conjugateQuaternion(&correctionRotation, correctionRotation);
+  multiplyQuaternions(&rotatedVector, tmpA, correctionRotation);
+  // Overall, rotatedVector = correctionRotation * <0,0,0,1> * correctionRotation^-1 = <0,0,1> rotated by correction
+  result->roll = atan2f(rotatedVector.x, rotatedVector.z);
+  result->pitch = atan2f(rotatedVector.y, rotatedVector.z);
+  multiplyQuaternions(&rotatedVector, tmpB, correctionRotation);
+  // Overall, rotatedVector = correctionRotation * <0,1,0,0> * correctionRotation^-1 = <1,0,0> rotated by correction
+  result->yaw = atan2f(rotatedVector.y, rotatedVector.x);
+}
 
 
-uint8_t getQuaternions(Quaternions* quatDat) {
+uint8_t getQuaternion(Quaternion* quatDat) {
   const float scale = 1.0f / (1<<14);
   uint8_t readings[IMU_NUMBER_OF_BYTES];
   uint8_t status = HAL_I2C_Mem_Read(&hi2c1, BNO055_I2C_ADDR_LO<<1, BNO055_QUA_DATA_W_LSB, I2C_MEMADD_SIZE_8BIT, readings, IMU_NUMBER_OF_BYTES, 100);
@@ -166,19 +226,38 @@ void quadcontrol() {
   usbprintln("ESCs calibrated.");
 
   uint16_t ch2pwm = 1000;
-  Quaternions imuOrientation;
+  Quaternion imuOrientation, desiredOrientation;
   GyroData imuGyroData;
+  RollPitchYaw orientationErrors;
+  desiredOrientation.w = 1.0f;
+  desiredOrientation.x = 0.0f;
+  desiredOrientation.y = 0.0f;
+  desiredOrientation.z = 0.0f;
+  int len;
+  bool q = false;
+  bool c = true;
+  bool g = false;
   while (1) {
     waitWithEStopCheck(1000);
     SetPWM(1000, ch2pwm, 1500, 2000);
     ch2pwm += 200;
     if (ch2pwm > 2000) ch2pwm = 1000;
     
-    getQuaternions(&imuOrientation);
+    getQuaternion(&imuOrientation);
     getGyro(&imuGyroData);
-    int len = sprintf((char*) strBuf, "QUATS: W: %.2f X: %.2f Y: %.2f Z: %.2f\r\n", imuOrientation.w, imuOrientation.x, imuOrientation.y, imuOrientation.z);
-    CDC_Transmit_FS(strBuf, len);
-    len = sprintf((char*) strBuf, "GYRO: X: %.2f Y: %.2f Z: %.2f\r\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
-    CDC_Transmit_FS(strBuf, len);
+    getQuaternionError(&orientationErrors, imuOrientation, desiredOrientation);
+
+    if (q) {
+      len = sprintf((char*) strBuf, "QUATS: W: %.2f X: %.2f Y: %.2f Z: %.2f\r\n", imuOrientation.w, imuOrientation.x, imuOrientation.y, imuOrientation.z);
+      CDC_Transmit_FS(strBuf, len);
+    }
+    if (c) {
+      len = sprintf((char*) strBuf, "CMD: Roll %.2f, Pitch %.2f, Yaw %.2f (all in rads)\r\n", orientationErrors.roll, orientationErrors.pitch, orientationErrors.yaw);
+      CDC_Transmit_FS(strBuf, len);
+    }
+    if (g) {
+      len = sprintf((char*) strBuf, "GYRO: X: %.2f Y: %.2f Z: %.2f\r\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
+      CDC_Transmit_FS(strBuf, len);
+    }
   }
 }
