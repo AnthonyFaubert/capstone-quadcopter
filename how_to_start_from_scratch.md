@@ -49,15 +49,21 @@ open project button
 
 // Set target microcontroller, if not already set
 Right click project in the Files pane on the left > Options...
-// TODO
+General options tab, set Processor variant to "Device" and "STM32F407VG"
 
-
-/* BNO files */
+// Now do the true scratch section or the repo one
+/* BNO files (true scratch) */
 From here: https://gitlab.pld.ttu.ee/iotcenter/bno055/blob/master/bno055
 download Src/accel.c Inc/{accel.h,bno055.h} and put them in the same spots in your IAR project.
 Open IAR, right-click the (project)/Application/User group and click Add. Select accel.c (no action needed for headers in Inc/)
 
+Ensure our repo files exist in Inc/ and Src/
+For include files, nothing needs to be done, but for source files, you need to add them to IAR:
+In IAR, right-click the (project)/Application/User group and click Add. Select all of our .c files and add them.
+
+/* old changes */
 main.c additions { // place into appropriate positions in file
+#include "quadcontrol.h"
 #include "bno055.h"
 #include "accel.h"
 
@@ -76,6 +82,11 @@ acc_y = ((float)(accel_data[1]))/100.0f;
 acc_z = ((float)(accel_data[2]))/100.0f;
 int len = sprintf((char*) strBuf, "X: %.2f Y: %.2f Z: %.2f\r\n", acc_x, acc_y, acc_z);
 CDC_Transmit_FS(strBuf, len);
+/////////////////
 
+/* Repo version */
+Check out all files, and make the following additions to main.c:
+Add #include "quadcontrol.h" in the user includes section
+Replace while(1) loop in main() with a call to quadcontrol().
 
 // All done, click the compile and run button, then connect a microUSB to the VCOM port of the STM32 and use Arduino serial monitor to view output.
