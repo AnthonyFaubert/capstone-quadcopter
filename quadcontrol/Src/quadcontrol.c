@@ -102,10 +102,10 @@ uint8_t getQuaternions(Quaternions* quatDat) {
   uint8_t readings[IMU_NUMBER_OF_BYTES];
   uint8_t status = HAL_I2C_Mem_Read(&hi2c1, BNO055_I2C_ADDR_LO<<1, BNO055_QUA_DATA_W_LSB, I2C_MEMADD_SIZE_8BIT, readings, IMU_NUMBER_OF_BYTES, 100);
   
-  uint16_t w = readings[1] << 8 | readings[0];
-  uint16_t x = readings[3] << 8 | readings[2];
-  uint16_t y = readings[5] << 8 | readings[4];
-  uint16_t z = readings[7] << 8 | readings[6];
+  int16_t w = (int16_t)(readings[1] << 8) | (int16_t)(readings[0]);
+  int16_t x = (int16_t)(readings[3] << 8) | (int16_t)(readings[2]);
+  int16_t y = (int16_t)(readings[5] << 8) | (int16_t)(readings[4]);
+  int16_t z = (int16_t)(readings[7] << 8) | (int16_t)(readings[6]);
   quatDat->w = scale * ((float) w);
   quatDat->x = scale * ((float) x);
   quatDat->y = scale * ((float) y);
@@ -117,10 +117,10 @@ uint8_t getGyro(GyroData* gyroData) {
   const float scale = 1.0f / 16.0f;
   uint8_t readings[IMU_NUMBER_OF_BYTES];
   uint8_t status = HAL_I2C_Mem_Read(&hi2c1, BNO055_I2C_ADDR_LO<<1, BNO055_GYR_DATA_X_LSB, I2C_MEMADD_SIZE_8BIT, readings, IMU_NUMBER_OF_BYTES, 100);
-  
-  uint16_t x = readings[1] << 8 | readings[0];
-  uint16_t y = readings[3] << 8 | readings[2];
-  uint16_t z = readings[5] << 8 | readings[4];
+
+  int16_t x = (int16_t)(readings[1] << 8) | (int16_t)(readings[0]);
+  int16_t y = (int16_t)(readings[3] << 8) | (int16_t)(readings[2]);
+  int16_t z = (int16_t)(readings[5] << 8) | (int16_t)(readings[4]);
   gyroData->x = scale * ((float) x);
   gyroData->y = scale * ((float) y);
   gyroData->z = scale * ((float) z);
@@ -132,9 +132,9 @@ uint8_t getEuler(EulerData* eulerData) {
   uint8_t readings[IMU_NUMBER_OF_BYTES];
   uint8_t status = HAL_I2C_Mem_Read(&hi2c1, BNO055_I2C_ADDR_LO<<1, BNO055_EUL_HEADING_LSB, I2C_MEMADD_SIZE_8BIT, readings, IMU_NUMBER_OF_BYTES, 100);
   
-  uint16_t x = readings[1] << 8 | readings[0];
-  uint16_t y = readings[3] << 8 | readings[2];
-  uint16_t z = readings[5] << 8 | readings[4];
+  int16_t x = (int16_t)(readings[1] << 8) | (int16_t)(readings[0]);
+  int16_t y = (int16_t)(readings[3] << 8) | (int16_t)(readings[2]);
+  int16_t z = (int16_t)(readings[5] << 8) | (int16_t)(readings[4]);
   eulerData->x = scale * ((float) x);
   eulerData->y = scale * ((float) y);
   eulerData->z = scale * ((float) z);
