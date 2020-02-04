@@ -213,13 +213,13 @@ void emergencyStop() {
 CCW2   CW3
  */
 
-float ROLL_VECTOR[4] = {-1.0f, 1.0f, 1.0f, -1.0f};
-float PITCH_VECTOR[4] = {1.0f, 1.0f, -1.0f, -1.0f};
-float YAW_VECTOR[4] = {1.0f, -1.0f, 1.0f, -1.0f};
+float THRUST_VECTOR_ROLL[4] = {-1.0f, 1.0f, 1.0f, -1.0f};
+float THRUST_VECTOR_PITCH[4] = {1.0f, 1.0f, -1.0f, -1.0f};
+float THRUST_VECTOR_YAW[4] = {1.0f, -1.0f, 1.0f, -1.0f};
 float GAIN_PROPORTIONAL_ROLL = 0.01f;
 float GAIN_PROPORTIONAL_PITCH = 0.01f;
 float GAIN_PROPORTIONAL_YAW = 0.01f;
-void multiplyVectors(float* result, float* v, float* u) {
+void multiply2Vectors(float* result, float* v, float* u) {
   for (int i = 0; i < 4; i++) {
     result[i] = v[i] * u[i];
   }
@@ -229,16 +229,17 @@ void scaleVector(float* result, float scalar, float* v) {
     result[i] = scalar * v[i];
   }
 }
-void addVectors(float* result, float* v, float* u) {
+void add3Vectors(float* result, float* v, float* u, float* w) {
   for (int i = 0; i < 4; i++) {
-    result[i] = v[i] + u[i];
+    result[i] = v[i] + u[i] + w[i];
   }
 } 
 void PID(float* motorVals, RollPitchYaw rotations, float thrust) { // TODO: derivative
   float rollVect[4], pitchVect[4], yawVect[4], result[4];
-  scaleVector(rollVect, GAIN_PROPORTIONAL_ROLL * rotations.roll, ROLL_VECTOR);
-  scaleVector(pitchVect, PROPORTIONAL_GAIN * rotations.pitch, ROLL_VECTOR);
-  scaleVector(yawVect, PROPORTIONAL_GAIN * rotations.yaw, ROLL_VECTOR);
+  scaleVector(rollVect, GAIN_PROPORTIONAL_ROLL * rotations.roll, THRUST_VECTOR_ROLL);
+  scaleVector(pitchVect, GAIN_PROPORTIONAL_PITCH * rotations.pitch, THRUST_VECTOR_PITCH);
+  scaleVector(yawVect, GAIN_PROPORTIONAL_YAW * rotations.yaw, THRUST_VECTOR_YAW);
+  add3Vectors(result, rollVect, pitchVect, yawVect);
 }
 
 // Main program entry point
@@ -272,7 +273,7 @@ void quadcontrol() {
   bool g = false;
   while (1) {
     waitWithEStopCheck(1000);
-    SetPWM(1000, ch2pwm, 1500, 2000);
+    SetPWM(1200, ch2pwm, 1500, 2000);
     ch2pwm += 200;
     if (ch2pwm > 2000) ch2pwm = 1000;
     
