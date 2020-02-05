@@ -213,12 +213,16 @@ void emergencyStop() {
 CCW2   CW3
  */
 
+const char MOTOR_CHANNEL_MAPPING[4] = {1, 2, 3, 4};
 float THRUST_VECTOR_ROLL[4] = {-1.0f, 1.0f, 1.0f, -1.0f};
 float THRUST_VECTOR_PITCH[4] = {1.0f, 1.0f, -1.0f, -1.0f};
 float THRUST_VECTOR_YAW[4] = {1.0f, -1.0f, 1.0f, -1.0f};
 float GAIN_PROPORTIONAL_ROLL = 0.01f;
 float GAIN_PROPORTIONAL_PITCH = 0.01f;
 float GAIN_PROPORTIONAL_YAW = 0.01f;
+#define MIN_THRUST 1100.0f
+#define MAX_THRUST 1400.0f
+
 void multiply2Vectors(float* result, float* v, float* u) {
   for (int i = 0; i < 4; i++) {
     result[i] = v[i] * u[i];
@@ -233,13 +237,42 @@ void add3Vectors(float* result, float* v, float* u, float* w) {
   for (int i = 0; i < 4; i++) {
     result[i] = v[i] + u[i] + w[i];
   }
-} 
+}
+void addScalar(float*result, float scalar, float* v) {
+  for (int i = 0; i < 4; i++) {
+    result[i] = scalar + v[i];
+  }
+}
 void PID(float* motorVals, RollPitchYaw rotations, float thrust) { // TODO: derivative
-  float rollVect[4], pitchVect[4], yawVect[4], result[4];
+  float rollVect[4], pitchVect[4], yawVect[4];
   scaleVector(rollVect, GAIN_PROPORTIONAL_ROLL * rotations.roll, THRUST_VECTOR_ROLL);
   scaleVector(pitchVect, GAIN_PROPORTIONAL_PITCH * rotations.pitch, THRUST_VECTOR_PITCH);
   scaleVector(yawVect, GAIN_PROPORTIONAL_YAW * rotations.yaw, THRUST_VECTOR_YAW);
-  add3Vectors(result, rollVect, pitchVect, yawVect);
+  add3Vectors(motorVals, rollVect, pitchVect, yawVect);
+  float average = 0.0f;
+  for (int i = 0; i < 4; i++) {
+    average += motorVals[i];
+  }
+  average /= 4.0f;
+  addScalar(motorVals, thrust - average, motorVals);
+}
+void setMotors(float* motorVals) {
+  bool estop = false;
+  for (int i = 0; i < 4; i++) {
+    if (motorVals[i] < 0.0f || 1.0f < motorVals[i]) {
+      int len = sprintf((char*) strBuf, "FATAL: motor %d's thrust (%.2f) is out of range!\r\n", i, motorVals[i]);
+      CDC_Transmit_FS(strBuf, len);
+      estop = true;
+    }
+  }
+  if (estop) emergencyStop();
+  float tmp[4];
+  scaleVector(tmp, MAX_THRUST - MIN_THRUST, motorVals);
+  uint16_t thrusts[4];
+  for (int i = 0; i < 4; i++) {
+    thrusts[i] = ((uint16_t) tmp[i]) + MIN_THRUST;
+  }
+  SetPWM(thrusts[MOTOR_CHANNEL_MAPPING[0]], thrusts[MOTOR_CHANNEL_MAPPING[1]], thrusts[MOTOR_CHANNEL_MAPPING[2]], thrusts[MOTOR_CHANNEL_MAPPING[3]]);
 }
 
 // Main program entry point
@@ -259,7 +292,6 @@ void quadcontrol() {
   SetPWM(1000, 1000, 1000, 1000);
   usbprintln("ESCs calibrated.");
 
-  uint16_t ch2pwm = 1000;
   Quaternion imuOrientation, desiredOrientation;
   GyroData imuGyroData;
   RollPitchYaw orientationErrors;
@@ -269,13 +301,11 @@ void quadcontrol() {
   desiredOrientation.z = 0.0f;
   int len;
   bool q = false;
-  bool c = true;
+  bool c = false;
   bool g = false;
+  float mVals[4];
   while (1) {
     waitWithEStopCheck(1000);
-    SetPWM(1200, ch2pwm, 1500, 2000);
-    ch2pwm += 200;
-    if (ch2pwm > 2000) ch2pwm = 1000;
     
     getQuaternion(&imuOrientation);
     getGyro(&imuGyroData);
@@ -293,5 +323,8 @@ void quadcontrol() {
       len = sprintf((char*) strBuf, "GYRO: X: %.2f Y: %.2f Z: %.2f\r\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
       CDC_Transmit_FS(strBuf, len);
     }
+    
+    PID(mVals, orientationErrors, 0.2f);
+    setMotors(mVals);
   }
 }
