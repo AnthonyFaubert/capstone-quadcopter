@@ -212,16 +212,16 @@ void emergencyStop() {
  CW0  CCW1
 CCW2   CW3
  */
-
+// positive roll thrust will make roll tape go down, similar for rest
 const char MOTOR_CHANNEL_MAPPING[4] = {1, 2, 3, 4};
-float THRUST_VECTOR_ROLL[4] = {-1.0f, 1.0f, 1.0f, -1.0f};
-float THRUST_VECTOR_PITCH[4] = {1.0f, 1.0f, -1.0f, -1.0f};
+float THRUST_VECTOR_ROLL[4] = {1.0f, 0.0f, -1.0f, 0.0f};
+float THRUST_VECTOR_PITCH[4] = {0.0f, -1.0f, 0.0f, 1.0f};
 float THRUST_VECTOR_YAW[4] = {1.0f, -1.0f, 1.0f, -1.0f};
-float GAIN_PROPORTIONAL_ROLL = 0.01f;
-float GAIN_PROPORTIONAL_PITCH = 0.01f;
-float GAIN_PROPORTIONAL_YAW = 0.01f;
+float GAIN_PROPORTIONAL_ROLL = 0.0f;
+float GAIN_PROPORTIONAL_PITCH = 0.0f;
+float GAIN_PROPORTIONAL_YAW = 0.05f;
 #define MIN_THRUST 1100.0f
-#define MAX_THRUST 1400.0f
+#define MAX_THRUST 1500.0f
 
 void multiply2Vectors(float* result, float* v, float* u) {
   for (int i = 0; i < 4; i++) {
@@ -249,6 +249,8 @@ void PID(float* motorVals, RollPitchYaw rotations, float thrust) { // TODO: deri
   scaleVector(pitchVect, GAIN_PROPORTIONAL_PITCH * rotations.pitch, THRUST_VECTOR_PITCH);
   scaleVector(yawVect, GAIN_PROPORTIONAL_YAW * rotations.yaw, THRUST_VECTOR_YAW);
   add3Vectors(motorVals, rollVect, pitchVect, yawVect);
+  int len = sprintf((char*) strBuf, "MVals: %.2f, %.2f, %.2f, %.2f\r\n", motorVals[0], motorVals[1], motorVals[2], motorVals[3]);
+  CDC_Transmit_FS(strBuf, len);
   float average = 0.0f;
   for (int i = 0; i < 4; i++) {
     average += motorVals[i];
@@ -257,15 +259,33 @@ void PID(float* motorVals, RollPitchYaw rotations, float thrust) { // TODO: deri
   addScalar(motorVals, thrust - average, motorVals);
 }
 void setMotors(float* motorVals) {
-  bool estop = false;
+  int error = -1;
+  float largest = -INFINITY;
+  float smallest = INFINITY;
   for (int i = 0; i < 4; i++) {
+    if (motorVals[i] > largest) largest = motorVals[i];
+    if (motorVals[i] < smallest) smallest = motorVals[i];
+    
     if (motorVals[i] < 0.0f || 1.0f < motorVals[i]) {
-      int len = sprintf((char*) strBuf, "FATAL: motor %d's thrust (%.2f) is out of range!\r\n", i, motorVals[i]);
-      CDC_Transmit_FS(strBuf, len);
-      estop = true;
+      error = i;
     }
   }
-  if (estop) emergencyStop();
+  if (error != -1) {
+    if ((largest - smallest) < 1.0f) {
+      int len = sprintf((char*) strBuf, "ERROR: motor %d's thrust (%.2f) is out of range. Thrust request denied.\r\n", error, motorVals[error]);
+      CDC_Transmit_FS(strBuf, len);
+      if (largest > 1.0f) {
+        addScalar(motorVals, 1.0f - largest, motorVals);
+      } else {
+        addScalar(motorVals, -smallest, motorVals);
+      }
+    } else {
+      int len = sprintf((char*) strBuf, "FATAL: motor %d's thrust (%.2f) is out of range! Linearity failed!\r\n", error, motorVals[error]);
+      CDC_Transmit_FS(strBuf, len);
+      emergencyStop();
+    }
+  }
+
   float tmp[4];
   scaleVector(tmp, MAX_THRUST - MIN_THRUST, motorVals);
   uint16_t thrusts[4];
@@ -300,8 +320,8 @@ void quadcontrol() {
   desiredOrientation.y = 0.0f;
   desiredOrientation.z = 0.0f;
   int len;
-  bool q = false;
-  bool c = false;
+  bool q = true;
+  bool c = true;
   bool g = false;
   float mVals[4];
   while (1) {
