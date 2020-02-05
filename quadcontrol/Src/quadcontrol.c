@@ -23,7 +23,7 @@
 #endif
 
 PUTCHAR_PROTOTYPE {
-        while (HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 10) != HAL_OK) {};
+        while (HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 10) != HAL_OK) {};
  return ch;
 }
 
