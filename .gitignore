@@ -41,6 +41,8 @@ RxTx_ExternalController/STM_ExternalController/EWARM
 RxTx_ExternalController/STM_ExternalController/Middlewares
 RxTx_ExternalController/STM_ExternalController/.mxproject
 
+# mainWorkspace #
+mainWorkspace/mainWorkspace.eww
 
 
 # Emacs backup files
