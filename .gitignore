@@ -1,3 +1,39 @@
+quadcontrol/Drivers/
+quadcontrol/EWARM/
+quadcontrol/Middlewares/
+quadcontrol/.mxproject
+mainWorkspace/Debug/
+mainWorkspace/TemplateProject.dep
+mainWorkspace/settings/
+
+# INC Files
+quadcontrol/Inc/gpio.h
+quadcontrol/Inc/i2c.h
+quadcontrol/Inc/main.h
+quadcontrol/Inc/spi.h
+quadcontrol/Inc/stm32f4xx_hal_conf.h
+quadcontrol/Inc/stm32f4xx_it.h
+quadcontrol/Inc/tim.h
+quadcontrol/Inc/usart.h
+quadcontrol/Inc/usb_device.h
+quadcontrol/Inc/usbd_cdc_if.h
+quadcontrol/Inc/usbd_conf.h
+quadcontrol/Inc/usbd_desc.h
+
+# SRC Files
+quadcontrol/Src/gpio.c
+quadcontrol/Src/i2c.c
+quadcontrol/Src/spi.c
+quadcontrol/Src/stm32f4xx_hal_msp.c
+quadcontrol/Src/system_stm32f4xx.c
+quadcontrol/Src/tim.c
+quadcontrol/Src/usart.c
+quadcontrol/Src/usb_device.c
+quadcontrol/Src/usbd_cdc_if.c
+quadcontrol/Src/usbd_conf.c
+quadcontrol/Src/usbd_desc.c
+
+
 # Emacs backup files
 *~
 
@@ -33,3 +69,5 @@
 *.exe
 *.out
 *.app
+
+
