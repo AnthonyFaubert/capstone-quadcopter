@@ -47,7 +47,7 @@ void waitForButtonState(bool high, bool printPrompt) {
     if (printPrompt && (i % 10 == 0)) {
       usbprintln("Waiting for button press...");
     }
-    HAL_Delay(100);
+    HAL_Delay(20);
   }
 }
 void waitWithEStopCheck(int ms) {
@@ -213,15 +213,15 @@ void emergencyStop() {
 CCW2   CW3
  */
 // positive roll thrust will make roll tape go down, similar for rest
-const char MOTOR_CHANNEL_MAPPING[4] = {1, 2, 3, 4};
+const char MOTOR_CHANNEL_MAPPING[4] = {2, 3, 0, 1}; // with GND down and SIG up, left to right, the slots are: 2, 0, 1, 3
 float THRUST_VECTOR_ROLL[4] = {1.0f, 0.0f, -1.0f, 0.0f};
 float THRUST_VECTOR_PITCH[4] = {0.0f, -1.0f, 0.0f, 1.0f};
 float THRUST_VECTOR_YAW[4] = {1.0f, -1.0f, 1.0f, -1.0f};
-float GAIN_PROPORTIONAL_ROLL = 0.0f;
-float GAIN_PROPORTIONAL_PITCH = 0.0f;
-float GAIN_PROPORTIONAL_YAW = 0.05f;
-#define MIN_THRUST 1100.0f
-#define MAX_THRUST 1500.0f
+float GAIN_PROPORTIONAL_ROLL = 0.5f;
+float GAIN_PROPORTIONAL_PITCH = 0.5f;
+float GAIN_PROPORTIONAL_YAW = 0.1f;
+uint16_t MIN_THRUSTS[4] = {1100, 1100, 1100, 1100}; // 1050 works
+uint16_t MAX_THRUSTS[4] = {1400, 1400, 1400, 1400};
 
 void multiply2Vectors(float* result, float* v, float* u) {
   for (int i = 0; i < 4; i++) {
@@ -249,8 +249,8 @@ void PID(float* motorVals, RollPitchYaw rotations, float thrust) { // TODO: deri
   scaleVector(pitchVect, GAIN_PROPORTIONAL_PITCH * rotations.pitch, THRUST_VECTOR_PITCH);
   scaleVector(yawVect, GAIN_PROPORTIONAL_YAW * rotations.yaw, THRUST_VECTOR_YAW);
   add3Vectors(motorVals, rollVect, pitchVect, yawVect);
-  int len = sprintf((char*) strBuf, "MVals: %.2f, %.2f, %.2f, %.2f\r\n", motorVals[0], motorVals[1], motorVals[2], motorVals[3]);
-  CDC_Transmit_FS(strBuf, len);
+  //int len = sprintf((char*) strBuf, "MVals: %.2f, %.2f, %.2f, %.2f\r\n", motorVals[0], motorVals[1], motorVals[2], motorVals[3]);
+  //CDC_Transmit_FS(strBuf, len);
   float average = 0.0f;
   for (int i = 0; i < 4; i++) {
     average += motorVals[i];
@@ -287,11 +287,13 @@ void setMotors(float* motorVals) {
   }
 
   float tmp[4];
-  scaleVector(tmp, MAX_THRUST - MIN_THRUST, motorVals);
   uint16_t thrusts[4];
   for (int i = 0; i < 4; i++) {
-    thrusts[i] = ((uint16_t) tmp[i]) + MIN_THRUST;
+    tmp[i] = motorVals[i] * (float) (MAX_THRUSTS[i] - MIN_THRUSTS[i]);
+    thrusts[i] = ((uint16_t) tmp[i]) + MIN_THRUSTS[i];
   }
+  //int len = sprintf((char*) strBuf, "MVsRaw: %d, %d, %d, %d\r\n", thrusts[MOTOR_CHANNEL_MAPPING[0]], thrusts[MOTOR_CHANNEL_MAPPING[1]], thrusts[MOTOR_CHANNEL_MAPPING[2]], thrusts[MOTOR_CHANNEL_MAPPING[3]]);
+  //CDC_Transmit_FS(strBuf, len);
   SetPWM(thrusts[MOTOR_CHANNEL_MAPPING[0]], thrusts[MOTOR_CHANNEL_MAPPING[1]], thrusts[MOTOR_CHANNEL_MAPPING[2]], thrusts[MOTOR_CHANNEL_MAPPING[3]]);
 }
 
@@ -311,6 +313,7 @@ void quadcontrol() {
   }
   SetPWM(1000, 1000, 1000, 1000);
   usbprintln("ESCs calibrated.");
+  HAL_Delay(1000);
 
   Quaternion imuOrientation, desiredOrientation;
   GyroData imuGyroData;
@@ -320,12 +323,12 @@ void quadcontrol() {
   desiredOrientation.y = 0.0f;
   desiredOrientation.z = 0.0f;
   int len;
-  bool q = true;
-  bool c = true;
+  bool q = false;
+  bool c = false;
   bool g = false;
   float mVals[4];
   while (1) {
-    waitWithEStopCheck(1000);
+    waitWithEStopCheck(20);
     
     getQuaternion(&imuOrientation);
     getGyro(&imuGyroData);
@@ -344,7 +347,8 @@ void quadcontrol() {
       CDC_Transmit_FS(strBuf, len);
     }
     
-    PID(mVals, orientationErrors, 0.2f);
+    PID(mVals, orientationErrors, 0.3f);
+    //for (int i = 0; i < 4; i++) mVals[i] = 0.5f;
     setMotors(mVals);
   }
 }
