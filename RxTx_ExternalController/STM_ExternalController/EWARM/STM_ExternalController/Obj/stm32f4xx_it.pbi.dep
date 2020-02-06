@@ -44,9 +44,9 @@ stm32f4xx_it.pbi: \
   C:\Users\David\ R\ Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\Src/./../WorkStation/IncludeFiles/./../../Inc/main.h \
   C:\Users\David\ R\ Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\Src/./../WorkStation/IncludeFiles/./testLibrary.h \
   C:\Users\David\ R\ Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\EWARM/../Drivers/STM32F4xx_HAL_Driver/Inc\./../../CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h \
+  C:\Users\David\ R\ Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\Src/./../WorkStation/IncludeFiles/./USART.h \
   C:\Users\David\ R\ Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\Src/./../WorkStation/IncludeFiles/./DMA.h \
   C:\Users\David\ R\ Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\Src/./../WorkStation/IncludeFiles/./actuateMCU.h \
-  C:\Users\David\ R\ Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\Src/./../WorkStation/IncludeFiles/./USART.h \
   C:\Users\David\ R\ Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\Src/./../WorkStation/IncludeFiles/./CC1101.h \
   C:\Users\David\ R\ Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\Src/./../WorkStation/IncludeFiles/./GPIO.h \
   C:\Users\David\ R\ Joslin\Desktop\ee_475\capstone-quadcopter\RxTx_ExternalController\STM_ExternalController\Src/./../WorkStation/IncludeFiles/./SPI.h

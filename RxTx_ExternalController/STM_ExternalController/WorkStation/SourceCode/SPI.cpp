@@ -9,11 +9,14 @@ void SPI_Init()
   SPI1->CR2 |= SPI_CR2_TXDMAEN; // Enable DMA for TX
   SPI1->CR2 |= SPI_CR2_RXDMAEN; // Enable DMA for RX
   SPI1->CR1 |= SPI_CR1_SPE; // Enable SPI Peripheral
+  GPIOA->ODR |= GPIO_ODR_OD4; // Set NSS High
 }
 
 void SPI_TX()
 {
-  while(!(SPI1->SR |= SPI_SR_TXE));
+  while(SPI1->SR & SPI_SR_BSY);
+  GPIOA->ODR &= ~GPIO_ODR_OD4;
+  //while(GPIOA->IDR & GPIO_IDR_ID6);
   FLUSH_DMA_SPI1();
 }
 

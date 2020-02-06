@@ -3,9 +3,11 @@
 
 #include "./../IncludeFiles/testLibrary.h"
 
+////////////////////// LED Functions //////////////////////
+
 void LED_Display()
 {
-  int clkDelay = 100 * 100000; // 1,000,000
+  int clkDelay = 10 * 100000; // 1,000,000
   while(1)
   {
     turnOnGPIO_LEDs(clkDelay);
@@ -58,3 +60,47 @@ void turnOffGPIO_LEDs(int clkDelay)
   GPIOD->BSRR |= GPIO_BSRR_BR13;
   wait(clkDelay);
 }
+
+///////////////////////////////////////////////////////////
+
+////////////////////// Print-Functions //////////////////////
+
+// Takes LS 4 bits of input and returns char
+// representation in hex
+char fourBitToHex (uint8_t hexValue)
+{
+  char baseChar = '0';
+  hexValue &= 0x0F;
+  if(hexValue >= 10)
+  {
+    baseChar = 'A';
+    hexValue -= 0x0A;
+  }
+  return baseChar + hexValue;
+}
+
+// Returns hex representation of 8-bit number
+uint16_t eightBitToHex(uint8_t charValue)
+{
+  uint16_t returnValue = 0x0000;
+  returnValue |= fourBitToHex(charValue >> 4) << 8;
+  returnValue |= fourBitToHex(charValue);
+  return returnValue;
+}
+
+uint32_t sixteenBitToHex(uint16_t shortValue)
+{
+  uint32_t returnValue = 0x00000000;
+  returnValue |= eightBitToHex((uint8_t) (shortValue >> 8)) << 16;
+  returnValue |= eightBitToHex((uint8_t) (shortValue & 0x00FF));
+  return returnValue;
+}
+
+// New Line for PUTTY interface
+void newLine()
+{
+  char nextLine[] = { "\r\n" };
+  txBufferUSART6(sizeof(nextLine), nextLine);
+}
+
+/////////////////////////////////////////////////////////////

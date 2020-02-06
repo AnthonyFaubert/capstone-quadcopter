@@ -16,26 +16,34 @@ extern "C" {
 #include "./USART.h"
 #include "./GPIO.h"
 #include "./SPI.h"
+#include "./testLibrary.h"
 
 /*  Declared Functions  */
+void CC1101_Read(uint8_t readAddress, uint8_t checkCS, uint8_t statusReg);
+void CC1101_BurstRead(void);
+
+void CC1101_Write(uint8_t writeAddress, uint8_t data, uint8_t checkCS);
+void CC1101_BurstWrite(void);
+
+void CC1101_CommandStrobe(uint8_t command, uint8_t checkCS);
+
+void checkChipStatus(void);
+
 void CC1101_Configure(
                       uint32_t propagationAddress,
                       uint32_t PA_Size,
                       uint32_t targetAddress,
                       uint32_t TA_Size
                      );
-
 void CC1101_Test(void);
 
-void CC1101_Read(uint8_t readAddress);
-void CC1101_BurstRead(void);
+/*   Defined Values/Macros   */
+//////////////////// Frame Size (BYTES/2) ////////////////////
+#define RECEIVE_FRAME_SIZE  (uint32_t) 0x2
+#define TRANSMIT_FRAME_SIZE (uint32_t) 0x2
+#define COMMAND_STROBE_SIZE (uint32_t) 0x1
+//////////////////////////////////////////////////////////////
 
-void CC1101_Write(uint8_t writeAddress, uint8_t data);
-void CC1101_BurstWrite(void);
-
-void CC1101_CommandStrobe(uint8_t command);
-
-/*   Defined Values (Macros)   */
 //////////////////// HEADER BYTE ////////////////////
 #define R_N_W     (uint8_t) (0x1 << 7) // R_not_Write
 #define BURST     (uint8_t) (0x1 << 6)
@@ -67,12 +75,21 @@ void CC1101_CommandStrobe(uint8_t command);
 
 /*  Declared Variables  */
 
+extern volatile uint8_t CS_Recieved;
+
 // Basic Data-Frame Format
 typedef struct
 {
-    uint8_t header;
-    uint8_t data;
-} CC1101_DATA_FRAME;
+  uint8_t data;
+  uint8_t header;
+} CC1101_TRANSMIT_FRAME;
+
+// Basic Receive-Frame Format
+typedef struct
+{
+  uint8_t data;
+  uint8_t chipStatus;
+} CC1101_RECEIVE_FRAME;
 
 // In/Out Pin Configuration
 typedef struct

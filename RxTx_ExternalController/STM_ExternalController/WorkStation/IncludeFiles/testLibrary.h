@@ -14,7 +14,7 @@ extern "C" {
 #include "./../../CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
 
 // Local Inc
-// #include "./actuateMCU.h"
+#include "./USART.h"
 
 /*  Declared Functions  */
 
@@ -23,6 +23,11 @@ void wait(int clkDelay);
 void turnOnGPIO_LEDs(int clkDelay);
 void turnOffGPIO_LEDs(int clkDelay);
 
+char fourBitToHex (uint8_t hexValue);
+uint16_t eightBitToHex(uint8_t charValue);
+uint32_t sixteenBitToHex(uint16_t shortValue);
+
+void newLine(void);
 
 #ifdef __cplusplus
 }
