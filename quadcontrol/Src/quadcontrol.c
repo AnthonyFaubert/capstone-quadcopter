@@ -5,6 +5,7 @@
 //#include "i2s.h"
 //#include "spi.h"
 #include "stdbool.h"
+#include "stdarg.h" // allows wrapping vsprintf
 #include "tim.h"
 #include "usart.h"
 #include "usb_device.h"
@@ -14,6 +15,7 @@
 #include "accel.h"
 #include "quadcontrol.h"
 #include "math.h" // for acosf() and sqrtf()
+#include "USART_USER.h" // David's sauce
 
 
 #ifdef __GNUC__
@@ -28,12 +30,21 @@ PUTCHAR_PROTOTYPE {
 }
 
 
-uint8_t strBuf[500];
-
-void usbprintln(const char* str) {
-  uint16_t len = sprintf((char*) strBuf, "%s\n", str);
-  CDC_Transmit_FS(strBuf, len);
+char DebugStrBuf[500];
+int DebugStrLen;
+void PRINTF(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    DebugStrLen = vsprintf(DebugStrBuf, fmt, args);
+    CDC_Transmit_FS((uint8_t*) DebugStrBuf, DebugStrLen);
+    txBufferUSART3(DebugStrLen, DebugStrBuf);
+    va_end(args);
 }
+//#define PRINTF(f_, ...) DebugStrLen = sprintf(DebugStrBuf, (f_), __VA_ARGS__); \
+        CDC_Transmit_FS((uint8_t) DebugStrBuf, DebugStrLen); \
+        txBufferUSART3(DebugStrLen, DebugStrBuf); \
+
+#define PRINTLN(str) PRINTF("%s\r\n", str);
 
 bool checkButtonState(bool high) {
   if (high) {
@@ -45,7 +56,7 @@ bool checkButtonState(bool high) {
 void waitForButtonState(bool high, bool printPrompt) {
   for (int i = 0; !checkButtonState(high); i++) {
     if (printPrompt && (i % 10 == 0)) {
-      usbprintln("Waiting for button press...");
+      PRINTLN("Waiting for button press...");
     }
     HAL_Delay(20);
   }
@@ -204,7 +215,7 @@ uint8_t getEuler(EulerData* eulerData) {
 
 void emergencyStop() {
   SetPWM(0, 0, 0, 0);
-  usbprintln("EMERGENCY STOP ACTIVATED!");
+  PRINTLN("EMERGENCY STOP ACTIVATED!");
   while (1);
 }
 
@@ -217,9 +228,9 @@ const char MOTOR_CHANNEL_MAPPING[4] = {2, 3, 0, 1}; // with GND down and SIG up,
 float THRUST_VECTOR_ROLL[4] = {1.0f, 0.0f, -1.0f, 0.0f};
 float THRUST_VECTOR_PITCH[4] = {0.0f, -1.0f, 0.0f, 1.0f};
 float THRUST_VECTOR_YAW[4] = {1.0f, -1.0f, 1.0f, -1.0f};
-float GAIN_PROPORTIONAL_ROLL = 0.5f;
-float GAIN_PROPORTIONAL_PITCH = 0.5f;
-float GAIN_PROPORTIONAL_YAW = 0.1f;
+float GAIN_PROPORTIONAL_ROLL = 0.1f;
+float GAIN_PROPORTIONAL_PITCH = 0.1f;
+float GAIN_PROPORTIONAL_YAW = 0.01f;
 uint16_t MIN_THRUSTS[4] = {1100, 1100, 1100, 1100}; // 1050 works
 uint16_t MAX_THRUSTS[4] = {1400, 1400, 1400, 1400};
 
@@ -249,8 +260,7 @@ void PID(float* motorVals, RollPitchYaw rotations, float thrust) { // TODO: deri
   scaleVector(pitchVect, GAIN_PROPORTIONAL_PITCH * rotations.pitch, THRUST_VECTOR_PITCH);
   scaleVector(yawVect, GAIN_PROPORTIONAL_YAW * rotations.yaw, THRUST_VECTOR_YAW);
   add3Vectors(motorVals, rollVect, pitchVect, yawVect);
-  //int len = sprintf((char*) strBuf, "MVals: %.2f, %.2f, %.2f, %.2f\r\n", motorVals[0], motorVals[1], motorVals[2], motorVals[3]);
-  //CDC_Transmit_FS(strBuf, len);
+  //PRINTF("MVals: %.2f, %.2f, %.2f, %.2f\r\n", motorVals[0], motorVals[1], motorVals[2], motorVals[3]);
   float average = 0.0f;
   for (int i = 0; i < 4; i++) {
     average += motorVals[i];
@@ -272,16 +282,14 @@ void setMotors(float* motorVals) {
   }
   if (error != -1) {
     if ((largest - smallest) < 1.0f) {
-      int len = sprintf((char*) strBuf, "ERROR: motor %d's thrust (%.2f) is out of range. Thrust request denied.\r\n", error, motorVals[error]);
-      CDC_Transmit_FS(strBuf, len);
+      PRINTF("ERROR: motor %d's thrust (%.2f) is out of range. Thrust request denied.\r\n", error, motorVals[error]);
       if (largest > 1.0f) {
         addScalar(motorVals, 1.0f - largest, motorVals);
       } else {
         addScalar(motorVals, -smallest, motorVals);
       }
     } else {
-      int len = sprintf((char*) strBuf, "FATAL: motor %d's thrust (%.2f) is out of range! Linearity failed!\r\n", error, motorVals[error]);
-      CDC_Transmit_FS(strBuf, len);
+      PRINTF("FATAL: motor %d's thrust (%.2f) is out of range! Linearity failed!\r\n", error, motorVals[error]);
       emergencyStop();
     }
   }
@@ -292,63 +300,89 @@ void setMotors(float* motorVals) {
     tmp[i] = motorVals[i] * (float) (MAX_THRUSTS[i] - MIN_THRUSTS[i]);
     thrusts[i] = ((uint16_t) tmp[i]) + MIN_THRUSTS[i];
   }
-  //int len = sprintf((char*) strBuf, "MVsRaw: %d, %d, %d, %d\r\n", thrusts[MOTOR_CHANNEL_MAPPING[0]], thrusts[MOTOR_CHANNEL_MAPPING[1]], thrusts[MOTOR_CHANNEL_MAPPING[2]], thrusts[MOTOR_CHANNEL_MAPPING[3]]);
-  //CDC_Transmit_FS(strBuf, len);
+  //PRINTF("MVsRaw: %d, %d, %d, %d\r\n", thrusts[MOTOR_CHANNEL_MAPPING[0]], thrusts[MOTOR_CHANNEL_MAPPING[1]], thrusts[MOTOR_CHANNEL_MAPPING[2]], thrusts[MOTOR_CHANNEL_MAPPING[3]]);
   SetPWM(thrusts[MOTOR_CHANNEL_MAPPING[0]], thrusts[MOTOR_CHANNEL_MAPPING[1]], thrusts[MOTOR_CHANNEL_MAPPING[2]], thrusts[MOTOR_CHANNEL_MAPPING[3]]);
 }
 
+void joystick2Quaternion(Quaternion* quat, GriffinPacket packet) {
+  float maxRollPitch = sqrtf(2.0f) / 2.0f;
+  float roll, pitch, yaw;
+  roll = packet.leftRight;
+  pitch = packet.upDown;
+  yaw = packet.padLeftRight;
+  roll /= 32768.0f; // slightly less
+  pitch /= 32768.0f; // 
+  yaw *= 3.14159265358979323846f / 32768.0f;
+  //quat.w = cosf(yaw
+}
+int GPacketValid = 0;
+GriffinPacket GPacket;
 // Main program entry point
 void quadcontrol() {
   BNO055_Init_I2C(&hi2c1);
   
-  usbprintln("Started.");
+  PRINTLN("Started.");
   waitForButtonState(true, true);
   HAL_Delay(100);
   waitForButtonState(false, true);
   
-  usbprintln("Calibrating ESCs...");
+  PRINTLN("Calibrating ESCs...");
   for (uint16_t pwm = 1000; pwm <= 2000; pwm += 200) {
     SetPWM(pwm, pwm, pwm, pwm);
     HAL_Delay(100);
   }
   SetPWM(1000, 1000, 1000, 1000);
-  usbprintln("ESCs calibrated.");
+  PRINTLN("ESCs calibrated.");
   HAL_Delay(1000);
 
-  Quaternion imuOrientation, desiredOrientation;
+  Quaternion imuOrientation, desiredOrientation, joystickOrientation, calibrationOrientation;
   GyroData imuGyroData;
   RollPitchYaw orientationErrors;
-  desiredOrientation.w = 1.0f;
-  desiredOrientation.x = 0.0f;
-  desiredOrientation.y = 0.0f;
-  desiredOrientation.z = 0.0f;
-  int len;
-  bool q = false;
+  calibrationOrientation.w = 1.0f;
+  calibrationOrientation.x = 0.0f;
+  calibrationOrientation.y = 0.0f;
+  calibrationOrientation.z = 0.0f;
+  joystickOrientation = calibrationOrientation;
+
+  bool q = true;
   bool c = false;
   bool g = false;
   float mVals[4];
+  char uart3RXBuffer[sizeof(GriffinPacket)];
+  USART3_RX_Config(sizeof(GriffinPacket), uart3RXBuffer);
+    
+  uint32_t timer = 0;
+  
   while (1) {
     waitWithEStopCheck(20);
+    timer += 20;
     
     getQuaternion(&imuOrientation);
     getGyro(&imuGyroData);
+    multiplyQuaternions(&desiredOrientation, joystickOrientation, calibrationOrientation);
     getQuaternionError(&orientationErrors, imuOrientation, desiredOrientation);
-
-    if (q) {
-      len = sprintf((char*) strBuf, "QUATS: W: %.2f X: %.2f Y: %.2f Z: %.2f\r\n", imuOrientation.w, imuOrientation.x, imuOrientation.y, imuOrientation.z);
-      CDC_Transmit_FS(strBuf, len);
+    
+    
+    if (GPacketValid) {
+      PRINTF("Btns: %d\n", GPacket.buttons);
+      if (GPacket.buttons == 1) {
+        PRINTLN("A button was pressed!\r\n");
+        PRINTF("Joystick: %d, %d, %d, %d\n", GPacket.leftRight, GPacket.upDown, GPacket.padLeftRight, GPacket.padUpDown);
+      }
+      GPacketValid = false;
+      //USART3_RX_Config(sizeof(GriffinPacket), (char*) &packet);
     }
-    if (c) {
-      len = sprintf((char*) strBuf, "CMD: Roll %.2f, Pitch %.2f, Yaw %.2f (all in rads)\r\n", orientationErrors.roll, orientationErrors.pitch, orientationErrors.yaw);
-      CDC_Transmit_FS(strBuf, len);
+    if ((timer % 500 == 0) && q) {
+      PRINTF("QUATS: W: %.2f X: %.2f Y: %.2f Z: %.2f\r\n", imuOrientation.w, imuOrientation.x, imuOrientation.y, imuOrientation.z);
     }
-    if (g) {
-      len = sprintf((char*) strBuf, "GYRO: X: %.2f Y: %.2f Z: %.2f\r\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
-      CDC_Transmit_FS(strBuf, len);
+    if ((timer % 500 == 0) && c) {
+      PRINTF("CMD: Roll %.2f, Pitch %.2f, Yaw %.2f (all in rads)\r\n", orientationErrors.roll, orientationErrors.pitch, orientationErrors.yaw);
+    }
+    if ((timer % 500 == 0) && g) {
+      PRINTF("GYRO: X: %.2f Y: %.2f Z: %.2f\r\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
     }
     
     PID(mVals, orientationErrors, 0.3f);
-    //for (int i = 0; i < 4; i++) mVals[i] = 0.5f;
     setMotors(mVals);
   }
 }

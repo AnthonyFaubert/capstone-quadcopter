@@ -1,6 +1,7 @@
 
 
 #include "./../Inc/DMA_USER.h"
+#include "quadcontrol.h"
 
 ////////////////////////  DMA-UART Functions  /////////////////////////
 
@@ -44,6 +45,14 @@ void DMA1_STREAM1_IT_HANDLER(void)
   DMA1_Stream1->NDTR = RX3_BUFFER; // Reset Buffer size
   DMA1_Stream1->M0AR = RX3_POINTER; // Reset address
   rx3Received = 1;
+  GriffinPacket* dmaPacket = (GriffinPacket*) RX3_POINTER;
+  GPacketValid = 0;
+  GPacket.leftRight = dmaPacket->leftRight;
+  GPacket.upDown = dmaPacket->upDown;
+  GPacket.padLeftRight = dmaPacket->padLeftRight;
+  GPacket.padUpDown = dmaPacket->padUpDown;
+  GPacket.buttons = dmaPacket->buttons;
+  GPacketValid = 1;
   DMA1_Stream1->CR |= DMA_SxCR_EN;
 }
 

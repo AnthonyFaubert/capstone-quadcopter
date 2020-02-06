@@ -30,4 +30,15 @@ typedef struct {
   float roll, pitch, yaw;
 } RollPitchYaw;
 
+typedef struct {
+  int16_t leftRight;
+  int16_t upDown;
+  int16_t padLeftRight;
+  int16_t padUpDown;
+  uint16_t buttons;
+} GriffinPacket;
+
+extern int GPacketValid;
+extern GriffinPacket GPacket;
+
 #endif
