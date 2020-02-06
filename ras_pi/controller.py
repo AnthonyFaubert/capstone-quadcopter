@@ -8,7 +8,7 @@ DATA_LENGTH = 10
 
 # open the steam controller driver
 sc_proc = subprocess.Popen('sc-controller', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-time.sleep(1)
+time.sleep(5)
 sc_proc.kill()
 
 # open the jstest-gtk program to ensure that the controller is connected
@@ -28,7 +28,10 @@ clock = pygame.time.Clock()
 joystick = pygame.joystick.Joystick(0)
 joystick.init()
 
-ser = serial.Serial(port = "/dev/ttyS0", baudrate = 115200, write_timeout = None, timeout = 0) #read timeout should get set to None
+debug_path = "./../../../../../var/www/html/debug.txt"
+debug_file = open(r'/var/www/html/debug.txt','w+')
+
+ser = serial.Serial(port = "/dev/ttyS0", baudrate = 115200, write_timeout = None, timeout = None) #read timeout should get set to None
 special = 0
 
 def hexify(bs):
@@ -46,14 +49,13 @@ def get_yt(): # right trackpad used as stick, axes 3 and 4. Axis 4 is up/down an
 
 def send_data(dataValue):
     ser.write(dataValue)
-    ser.write(dataValue)
-    print(hexify(dataValue))
-    print()
+    #print(hexify(dataValue))
+    #print()
     
 ser.reset_input_buffer()
 ser.reset_output_buffer()
 while not done:
-    clock.tick(1) #integer value is the frames per second
+    #clock.tick(1) #integer value is the frames per second
     
     for event in pygame.event.get(): # User did something.
         if event.type == pygame.QUIT: # If user clicked close.
@@ -92,7 +94,7 @@ while not done:
 #        special = 4
 
 
-    print("value of special is: " + str(special))
+#   print("value of special is: " + str(special))
 
     if ready_to_send:
         tilt = get_tilt()
@@ -101,20 +103,21 @@ while not done:
         data = struct.pack('>hhhhh', tilt[0], tilt[1], yt[0], yt[1], special)
         print("below is sent data:")
         send_data(data)
+        print(hexify(data))
         print("ser out waiting " + str(ser.out_waiting))
         print()
-        time.sleep(1)
+        #ser.reset_output_buffer()
         special = 0
     
     if (ser.in_waiting > 0):
-        print("below is bytes waiting")
-        print(ser.in_waiting)
+        #print("below is bytes waiting")
+        #print(ser.in_waiting)
         ser.ready_to_send = True
-        print("****************below is read data:") 
-        print(hexify(ser.read(DATA_LENGTH)))
-        print()
+        debug_file.write("below is read data: \n") 
+        debug_file.write(str(hexify(ser.read(10))) + "\n")
         ser.reset_input_buffer()
 
 #turn off motors
 ser.close()
 pygame.quit()
+debug_file.close()

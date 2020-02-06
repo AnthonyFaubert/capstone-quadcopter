@@ -10,7 +10,7 @@ import struct
 ser = serial.Serial(port = "/dev/ttyS0", baudrate = 115200, write_timeout = None, timeout = None)
 
 
-totBytes = 8
+totBytes = 10
 delay = 0
 
 x = 1
