@@ -11,5 +11,7 @@ git branch new_branch_name_here
 // any changes you make to this branch to the respository).
 git push --set-upstream origin new_branch_name_here 
 
+// Switch over to working on the new branch you just made
+git checkout new_branch_name_here
 ```
 

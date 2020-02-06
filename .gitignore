@@ -1,3 +1,5 @@
+
+# QUAD_CONTROL #
 quadcontrol/Drivers/
 quadcontrol/EWARM/
 quadcontrol/Middlewares/
@@ -32,6 +34,13 @@ quadcontrol/Src/usb_device.c
 quadcontrol/Src/usbd_cdc_if.c
 quadcontrol/Src/usbd_conf.c
 quadcontrol/Src/usbd_desc.c
+
+# STM_External_Controller #
+RxTx_ExternalController/
+RxTx_ExternalController/STM_ExternalController/EWARM
+RxTx_ExternalController/STM_ExternalController/Middlewares
+RxTx_ExternalController/STM_ExternalController/.mxproject
+
 
 
 # Emacs backup files
