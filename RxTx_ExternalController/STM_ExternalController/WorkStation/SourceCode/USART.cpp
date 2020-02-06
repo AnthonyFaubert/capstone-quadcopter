@@ -8,8 +8,8 @@ int LED_ON;
 /////////////////// USART3 Asynch ///////////////////
 void USART3_ReturnToSender()
 {
-  uint32_t NumberOfBytes = 8;
-  char receiveAddress[8];
+  uint32_t NumberOfBytes = 10;
+  char receiveAddress[10];
 
   USART3->CR1 &= ~USART_CR1_RXNEIE; // Disable USART6_Receive_Interrupt
   USART3->CR1 &= ~USART_CR1_TCIE;   // Disable USART6_Transmit_Interrupt
@@ -65,8 +65,8 @@ int rx6Received;
 
 void USART6_ReturnToSender()
 {
-  uint32_t NumberOfBytes = 8;
-  char receiveAddress[8];
+  uint32_t NumberOfBytes = 10;
+  char receiveAddress[10];
 
   USART6->CR1 &= ~USART_CR1_RXNEIE; // Disable USART6_Receive_Interrupt
   USART6->CR1 &= ~USART_CR1_TCIE;   // Disable USART6_Transmit_Interrupt
