@@ -7,6 +7,10 @@ extern uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 void quadcontrol();
 void emergencyStop();
 
+// LOCATED IN stm32f4xx_it.c //
+void setButtonFrame(void);
+///////////////////////////////
+
 typedef struct {
   float x, y, z;
 } GyroData;
@@ -31,14 +35,21 @@ typedef struct {
 } RollPitchYaw;
 
 typedef struct {
-  int16_t leftRight;
-  int16_t upDown;
-  int16_t padLeftRight;
+  uint8_t startByte;
+  uint8_t checksum;
+  int16_t buttons;
   int16_t padUpDown;
-  uint16_t buttons;
+  int16_t padLeftRight;
+  int16_t upDown;
+  int16_t leftRight;
 } GriffinPacket;
 
 extern int GPacketValid;
 extern GriffinPacket GPacket;
+extern void setButtonFrame();
+
+#define UART3RXBUF_SIZE 2000
+extern int UART3_DMA_INDEX;
+extern char UART3RXBuf[UART3RXBUF_SIZE];
 
 #endif

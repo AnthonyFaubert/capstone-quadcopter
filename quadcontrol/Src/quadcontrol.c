@@ -315,8 +315,27 @@ void joystick2Quaternion(Quaternion* quat, GriffinPacket packet) {
   yaw *= 3.14159265358979323846f / 32768.0f;
   //quat.w = cosf(yaw
 }
-int GPacketValid = 0;
+
+
+uint8_t BUTTON_PRESS;
 GriffinPacket GPacket;
+GriffinPacket InvalidPacket;
+
+
+//  SYNTAX: "b7" = bit7     b7        b6        b5        b4       B3       b2       b1       b0
+// Button Format        [RESERVED, RESERVED, RESERVED, RESERVED, Button3, Button2, Button1, Button0]
+// Button3 = ?
+// Button2 = ?
+// Button1 = ?
+// Button0 = ?
+uint32_t InvalidCount = 0;
+uint32_t ValidCount = 0;
+void setButtonFrame() {
+  
+}
+int UART3_DMA_INDEX = 0;
+char UART3RXBuf[UART3RXBUF_SIZE];
+const int SIZE_OF_GRIFFIN = (int) sizeof(GriffinPacket);
 // Main program entry point
 void quadcontrol() {
   BNO055_Init_I2C(&hi2c1);
@@ -348,10 +367,13 @@ void quadcontrol() {
   bool c = false;
   bool g = false;
   float mVals[4];
-  char uart3RXBuffer[sizeof(GriffinPacket)];
-  USART3_RX_Config(sizeof(GriffinPacket), uart3RXBuffer);
+  
+  USART3_RX_Config(sizeof(GriffinPacket), (char *) &GPacket);
     
   uint32_t timer = 0;
+  int uart3bufIndex = 0;
+  int packetIndex = -1;
+  uint8_t packetBuffer[sizeof(GriffinPacket)];
   
   while (1) {
     waitWithEStopCheck(20);
@@ -363,15 +385,66 @@ void quadcontrol() {
     getQuaternionError(&orientationErrors, imuOrientation, desiredOrientation);
     
     
-    if (GPacketValid) {
+    // Tony:  I thought about it, we don't actually need a "FIFO."
+    // If each button press equates to one movement/action, then 
+    // the expectation is that the action will occur once.  We don't
+    // need to remember if the user pressed it continuously (which is
+    // how the FIFO would be filled up).  Below, the expectation is
+    // that, when the button is pressed, it will be serviced and the
+    // indicator cleared. Our CPU is definitely fast enough to do
+    // all of this between button presses.
+    for (; uart3bufIndex != UART3_DMA_INDEX; uart3bufIndex = (uart3bufIndex + 1) % UART3RXBUF_SIZE) {
+      if (UART3RXBuf[uart3bufIndex] == 37) { // FIXME: don't die in the middle of a packet read
+        packetIndex = 0;
+        PRINTF("pi=%d, pval=%d, conds = %d %d\r\n", packetIndex, packetBuffer[0], (packetIndex != -1), (packetIndex < SIZE_OF_GRIFFIN));
+        HAL_Delay(1000);
+        emergencyStop();
+      }
+      if ((packetIndex != -1) && (packetIndex < SIZE_OF_GRIFFIN)) {
+        packetBuffer[packetIndex++] = UART3RXBuf[uart3bufIndex];
+        PRINTF("%d\r\n", packetBuffer[0]);
+        HAL_Delay(1000);
+        emergencyStop();
+      }
+      if (packetIndex >= SIZE_OF_GRIFFIN) {
+        PRINTF("pi=%d, sz=%d\r\n", packetIndex, SIZE_OF_GRIFFIN);
+        HAL_Delay(1000);
+        emergencyStop();
+        uint8_t sum = 0;
+        uint8_t checksum;
+        for (int i = 0; i < (SIZE_OF_GRIFFIN - 1); i++) {
+          sum += (uint8_t) packetBuffer[i];
+        }
+        checksum = packetBuffer[SIZE_OF_GRIFFIN - 1];
+        if (sum == checksum) {
+          GPacket.checksum = checksum;
+          GPacket.buttons = *((int16_t*) (packetBuffer + 9));
+          if (GPacket.buttons == 1) {
+            PRINTLN("A button was pressed!\r\n");
+            PRINTF("Joystick: %d, %d, %d, %d\n", GPacket.leftRight, GPacket.upDown, GPacket.padLeftRight, GPacket.padUpDown);
+          }
+          ValidCount++;
+        } else {
+          InvalidCount++;
+          if (InvalidCount == 5) {
+            PRINTF("inval packet: %d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\r\n", packetBuffer[0], packetBuffer[1], packetBuffer[2], packetBuffer[3], packetBuffer[4], packetBuffer[5], packetBuffer[6], packetBuffer[7], packetBuffer[8], packetBuffer[9], packetBuffer[10], packetBuffer[11]);
+            HAL_Delay(1000);
+            emergencyStop();
+          }
+        }
+        PRINTF("new packet (val/inval = %d/%d)\r\n", ValidCount, InvalidCount);
+        packetIndex = -1;
+      }
+    }
+      
+/*
       PRINTF("Btns: %d\n", GPacket.buttons);
       if (GPacket.buttons == 1) {
         PRINTLN("A button was pressed!\r\n");
         PRINTF("Joystick: %d, %d, %d, %d\n", GPacket.leftRight, GPacket.upDown, GPacket.padLeftRight, GPacket.padUpDown);
       }
-      GPacketValid = false;
-      //USART3_RX_Config(sizeof(GriffinPacket), (char*) &packet);
-    }
+*/
+  
     if ((timer % 500 == 0) && q) {
       PRINTF("QUATS: W: %.2f X: %.2f Y: %.2f Z: %.2f\r\n", imuOrientation.w, imuOrientation.x, imuOrientation.y, imuOrientation.z);
     }

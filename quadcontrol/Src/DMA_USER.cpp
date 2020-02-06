@@ -20,15 +20,19 @@ void DMA_Config_USART3_RX(uint32_t bufferSize, char * targetAddress)
   rx3Received = 0;
   DMA1_Stream1->CR &= ~DMA_SxCR_EN; // Disable DMA, Stream1
   DMA1_Stream1->CR |= DMA_SxCR_TCIE; // Activate TC Interrupt
-  DMA1_Stream1->NDTR = RX3_BUFFER; // Number of transfers
+  //DMA1_Stream1->NDTR = RX3_BUFFER; // Number of transfers
   DMA1_Stream1->PAR = (uint32_t) &(USART3->DR); // Set Peripheral Address
-  DMA1_Stream1->M0AR = RX3_POINTER; // Target Memory Address
+  //DMA1_Stream1->M0AR = RX3_POINTER; // Target Memory Address
+  // FIXME PLEASE
+  DMA1_Stream1->NDTR = 10; // Reset Buffer size
+  DMA1_Stream1->M0AR = UART3_DMA_INDEX; // Reset address
   DMA1_Stream1->CR |= DMA_SxCR_EN; // DMA ready to transfer
 }
 
 // Send Data (one-shot) via DMA to USART6
 void DMA_TX_USART3(int bufferSize, char * sendAddress)
 {
+  // FIXME: FOR THE LOVE OF ALL THAT IS HOLY
   DMA1_Stream3->CR &= ~DMA_SxCR_EN;  // Turn off DMA2-Stream6
   DMA1_Stream3->CR |= DMA_SxCR_TCIE; // Activate TC Interrupt
   DMA1_Stream3->NDTR = bufferSize & 0xFFFFFFFFUL; // Number of transfers
@@ -42,17 +46,10 @@ void DMA_TX_USART3(int bufferSize, char * sendAddress)
 void DMA1_STREAM1_IT_HANDLER(void)
 {
   DMA1->LIFCR |= (DMA_LIFCR_CTCIF1 + DMA_LIFCR_CHTIF1); // Clear Half-Complete and Complete Interr
-  DMA1_Stream1->NDTR = RX3_BUFFER; // Reset Buffer size
-  DMA1_Stream1->M0AR = RX3_POINTER; // Reset address
+  UART3_DMA_INDEX = (UART3_DMA_INDEX + 10) % UART3RXBUF_SIZE;
+  DMA1_Stream1->NDTR = 10; // Reset Buffer size
+  DMA1_Stream1->M0AR = UART3_DMA_INDEX; // Reset address
   rx3Received = 1;
-  GriffinPacket* dmaPacket = (GriffinPacket*) RX3_POINTER;
-  GPacketValid = 0;
-  GPacket.leftRight = dmaPacket->leftRight;
-  GPacket.upDown = dmaPacket->upDown;
-  GPacket.padLeftRight = dmaPacket->padLeftRight;
-  GPacket.padUpDown = dmaPacket->padUpDown;
-  GPacket.buttons = dmaPacket->buttons;
-  GPacketValid = 1;
   DMA1_Stream1->CR |= DMA_SxCR_EN;
 }
 
