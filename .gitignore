@@ -36,10 +36,24 @@ quadcontrol/Src/usbd_conf.c
 quadcontrol/Src/usbd_desc.c
 
 # STM_External_Controller #
-RxTx_ExternalController/
+RxTx_ExternalController/STM_ExternalController/Drivers
 RxTx_ExternalController/STM_ExternalController/EWARM
 RxTx_ExternalController/STM_ExternalController/Middlewares
 RxTx_ExternalController/STM_ExternalController/.mxproject
+
+# INC Files
+RxTx_ExternalController/STM_ExternalController/Inc/stm32f4xx_hal_conf.h
+RxTx_ExternalController/STM_ExternalController/Inc/stm32f4xx_it.h
+RxTx_ExternalController/STM_ExternalController/Inc/usb_host.h
+RxTx_ExternalController/STM_ExternalController/Inc/usbh_conf.h
+RxTx_ExternalController/STM_ExternalController/Inc/usbh_platform.h
+
+# SRC Files
+RxTx_ExternalController/STM_ExternalController/Src/stm32f4xx_hal_msp.c
+RxTx_ExternalController/STM_ExternalController/Src/system_stm32f4xx.c
+RxTx_ExternalController/STM_ExternalController/Src/usb_host.c
+RxTx_ExternalController/STM_ExternalController/Src/usbh_conf.c
+RxTx_ExternalController/STM_ExternalController/Src/usbh_platform.c
 
 # mainWorkspace #
 mainWorkspace/mainWorkspace.eww
