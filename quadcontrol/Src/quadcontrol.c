@@ -312,16 +312,30 @@ void setMotors(float* motorVals) {
   SetPWM(thrusts[MOTOR_CHANNEL_MAPPING[0]], thrusts[MOTOR_CHANNEL_MAPPING[1]], thrusts[MOTOR_CHANNEL_MAPPING[2]], thrusts[MOTOR_CHANNEL_MAPPING[3]]);
 }
 
+// TODO: place somewhere else
+// Set max bank angle to 45 degrees
+#define PI 3.14159265358979323846f
+#define JOYSTICK_MAX_ANGLE (PI / 2.0f)
 void joystick2Quaternion(Quaternion* quat, GriffinPacket packet) {
-  float maxRollPitch = sqrtf(2.0f) / 2.0f;
-  float roll, pitch, yaw;
-  roll = packet.leftRight;
-  pitch = packet.upDown;
-  yaw = packet.padLeftRight;
-  roll /= 32768.0f; // slightly less
-  pitch /= 32768.0f; // 
-  yaw *= 3.14159265358979323846f / 32768.0f;
-  //quat.w = cosf(yaw
+   // NOTICE: in progress
+  float xAngle = packet.leftRight;
+  float yAngle = packet.upDown;
+  Quaternion xRot, yRot, yaw;
+  xAngle *= JOYSTICK_MAX_ANGLE / 32768.0f; // slightly less than JOYSTICK_MAX_ANGLE at max negative int16_t
+  yAngle *= JOYSTICK_MAX_ANGLE / 32768.0f;
+  z = 1.0f; // 45 deg max angle
+  float alpha = packet.padLeftRight;
+  alpha *= 0.5f * PI / 32768.0f; // alpha = yaw angle (in rads) / 2
+  // normalize the x,y vector
+  float norm = sqrtf(x*x + y*y + z*z);
+  x /= norm;
+  y /= norm;
+  z /= norm;
+  
+  quat.w = cosf(alpha);
+  quat.x = x*sin(alpha);
+  quat.y = y*sin(alpha);
+  quat.z = z*sin(alpha);
 }
 
 //  SYNTAX: "b7" = bit7     b7        b6        b5        b4       B3       b2       b1       b0
@@ -367,14 +381,21 @@ void quadcontrol() {
   int packetIndex = -1;
   uint8_t packetBuffer[SIZE_OF_GRIFFIN];
   
-  Quaternion imuOrientation, desiredOrientation, joystickOrientation, calibrationOrientation;
+  Quaternion imuOrientation, desiredOrientation, joystickOrientation, trimmedOrientation;
   GyroData imuGyroData;
   RollPitchYaw orientationErrors;
-  calibrationOrientation.w = 1.0f;
-  calibrationOrientation.x = 0.0f;
-  calibrationOrientation.y = 0.0f;
-  calibrationOrientation.z = 0.0f;
-  joystickOrientation = calibrationOrientation;
+  trimmedOrientation = {1.0f, 0.0f, 0.0f, 0.0f};
+  const float TRIM_DEGREES_PER_PRESS = 1.0f;
+  float trimAlphaDiv2 = PI * TRIM_DEGREES_PER_PRESS / 180.0f / 2.0f;
+  Quaternion xTrim = {cosf(trimAlphaDiv2),sinf(trimAlphaDiv2),0.0f,0.0f}, yTrim = {cosf(trimAlphaDiv2),0.0f,sinf(trimAlphaDiv2),0.0f}; // NOTICE: complete
+  
+    /* TODO: delete
+  trimmedOrientation.w = 1.0f;
+  trimmedOrientation.x = 0.0f;
+  trimmedOrientation.y = 0.0f;
+  trimmedOrientation.z = 0.0f;
+*/
+  joystickOrientation = trimmedOrientation;
   float mVals[4];
 
   bool q = false; // TODO: convert to defines
@@ -399,7 +420,7 @@ void quadcontrol() {
       getQuaternion(&imuOrientation); // FIXME: check for IMU comms error!
       getGyro(&imuGyroData);
       // TODO: E-stop if we're upside-down
-      multiplyQuaternions(&desiredOrientation, joystickOrientation, calibrationOrientation);
+      multiplyQuaternions(&desiredOrientation, joystickOrientation, trimmedOrientation);
       getQuaternionError(&orientationErrors, imuOrientation, desiredOrientation);
     }
     
@@ -449,6 +470,7 @@ void quadcontrol() {
             PRINTF("Button %d was pressed!\r\n", GPacket.buttons);
             if (GPacket.buttons == 5) emergencyStop();
             PRINTF("Joystick: %d, %d, %d, %d\n", GPacket.leftRight, GPacket.upDown, GPacket.padLeftRight, GPacket.padUpDown);
+             // NOTICE: actually apply trim quats
           }
         } else { // invalid packet
           InvalidCount++;
