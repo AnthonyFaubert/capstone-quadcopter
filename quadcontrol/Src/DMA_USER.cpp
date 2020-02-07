@@ -24,15 +24,15 @@ void DMA_Config_USART3_RX(uint32_t bufferSize, char * targetAddress)
   DMA1_Stream1->PAR = (uint32_t) &(USART3->DR); // Set Peripheral Address
   //DMA1_Stream1->M0AR = RX3_POINTER; // Target Memory Address
   // FIXME PLEASE
-  DMA1_Stream1->NDTR = 10; // Reset Buffer size
-  DMA1_Stream1->M0AR = UART3_DMA_INDEX; // Reset address
+  DMA1_Stream1->NDTR = UART3RXCHUNK_SIZE; // Reset Buffer size
+  DMA1_Stream1->M0AR = (uint32_t) (&UART3RXBuf[UART3_DMA_INDEX]); // Reset address
   DMA1_Stream1->CR |= DMA_SxCR_EN; // DMA ready to transfer
 }
 
 // Send Data (one-shot) via DMA to USART6
 void DMA_TX_USART3(int bufferSize, char * sendAddress)
 {
-  // FIXME: FOR THE LOVE OF ALL THAT IS HOLY
+  // TODO: fifo-ify
   DMA1_Stream3->CR &= ~DMA_SxCR_EN;  // Turn off DMA2-Stream6
   DMA1_Stream3->CR |= DMA_SxCR_TCIE; // Activate TC Interrupt
   DMA1_Stream3->NDTR = bufferSize & 0xFFFFFFFFUL; // Number of transfers
@@ -45,11 +45,15 @@ void DMA_TX_USART3(int bufferSize, char * sendAddress)
 // Reset DMA1 to stream data from USART3 (RX-DMA)
 void DMA1_STREAM1_IT_HANDLER(void)
 {
+  // FIXME: FOR THE LOVE OF ALL THAT IS HOLY
   DMA1->LIFCR |= (DMA_LIFCR_CTCIF1 + DMA_LIFCR_CHTIF1); // Clear Half-Complete and Complete Interr
-  UART3_DMA_INDEX = (UART3_DMA_INDEX + 10) % UART3RXBUF_SIZE;
-  DMA1_Stream1->NDTR = 10; // Reset Buffer size
-  DMA1_Stream1->M0AR = UART3_DMA_INDEX; // Reset address
+  UART3_DMA_INDEX = (UART3_DMA_INDEX + UART3RXCHUNK_SIZE) % UART3RXBUF_SIZE;
+  //DMA1_Stream1->NDTR = RX3_BUFFER; // Reset Buffer size
+  DMA1_Stream1->NDTR = UART3RXCHUNK_SIZE;
+  //DMA1_Stream1->M0AR = RX3_POINTER; // Reset address
+  DMA1_Stream1->M0AR = (uint32_t) (UART3RXBuf + UART3_DMA_INDEX);
   rx3Received = 1;
+  UART3_DMA_CHUNKS_RECVD++;
   DMA1_Stream1->CR |= DMA_SxCR_EN;
 }
 

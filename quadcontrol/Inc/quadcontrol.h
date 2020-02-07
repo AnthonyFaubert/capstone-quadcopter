@@ -2,11 +2,15 @@
 #ifndef __QUADCONTROL_H__
 #define __QUADCONTROL_H__
 
+// Set by generated code / libraries
 extern uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
+extern __IO uint32_t uwTick; // variable returned by HAL_GetTick()
+
 
 void quadcontrol();
 void emergencyStop();
 
+// TODO: clean up
 // LOCATED IN stm32f4xx_it.c //
 void setButtonFrame(void);
 ///////////////////////////////
@@ -36,20 +40,23 @@ typedef struct {
 
 typedef struct {
   uint8_t startByte;
-  uint8_t checksum;
-  int16_t buttons;
-  int16_t padUpDown;
-  int16_t padLeftRight;
-  int16_t upDown;
   int16_t leftRight;
+  int16_t upDown;
+  int16_t padLeftRight;
+  int16_t padUpDown;
+  int16_t buttons;
+  uint8_t checksum;
 } GriffinPacket;
+#define SIZE_OF_GRIFFIN 12
 
 extern int GPacketValid;
 extern GriffinPacket GPacket;
 extern void setButtonFrame();
 
-#define UART3RXBUF_SIZE 2000
+#define UART3RXBUF_SIZE 500
+#define UART3RXCHUNK_SIZE 10
 extern int UART3_DMA_INDEX;
+extern int UART3_DMA_CHUNKS_RECVD; // TODO: remove here and in DMA interupt
 extern char UART3RXBuf[UART3RXBUF_SIZE];
 
 #endif
