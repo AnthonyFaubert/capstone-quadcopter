@@ -1,10 +1,12 @@
+#!/usr/bin/python3
+
 import pygame
 import time
 import serial
 import subprocess
 import struct
 
-DATA_LENGTH = 10
+DATA_LENGTH = 12
 
 # open the steam controller driver
 sc_proc = subprocess.Popen('sc-controller', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -29,7 +31,7 @@ joystick = pygame.joystick.Joystick(0)
 joystick.init()
 
 debug_path = "./../../../../../var/www/html/debug.txt"
-debug_file = open(r'/var/www/html/debug.txt','w+')
+debug_file = open(r'/var/www/html/debug.txt','wb')
 
 ser = serial.Serial(port = "/dev/ttyS0", baudrate = 115200, write_timeout = None, timeout = None) #read timeout should get set to None
 special = 0
@@ -55,7 +57,7 @@ def send_data(dataValue):
 ser.reset_input_buffer()
 ser.reset_output_buffer()
 while not done:
-    #clock.tick(1) #integer value is the frames per second
+    clock.tick(20) #integer value is the frames per second
     
     for event in pygame.event.get(): # User did something.
         if event.type == pygame.QUIT: # If user clicked close.
@@ -63,14 +65,19 @@ while not done:
         elif event.type == pygame.JOYBUTTONDOWN:
             if (event.button == 6 or event.button == 7):
                 special = 5
+                print("button 5")
             elif (event.button == 0):
                 special = 1
+                print("button 1")
             elif (event.button == 1):
                 special = 2
+                print("button 2")
             elif (event.button == 2):
                 special = 3
+                print("button 3")
             elif (event.button == 3):
                 special = 4
+                print("button 4")
 
 #        elif (event.type == pygame.JOYAXISMOTION and (event.axis == 6 or event.axis == 7)):
 #            print("axis 6 is " + str(joystick.get_axis(6)))
@@ -100,10 +107,13 @@ while not done:
         tilt = get_tilt()
         yt = get_yt()
         ready_to_send = True  #needs to be set to False eventually
-        data = struct.pack('>hhhhh', tilt[0], tilt[1], yt[0], yt[1], special)
+        data = struct.pack('>Bhhhhh', 37, tilt[0], tilt[1], yt[0], yt[1], special)
+        checksum = sum(data) & 0xFF
+        data += struct.pack('>B', checksum)
         print("below is sent data:")
         send_data(data)
         print(hexify(data))
+        #print(data)
         print("ser out waiting " + str(ser.out_waiting))
         print()
         #ser.reset_output_buffer()
@@ -113,9 +123,8 @@ while not done:
         #print("below is bytes waiting")
         #print(ser.in_waiting)
         ser.ready_to_send = True
-        debug_file.write("below is read data: \n") 
-        debug_file.write(str(hexify(ser.read(10))) + "\n")
-        ser.reset_input_buffer()
+        debug_file.write(ser.read(ser.in_waiting))
+        #ser.reset_input_buffer()
 
 #turn off motors
 ser.close()
