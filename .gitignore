@@ -8,6 +8,11 @@ mainWorkspace/Debug/
 mainWorkspace/TemplateProject.dep
 mainWorkspace/settings/
 
+# EAGLE FILES #
+*.l\#*
+*.b\#*
+*.s\#*
+
 # INC Files
 quadcontrol/Inc/gpio.h
 quadcontrol/Inc/i2c.h
