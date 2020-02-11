@@ -54,9 +54,14 @@ extern GriffinPacket GPacket;
 extern void setButtonFrame();
 
 #define UART3RXBUF_SIZE 500
-#define UART3RXCHUNK_SIZE 10
+#define UART3RXCHUNK_SIZE 5
+extern int UART3_TX_DONE_FLAG;
 extern int UART3_DMA_INDEX;
 extern int UART3_DMA_CHUNKS_RECVD; // TODO: remove here and in DMA interupt
 extern char UART3RXBuf[UART3RXBUF_SIZE];
+
+#define USBRXBUF_SIZE 500
+extern int USBRXBufIndex;
+extern char USBRXBuf[USBRXBUF_SIZE];
 
 #endif

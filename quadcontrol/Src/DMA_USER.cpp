@@ -58,8 +58,8 @@ void DMA1_STREAM1_IT_HANDLER(void)
 }
 
 // Clear I_Flags to prep for next transmission to USART3 (TX-DMA)
-void DMA1_STREAM3_IT_HANDLER(void)
-{
+void DMA1_STREAM3_IT_HANDLER(void) {
+  UART3_TX_DONE_FLAG = 1;
   DMA1->LIFCR |= (DMA_LIFCR_CTCIF3 + DMA_LIFCR_CHTIF3);
 }
 

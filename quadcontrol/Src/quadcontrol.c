@@ -41,6 +41,7 @@ void PRINTF(const char* fmt, ...) {
     CDC_Transmit_FS((uint8_t*) DebugStrBuf, DebugStrLen);
     // TODO: change TX to FIFO-like system like RX
     txBufferUSART3(DebugStrLen, DebugStrBuf);
+    UART3_TX_DONE_FLAG = 0;
     va_end(args);
 }
 //#define PRINTF(f_, ...) DebugStrLen = sprintf(DebugStrBuf, (f_), __VA_ARGS__); \
@@ -64,7 +65,6 @@ void waitForButtonState(bool high, bool printPrompt) {
     HAL_Delay(20);
   }
 }
-
 void SetPWM(uint16_t ch1, uint16_t ch2, uint16_t ch3, uint16_t ch4) {
   HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
   HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
@@ -210,6 +210,7 @@ uint8_t getEuler(EulerData* eulerData) {
 
 void emergencyStop() {
   SetPWM(0, 0, 0, 0);
+  while (!UART3_TX_DONE_FLAG);
   PRINTLN("EMERGENCY STOP ACTIVATED!");
   while (1);
 }
@@ -315,27 +316,23 @@ void setMotors(float* motorVals) {
 // TODO: place somewhere else
 // Set max bank angle to 45 degrees
 #define PI 3.14159265358979323846f
-#define JOYSTICK_MAX_ANGLE (PI / 2.0f)
+#define JOYSTICK_MAX_ANGLE (PI / 16.0f)
 void joystick2Quaternion(Quaternion* quat, GriffinPacket packet) {
    // NOTICE: in progress
-  float xAngle = packet.leftRight;
-  float yAngle = packet.upDown;
-  Quaternion xRot, yRot, yaw;
-  xAngle *= JOYSTICK_MAX_ANGLE / 32768.0f; // slightly less than JOYSTICK_MAX_ANGLE at max negative int16_t
-  yAngle *= JOYSTICK_MAX_ANGLE / 32768.0f;
-  z = 1.0f; // 45 deg max angle
-  float alpha = packet.padLeftRight;
-  alpha *= 0.5f * PI / 32768.0f; // alpha = yaw angle (in rads) / 2
-  // normalize the x,y vector
+  float lrAngle = packet.leftRight;
+  float udAngle = packet.upDown;
+  float yawAlphaDiv2 = packet.padLeftRight;
+  yawAlphaDiv2 *= PI / 32768.0f / 2.0f;
+  lrAngle *= JOYSTICK_MAX_ANGLE / 32768.0f; // slightly less than JOYSTICK_MAX_ANGLE at max negative int16_t
+  udAngle *= JOYSTICK_MAX_ANGLE / 32768.0f;
+  float z = sinf(lrAngle) + sinf(udAngle);
+  float y = cosf(udAngle);
+  float x = cosf(lrAngle);
   float norm = sqrtf(x*x + y*y + z*z);
-  x /= norm;
-  y /= norm;
-  z /= norm;
-  
-  quat.w = cosf(alpha);
-  quat.x = x*sin(alpha);
-  quat.y = y*sin(alpha);
-  quat.z = z*sin(alpha);
+  quat->w = cosf(yawAlphaDiv2);
+  quat->x = x * sinf(yawAlphaDiv2) / norm;
+  quat->y = y * sinf(yawAlphaDiv2) / norm;
+  quat->z = z * sinf(yawAlphaDiv2) / norm;
 }
 
 //  SYNTAX: "b7" = bit7     b7        b6        b5        b4       B3       b2       b1       b0
@@ -351,9 +348,14 @@ void setButtonFrame();
 
 
 GriffinPacket GPacket;
+int UART3_TX_DONE_FLAG = 1;
 int UART3_DMA_INDEX = 0;
 int UART3_DMA_CHUNKS_RECVD = 0;
 char UART3RXBuf[UART3RXBUF_SIZE];
+
+int USBRXBufIndex;
+char USBRXBuf[USBRXBUF_SIZE];
+
 uint32_t InvalidCount = 0;
 uint32_t ValidCount = 0;
 
@@ -378,16 +380,18 @@ void quadcontrol() {
   
   USART3_RX_Config(0, (char *) &GPacket);
   int uart3bufIndex = 0;
+  int usbBufIndex = 0;
   int packetIndex = -1;
   uint8_t packetBuffer[SIZE_OF_GRIFFIN];
   
-  Quaternion imuOrientation, desiredOrientation, joystickOrientation, trimmedOrientation;
+  Quaternion imuOrientation, desiredOrientation, joystickOrientation;
   GyroData imuGyroData;
   RollPitchYaw orientationErrors;
-  trimmedOrientation = {1.0f, 0.0f, 0.0f, 0.0f};
+  Quaternion trimmedOrientation = {1.0f, 0.0f, 0.0f, 0.0f};
   const float TRIM_DEGREES_PER_PRESS = 1.0f;
   float trimAlphaDiv2 = PI * TRIM_DEGREES_PER_PRESS / 180.0f / 2.0f;
   Quaternion xTrim = {cosf(trimAlphaDiv2),sinf(trimAlphaDiv2),0.0f,0.0f}, yTrim = {cosf(trimAlphaDiv2),0.0f,sinf(trimAlphaDiv2),0.0f}; // NOTICE: complete
+  float thrust = 0.3f;
   
     /* TODO: delete
   trimmedOrientation.w = 1.0f;
@@ -402,28 +406,51 @@ void quadcontrol() {
   bool c = false;
   bool g = false;
   
-  uint32_t scheduleButtonCheck = 0, schedulePID = 0, schedulePrintInfo = 0;
+  uint32_t scheduleButtonCheck = 0, schedulePID = 0, schedulePrintInfo = 0, packetTimeout = 0, lastRXLoop = 0, worstRXstopwatch = 0, worstPIDstopwatch = 0, worstBtnStopwatch = 0, worstPoutStopwatch = 0;
   
   while (1) {
     // Sample button at 100Hz
+    uint32_t btnStopwatch = uwTick;
     if (uwTick > scheduleButtonCheck) {
       scheduleButtonCheck = uwTick + 10; // 100 Hz
       if (checkButtonState(true)) emergencyStop();
     }
+    btnStopwatch = uwTick - btnStopwatch;
+    if (btnStopwatch > worstBtnStopwatch) worstBtnStopwatch = btnStopwatch;
     
     // Get IMU data and run PID loop, updating PWM values
+    uint32_t pidStopwatch = uwTick;
     if (uwTick >= schedulePID) {
       schedulePID = uwTick + 20; // 50 Hz
-      PID(mVals, orientationErrors, imuGyroData, 0.3f);
-      // FIXME: uncomment
-      //setMotors(mVals);
-      getQuaternion(&imuOrientation); // FIXME: check for IMU comms error!
-      getGyro(&imuGyroData);
-      // TODO: E-stop if we're upside-down
-      multiplyQuaternions(&desiredOrientation, joystickOrientation, trimmedOrientation);
-      getQuaternionError(&orientationErrors, imuOrientation, desiredOrientation);
+      if (packetTimeout != 0) {
+        if (uwTick >= packetTimeout) {
+          uint32_t loopDiff = uwTick - lastRXLoop;
+          if (uart3bufIndex != UART3_DMA_INDEX) {
+            PRINTF("FATAL: ptout100ms. loop %d ms ago. tick=%d. HAVE data.\r\n", loopDiff, uwTick);
+          } else {
+            PRINTF("FATAL: ptout100ms. loop %d ms ago. tick=%d. no data.\r\n", loopDiff, uwTick);
+          }
+      /* usually getting:
+FATAL: ptout100ms. loop 50 ms ago. tick=33669. no data.
+B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
+      note the timeout is always 50ms(+/- 2ms) after last loop. suspicious AF. Also, this only happens when tick is almost perfectly aligned with timeout.
+*/
+          HAL_Delay(100);
+          PRINTF("B=%d,R=%d,PI=%d,PR=%d,val=%d,inval=%d,lLoop=%d,tout=%d\r\n", worstBtnStopwatch, worstRXstopwatch, worstPIDstopwatch, worstPoutStopwatch, ValidCount, InvalidCount, lastRXLoop, packetTimeout);
+          emergencyStop();
+        }
+        getQuaternion(&imuOrientation); // FIXME: check for IMU comms error!
+        getGyro(&imuGyroData);
+        // TODO: E-stop if we're upside-down
+        multiplyQuaternions(&desiredOrientation, joystickOrientation, trimmedOrientation);
+        getQuaternionError(&orientationErrors, imuOrientation, desiredOrientation);
+        
+        PID(mVals, orientationErrors, imuGyroData, 0.3f);
+        setMotors(mVals);
+      }
     }
-    
+    pidStopwatch = uwTick - pidStopwatch;
+    if (pidStopwatch > worstPIDstopwatch) worstPIDstopwatch = pidStopwatch;
     
     
     // Tony:  I thought about it, we don't actually need a "FIFO."
@@ -437,6 +464,7 @@ void quadcontrol() {
     
     // TODO: clean up into function with a callback for a valid packet
     // Check the RX FIFO for packets
+    uint32_t rxStopwatch = uwTick;
     for (; uart3bufIndex != UART3_DMA_INDEX; uart3bufIndex = (uart3bufIndex + 1) % UART3RXBUF_SIZE) {
       // No schedule, runs as fast as possible
       if ((packetIndex < 0) && (UART3RXBuf[uart3bufIndex] == 37)) {
@@ -466,34 +494,60 @@ void quadcontrol() {
           GPacket.buttons = (int16_t)(packetBuffer[9] << 8) | (int16_t)(packetBuffer[10]);
           GPacket.checksum = packetBuffer[11];
           // Hanndle packet
+          joystick2Quaternion(&joystickOrientation, GPacket);
+          thrust = (GPacket.padUpDown / 2);
+          thrust = (thrust / 32768.0f) + 0.5f; // between 0.0f and 1.0f max negative/positive int16_t values
+          packetTimeout = uwTick + 100;
           if (GPacket.buttons) {
             PRINTF("Button %d was pressed!\r\n", GPacket.buttons);
             if (GPacket.buttons == 5) emergencyStop();
             PRINTF("Joystick: %d, %d, %d, %d\n", GPacket.leftRight, GPacket.upDown, GPacket.padLeftRight, GPacket.padUpDown);
-             // NOTICE: actually apply trim quats
+            // NOTICE: actually apply trim quats
           }
+          packetIndex = -1;
         } else { // invalid packet
           InvalidCount++;
           // Print packet contents as hex and print an update on invalid/valid counters
-          PRINTF("ERROR: invalid packet: ");
-          for (int i = 0; i < SIZE_OF_GRIFFIN; i++) PRINTF("%02X", packetBuffer[i]);
-          PRINTF(" (val/inval = %d/%d)\r\n", ValidCount, InvalidCount);
+          PRINTF("ERROR: invalid packet: "); while (!UART3_TX_DONE_FLAG);
+          for (int i = 0; i < SIZE_OF_GRIFFIN; i++) {
+            PRINTF("%02X", packetBuffer[i]); while (!UART3_TX_DONE_FLAG);
+          }
+          PRINTF(" (val/inval = %d/%d)\r\n", ValidCount, InvalidCount); while (!UART3_TX_DONE_FLAG);
           
-          if (InvalidCount > 10) {
-            HAL_Delay(1000); // FIXME: don't delay E-stop! (currently needed because UART flush or something?)
-            emergencyStop();
+          if (InvalidCount > 20) emergencyStop();
+          
+          // Find the index of another packet start inside this packet
+          for (packetIndex = 1; packetIndex < SIZE_OF_GRIFFIN; packetIndex++) {
+            if (packetBuffer[packetIndex] == 37) break;
+          }
+          if (packetIndex == SIZE_OF_GRIFFIN) {
+            // No packet start found, invalidate packet
+            packetIndex = -1;
+          } else {
+            // Packet start found, move everything left by packetIndex amount of bytes
+            for (int i = packetIndex; i < SIZE_OF_GRIFFIN; i++) {
+              packetBuffer[i - packetIndex] = packetBuffer[i];
+            }
+            PRINTF("Packet shifted %d.\r\n", packetIndex); while (!UART3_TX_DONE_FLAG);
           }
         }
-        
-        packetIndex = -1;
       }
+      lastRXLoop = uwTick;
     }
+    rxStopwatch = uwTick - rxStopwatch;
+    if (rxStopwatch > worstRXstopwatch) worstRXstopwatch = rxStopwatch;
     
+    // 1 more byte for packet: got middle 10 bytes 
+    
+    uint32_t poutStopwatch = uwTick;
     if (uwTick >= schedulePrintInfo) {
       schedulePrintInfo = uwTick + 500; // 2 Hz
+      if (packetTimeout == 0) PRINTLN("Waiting for packet...");
       if (q) PRINTF("QUATS: W: %.2f X: %.2f Y: %.2f Z: %.2f\r\n", imuOrientation.w, imuOrientation.x, imuOrientation.y, imuOrientation.z);
       if (c) PRINTF("CMD: Roll %.2f, Pitch %.2f, Yaw %.2f (all in rads)\r\n", orientationErrors.roll, orientationErrors.pitch, orientationErrors.yaw);
       if (g) PRINTF("GYRO: X: %.2f Y: %.2f Z: %.2f\r\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
     }
+    poutStopwatch = uwTick - poutStopwatch;
+    if (poutStopwatch > worstPoutStopwatch) worstPoutStopwatch = poutStopwatch;
   }
 }
