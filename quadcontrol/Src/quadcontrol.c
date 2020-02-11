@@ -104,6 +104,7 @@ void SetPWM(uint16_t ch1, uint16_t ch2, uint16_t ch3, uint16_t ch4) {
 
 // WARNING: ab != ba
 // <1,0,0,0>*x = x*<1,0,0,0> = x
+// This is equivalent to cross product when W=0 for both vectors
 void multiplyQuaternions(Quaternion* result, Quaternion a, Quaternion b) {
   result->w = (a.w * b.w) - (a.x * b.x) - (a.y * b.y) - (a.z * b.z);
   result->x = (a.w * b.x) + (a.x * b.w) + (a.y * b.z) - (a.z * b.y);
@@ -224,8 +225,8 @@ const char MOTOR_CHANNEL_MAPPING[4] = {2, 3, 0, 1}; // with GND down and SIG up,
 float THRUST_VECTOR_ROLL[4] = {1.0f, 0.0f, -1.0f, 0.0f};
 float THRUST_VECTOR_PITCH[4] = {0.0f, -1.0f, 0.0f, 1.0f};
 float THRUST_VECTOR_YAW[4] = {1.0f, -1.0f, 1.0f, -1.0f};
-float GAIN_PROPORTIONAL_ROLL = 0.10f;
-float GAIN_PROPORTIONAL_PITCH = 0.10f;
+float GAIN_PROPORTIONAL_ROLL = 0.12f;
+float GAIN_PROPORTIONAL_PITCH = 0.12f;
 float GAIN_PROPORTIONAL_YAW = 0.03f;
 float GAIN_DERIVATIVE_ROLL = 0.0015f;
 float GAIN_DERIVATIVE_PITCH = 0.0015f;
@@ -316,23 +317,27 @@ void setMotors(float* motorVals) {
 // TODO: place somewhere else
 // Set max bank angle to 45 degrees
 #define PI 3.14159265358979323846f
-#define JOYSTICK_MAX_ANGLE (PI / 16.0f)
-void joystick2Quaternion(Quaternion* quat, GriffinPacket packet) {
+#define JOYSTICK_MAX_ANGLE (PI / 4.0f)
+void joystick2Quaternion(Quaternion* joyCmdQuat, GriffinPacket packet) {
    // NOTICE: in progress
   float lrAngle = packet.leftRight;
   float udAngle = packet.upDown;
-  float yawAlphaDiv2 = packet.padLeftRight;
-  yawAlphaDiv2 *= PI / 32768.0f / 2.0f;
-  lrAngle *= JOYSTICK_MAX_ANGLE / 32768.0f; // slightly less than JOYSTICK_MAX_ANGLE at max negative int16_t
-  udAngle *= JOYSTICK_MAX_ANGLE / 32768.0f;
+  float yaw = packet.padLeftRight;
+  Quaternion yawQuat = {cosf(yaw * PI / 32768.0f / 2.0f), 0.0f, 0.0f, 0.0f};
+  
   float z = sinf(lrAngle) + sinf(udAngle);
   float y = cosf(udAngle);
   float x = cosf(lrAngle);
   float norm = sqrtf(x*x + y*y + z*z);
-  quat->w = cosf(yawAlphaDiv2);
-  quat->x = x * sinf(yawAlphaDiv2) / norm;
-  quat->y = y * sinf(yawAlphaDiv2) / norm;
-  quat->z = z * sinf(yawAlphaDiv2) / norm;
+  Quaternion directionVector = {0.0f, x/norm, y/norm, z/norm}; 
+  Quaternion upVector = {0.0f, 0.0f, 0.0f, 1.0f};
+  Quaternion rotationAxisVector;
+  multiplyQuaternions(&rotationAxisVector, upVector, directionVector);
+  
+  float alphaDiv2 = acosf(directionVector.z) / 2.0f;
+  float sine = sinf(alphaDiv2);
+  Quaternion leftStickOrientation = {cosf(alphaDiv2), rotationAxisVector.x * sine, rotationAxisVector.y * sine, rotationAxisVector.z * sine};
+  multiplyQuaternions(joyCmdQuat, leftStickOrientation, yawQuat);
 }
 
 //  SYNTAX: "b7" = bit7     b7        b6        b5        b4       B3       b2       b1       b0
