@@ -3,7 +3,7 @@
 
 # In[ ]:
 
-
+import datetime
 import cv2
 import dlib
 import numpy as np
@@ -79,7 +79,11 @@ def main():
     predictor = dlib.shape_predictor(face_landmark_path)
 
     while cap.isOpened():
+        start_time = datetime.now()
         ret, frame = cap.read()
+        end_time = datetime.now()
+        diff = int((end_time - start_time).total_seconds() * 1000)
+        print("Milliseconds to capture a pic is " + str(diff))
         if ret:
             face_rects = detector(frame, 0)
 
@@ -87,7 +91,11 @@ def main():
                 shape = predictor(frame, face_rects[0])
                 shape = face_utils.shape_to_np(shape)
 
+                start_time = datetime.now()
                 reprojectdst, euler_angle = get_head_pose(shape)
+                end_time = datetime.now()
+                diff = int((end_time - start_time).total_seconds() * 1000)
+                print("Milliseconds to capture a get head pose is " + str(diff))
 
                 for (x, y) in shape:
                     cv2.circle(frame, (x, y), 1, (0, 0, 255), -1)
@@ -102,7 +110,11 @@ def main():
                 cv2.putText(frame, "Z: " + "{:7.2f}".format(euler_angle[2, 0]), (20, 80), cv2.FONT_HERSHEY_SIMPLEX,
                             0.75, (0, 0, 0), thickness=2)
 
+            start_time = datetime.now()
             cv2.imshow("demo", frame)
+            end_time = datetime.now()
+            diff = int((end_time - start_time).total_seconds() * 1000)
+            print("Milliseconds to display a pic is " + str(diff))
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
