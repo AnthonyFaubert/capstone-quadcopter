@@ -323,13 +323,16 @@ void joystick2Quaternion(Quaternion* joyCmdQuat, GriffinPacket packet) {
   float lrAngle = packet.leftRight;
   float udAngle = packet.upDown;
   float yaw = packet.padLeftRight;
-  Quaternion yawQuat = {cosf(yaw * PI / 32768.0f / 2.0f), 0.0f, 0.0f, 0.0f};
-  
+  yaw *= PI / 32768.0f / 2.0f;
+  Quaternion yawQuat = {cosf(yaw), 0.0f, 0.0f, sinf(yaw)};
+
+  lrAngle *= JOYSTICK_MAX_ANGLE / 32768.0f;
+  udAngle *= JOYSTICK_MAX_ANGLE / 32768.0f;
   float z = sinf(lrAngle) + sinf(udAngle);
   float y = cosf(udAngle);
   float x = cosf(lrAngle);
   float norm = sqrtf(x*x + y*y + z*z);
-  Quaternion directionVector = {0.0f, x/norm, y/norm, z/norm}; 
+  Quaternion directionVector = {0.0f, x/norm, y/norm, z/norm};
   Quaternion upVector = {0.0f, 0.0f, 0.0f, 1.0f};
   Quaternion rotationAxisVector;
   multiplyQuaternions(&rotationAxisVector, upVector, directionVector);
