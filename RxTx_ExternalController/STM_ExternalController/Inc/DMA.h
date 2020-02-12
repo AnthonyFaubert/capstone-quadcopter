@@ -14,10 +14,10 @@ extern "C" {
 /*  Include Files  */
 
 // Non-Local Inc
-#include "./../../CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+#include "stm32f407xx.h"
 
 // Local Inc
-#include "./actuateMCU.h"
+#include "actuateMCU.h"
 
 /*  Declared Functions  */
 void DMA_Config_USART3_RX(uint32_t bufferSize, char * targetAddress);

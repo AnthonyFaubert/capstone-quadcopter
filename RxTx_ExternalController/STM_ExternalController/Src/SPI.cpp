@@ -1,6 +1,6 @@
 
 
-#include "./../IncludeFiles/SPI.h"
+#include "SPI.h"
 
 
 // Initialize SPI for data transfer

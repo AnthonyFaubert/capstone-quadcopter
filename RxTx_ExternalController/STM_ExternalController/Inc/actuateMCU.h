@@ -10,13 +10,13 @@ extern "C" {
 /*  Include Files  */
 
 // Non-Local Inc
-#include "./../../Inc/main.h"
+#include "main.h"
 
 // Local Inc
-#include "./testLibrary.h"
-#include "./DMA.h"
-#include "./USART.h"
-#include "./CC1101.h"
+#include "testLibrary.h"
+#include "DMA.h"
+#include "USART.h"
+#include "CC1101.h"
 
 /*   Declared Functions   */
 

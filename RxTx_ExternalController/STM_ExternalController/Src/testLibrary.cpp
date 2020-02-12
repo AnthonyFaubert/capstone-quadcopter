@@ -1,7 +1,7 @@
 
 // Library for Test Functions
 
-#include "./../IncludeFiles/testLibrary.h"
+#include "testLibrary.h"
 
 ////////////////////// LED Functions //////////////////////
 

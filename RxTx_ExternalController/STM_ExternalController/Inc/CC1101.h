@@ -10,13 +10,13 @@ extern "C" {
 /*  Include Files  */
 
 // Non-Local Inc
-#include "./../../CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+#include "stm32f407xx.h"
 
 // Local Inc
-#include "./USART.h"
-#include "./GPIO.h"
-#include "./SPI.h"
-#include "./testLibrary.h"
+#include "USART.h"
+#include "GPIO.h"
+#include "SPI.h"
+#include "testLibrary.h"
 
 /*  Declared Functions  */
 void CC1101_Read(uint8_t readAddress, uint8_t checkCS, uint8_t statusReg);
@@ -38,7 +38,11 @@ void CC1101_Configure(
 void CC1101_Test(void);
 
 /*   Defined Values/Macros   */
-//////////////////// Frame Size (BYTES/2) ////////////////////
+//////////////////// CC1101_DEFs ////////////////////
+#define CC1101_RESET_SUCCESS  ( int8_t) 0x1
+#define CC1101_RESET_FAILURE  ( int8_t) 0xFF
+#define CC1101_VERSION        (uint8_t) 0x14
+//////////////////// Frame Size (BYTES) //////////////////////
 #define RECEIVE_FRAME_SIZE  (uint32_t) 0x2
 #define TRANSMIT_FRAME_SIZE (uint32_t) 0x2
 #define COMMAND_STROBE_SIZE (uint32_t) 0x1
@@ -80,15 +84,15 @@ extern volatile uint8_t CS_Recieved;
 // Basic Data-Frame Format
 typedef struct
 {
-  uint8_t data;
   uint8_t header;
+  uint8_t data;
 } CC1101_TRANSMIT_FRAME;
 
 // Basic Receive-Frame Format
 typedef struct
 {
-  uint8_t data;
   uint8_t chipStatus;
+  uint8_t data;
 } CC1101_RECEIVE_FRAME;
 
 // In/Out Pin Configuration

@@ -10,10 +10,10 @@ extern "C" {
 /*  Include Files  */
 
 // Non-Local Inc
-#include "./../../CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+#include "stm32f407xx.h"
 
 // Local Inc
-#include "./DMA.h"
+#include "DMA.h"
 
 /*  Declared Functions  */
 

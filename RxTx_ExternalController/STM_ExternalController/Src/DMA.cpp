@@ -1,6 +1,6 @@
 
 
-#include "./../IncludeFiles/DMA.h"
+#include "DMA.h"
 
 ////////////////////////  DMA-UART Functions  /////////////////////////
 
@@ -154,6 +154,7 @@ void DMA2_STREAM0_IT_HANDLER(void)
   DMA2_Stream0->NDTR = RX_BUFFER_SPI; // Reset Buffer size
   DMA2_Stream0->M0AR = RX_POINTER_SPI; // Reset address
   DMA2_Stream0->CR |= DMA_SxCR_EN;
+  GPIOA->ODR |= GPIO_ODR_OD4;
 }
 
 // Mem-to-SPI transfer complete
@@ -162,7 +163,6 @@ void DMA2_STREAM3_IT_HANDLER(void)
   DMA2->LIFCR |= (DMA_LIFCR_CTCIF3 + DMA_LIFCR_CHTIF3); // Clear Half-Complete and Complete Interr
   DMA2_Stream3->NDTR = TX_BUFFER_SPI; // Reset Buffer size
   DMA2_Stream3->M0AR = TX_POINTER_SPI; // Reset address
-  GPIOA->ODR |= GPIO_ODR_OD4;
 }
 
 /////////////////////////////////////////////////////////////////////

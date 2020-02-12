@@ -1,6 +1,6 @@
 
 
-#include "./../IncludeFiles/CC1101.h"
+#include "CC1101.h"
 
 CC1101_MEM CC1101;
 CC1101_TRANSMIT_FRAME transmitFrame;
@@ -79,14 +79,16 @@ void CC1101_CommandStrobe(uint8_t command, uint8_t checkCS)
     if(UserState != commandStr)
     {
       SPI_DMA_Config(COMMAND_STROBE_SIZE,
-                     (uint32_t) &(receiveFrame.chipStatus),
+                     (uint32_t) &receiveFrame,
                      COMMAND_STROBE_SIZE,
-                     (uint32_t) &(transmitFrame.header)
+                     (uint32_t) &transmitFrame
                     );
       UserState = commandStr;
     }
     transmitFrame.header = command;
     transmitFrame.data = 0x00;
+    short val = eightBitToHex(transmitFrame.header);
+    txBufferUSART6(sizeof(short), (char *) &val);
     SPI_TX();
     if(checkCS)
     {
@@ -130,27 +132,8 @@ void CC1101_Configure(
 
 }
 
-char welcomeMessage[] = { "Welcome to the CC1101 Chip-Status Message Navigator" };
-char testMessage[] = { "Testing configuration of STRUCTs.  Expected: " };
-char nextMessage[] = { "Actual: " };
-
-void CC1101_Test()
+int8_t CC1101_Reset()
 {
-  SPI_Init();
-  UserState = reset;
-  CS_Recieved = 0;
-  receivedMessages = 0;
-  txBufferUSART6(sizeof(welcomeMessage), welcomeMessage);
-  newLine();
-  /*short value = (fourBitToHex(0x0F) << 8) | fourBitToHex(0x03);
-  transmitFrame.header = fourBitToHex(0x0F);
-  transmitFrame.data = fourBitToHex(0x03);
-  txBufferUSART6(sizeof(testMessage), testMessage);
-  txBufferUSART6(sizeof(value), (char *) &value);
-  txBufferUSART6(sizeof(nextMessage), nextMessage);
-  txBufferUSART6(2, (char *) &transmitFrame);
-  newLine();
-  while(1); */
   // On/off for cold start
   GPIOA->ODR |= GPIO_ODR_OD4;
   for(int i = 0; i < 100000; i++);
@@ -161,6 +144,48 @@ void CC1101_Test()
   CC1101_CommandStrobe(SRES, 1); // SystemReset
   for(int i = 0; i < 100000; i++);
   //while(GPIOA->IDR & GPIO_IDR_ID6);
+  while(receiveFrame.data != CC1101_VERSION)
+  {
+    CC1101_Read(0x31, 1, 1);
+  }
+  return CC1101_RESET_SUCCESS;
+}
+
+char welcomeMessage[] = { "Welcome to the CC1101 Chip-Status Message Navigator" };
+char resetMessage[] = {"Reseting CC1101 Now"};
+char successMessage[] = { "CC1101 succesfully reset" };
+char failureMessage[] = { "CC1101 unsuccessfully reset" };
+
+void CC1101_Test()
+{
+  SPI_Init();
+  UserState = reset;
+  CS_Recieved = 0;
+  receivedMessages = 0;
+  receiveFrame.chipStatus = 0x00;
+  receiveFrame.data = 0x00;
+  txBufferUSART6(sizeof(welcomeMessage), welcomeMessage);
+  newLine();
+  txBufferUSART6(sizeof(resetMessage), resetMessage);
+  newLine();
+  newLine();
+  CC1101_Reset();
+  /*if()
+  {
+    txBufferUSART6(sizeof(successMessage), successMessage);
+    newLine();
+    CC1101_Read(0x31, 1, 1);
+    CC1101_Read(0x31, 1, 1);
+    CC1101_Read(0x31, 1, 1);
+  }
+  else
+  {
+    txBufferUSART6(sizeof(failureMessage), failureMessage);
+  }*/
+  CC1101_Read(0x31, 1, 1);
+  CC1101_Read(0x31, 1, 1);
+  CC1101_Read(0x31, 1, 1);
+  for(;;){}
   for(int i = 0; i < 10; i++)
   {
     CC1101_CommandStrobe(SNOP, 1);
