@@ -81,7 +81,7 @@ void task_uartTX() {
         CDC_Transmit_FS((uint8_t) DebugStrBuf, DebugStrLen); \
         txBufferUSART3(DebugStrLen, DebugStrBuf); \
 
-#define PRINTLN(str) PRINTF("%s\r\n", str);
+#define PRINTLN(str) PRINTF("%s\n", str);
           
 // Delay while allowing the TX buffer to send things
 void txWait(uint32_t milliseconds) {
@@ -298,7 +298,7 @@ void PID(float* motorVals, RollPitchYaw rotations, GyroData gyroData, float thru
   scaleVector(pitchVect, GAIN_PROPORTIONAL_PITCH * rotations.pitch, THRUST_VECTOR_PITCH);
   scaleVector(yawVect, GAIN_PROPORTIONAL_YAW * rotations.yaw, THRUST_VECTOR_YAW);
   add3Vectors(motorVals, rollVect, pitchVect, yawVect);
-  //PRINTF("MVals: %.2f, %.2f, %.2f, %.2f\r\n", motorVals[0], motorVals[1], motorVals[2], motorVals[3]);
+  //PRINTF("MVals: %.2f, %.2f, %.2f, %.2f\n", motorVals[0], motorVals[1], motorVals[2], motorVals[3]);
   float rollRateError = 0.0f - gyroData.y; // +y = rolling in direction of positive roll torque
   float pitchRateError = 0.0f + gyroData.x; // -x = rolling in direction of positive pitch torque
   float yawRateError = 0.0f - gyroData.z; // +z = rolling in direction of positive yaw torque
@@ -330,14 +330,14 @@ void setMotors(float* motorVals) {
   }
   if (error != -1) {
     if ((largest - smallest) < 1.0f) {
-      PRINTF("ERROR: motor %d's thrust (%.2f) is out of range. Thrust request denied.\r\n", error, motorVals[error]);
+      PRINTF("ERROR: motor %d's thrust (%.2f) is out of range. Thrust request denied.\n", error, motorVals[error]);
       if (largest > 1.0f) {
         addScalar(motorVals, 1.0f - largest, motorVals);
       } else {
         addScalar(motorVals, -smallest, motorVals);
       }
     } else {
-      PRINTF("FATAL: motor %d's thrust (%.2f) is out of range! Linearity failed!\r\n", error, motorVals[error]);
+      PRINTF("FATAL: motor %d's thrust (%.2f) is out of range! Linearity failed!\n", error, motorVals[error]);
       emergencyStop();
     }
   }
@@ -348,7 +348,7 @@ void setMotors(float* motorVals) {
     tmp[i] = motorVals[i] * (float) (MAX_THRUSTS[i] - MIN_THRUSTS[i]);
     thrusts[i] = ((uint16_t) tmp[i]) + MIN_THRUSTS[i];
   }
-  //PRINTF("MVsRaw: %d, %d, %d, %d\r\n", thrusts[MOTOR_CHANNEL_MAPPING[0]], thrusts[MOTOR_CHANNEL_MAPPING[1]], thrusts[MOTOR_CHANNEL_MAPPING[2]], thrusts[MOTOR_CHANNEL_MAPPING[3]]);
+  //PRINTF("MVsRaw: %d, %d, %d, %d\n", thrusts[MOTOR_CHANNEL_MAPPING[0]], thrusts[MOTOR_CHANNEL_MAPPING[1]], thrusts[MOTOR_CHANNEL_MAPPING[2]], thrusts[MOTOR_CHANNEL_MAPPING[3]]);
   SetPWM(thrusts[MOTOR_CHANNEL_MAPPING[0]], thrusts[MOTOR_CHANNEL_MAPPING[1]], thrusts[MOTOR_CHANNEL_MAPPING[2]], thrusts[MOTOR_CHANNEL_MAPPING[3]]);
 }
 
@@ -356,29 +356,22 @@ void setMotors(float* motorVals) {
 // Set max bank angle to 45 degrees
 #define PI 3.14159265358979323846f
 #define JOYSTICK_MAX_ANGLE (PI / 4.0f)
-void joystick2Quaternion(Quaternion* joyCmdQuat, GriffinPacket packet) {
+void joystick2Quaternion(Quaternion* joyCmdQuatPtr, GriffinPacket packet) {
    // NOTICE: in progress
-  float lrAngle = packet.leftRight;
-  float udAngle = packet.upDown;
+  float roll = packet.leftRight;
+  float pitch = packet.upDown;
   float yaw = packet.padLeftRight;
-  yaw *= PI / 32768.0f / 2.0f;
+  yaw *= -PI / 32768.0f / 2.0f;
+  roll *= JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
+  pitch *= -JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
   Quaternion yawQuat = {cosf(yaw), 0.0f, 0.0f, sinf(yaw)};
-
-  lrAngle *= JOYSTICK_MAX_ANGLE / 32768.0f;
-  udAngle *= JOYSTICK_MAX_ANGLE / 32768.0f;
-  float z = sinf(lrAngle) + sinf(udAngle);
-  float y = cosf(udAngle);
-  float x = cosf(lrAngle);
-  float norm = sqrtf(x*x + y*y + z*z);
-  Quaternion directionVector = {0.0f, x/norm, y/norm, z/norm};
-  Quaternion upVector = {0.0f, 0.0f, 0.0f, 1.0f};
-  Quaternion rotationAxisVector;
-  multiplyQuaternions(&rotationAxisVector, upVector, directionVector);
+  Quaternion rollQuat = {cosf(roll), 0.0f, sinf(roll), 0.0f};
+  Quaternion pitchQuat = {cosf(pitch), sinf(pitch), 0.0f, 0.0f};
   
-  float alphaDiv2 = acosf(directionVector.z) / 2.0f;
-  float sine = sinf(alphaDiv2);
-  Quaternion leftStickOrientation = {cosf(alphaDiv2), rotationAxisVector.x * sine, rotationAxisVector.y * sine, rotationAxisVector.z * sine};
-  multiplyQuaternions(joyCmdQuat, leftStickOrientation, yawQuat);
+  // Combine rotations; yaw first, then roll, and finally pitch
+  Quaternion tmpQuat;
+  multiplyQuaternions(&tmpQuat, rollQuat, yawQuat);
+  multiplyQuaternions(joyCmdQuatPtr, pitchQuat, tmpQuat);
 }
 
 //  SYNTAX: "b7" = bit7     b7        b6        b5        b4       B3       b2       b1       b0
@@ -403,6 +396,12 @@ char USBRXBuf[USBRXBUF_SIZE];
 
 uint32_t InvalidCount = 0;
 uint32_t ValidCount = 0;
+
+#define JOYSTICK_BUTTON_RIGHT 2
+#define JOYSTICK_BUTTON_LEFT 3
+#define JOYSTICK_BUTTON_DOWN 1
+#define JOYSTICK_BUTTON_UP 4
+#define TRIM_ANGLE_PER_PRESS 1.0f * PI / 180.0f
 
 // Main program entry point
 void quadcontrol() {
@@ -433,10 +432,12 @@ void quadcontrol() {
   GyroData imuGyroData;
   RollPitchYaw orientationErrors;
   Quaternion trimmedOrientation = {1.0f, 0.0f, 0.0f, 0.0f};
-  const float TRIM_DEGREES_PER_PRESS = 1.0f;
-  float trimAlphaDiv2 = PI * TRIM_DEGREES_PER_PRESS / 180.0f / 2.0f;
-  Quaternion xTrim = {cosf(trimAlphaDiv2),sinf(trimAlphaDiv2),0.0f,0.0f}, yTrim = {cosf(trimAlphaDiv2),0.0f,sinf(trimAlphaDiv2),0.0f}; // NOTICE: complete
-  float thrust = 0.3f;
+  // The rotations for a single trim button press for rotating around the x and y axis, respectively
+  const Quaternion QUAT_TRIM_RIGHT = {cosf(TRIM_ANGLE_PER_PRESS/2.0f), sinf(TRIM_ANGLE_PER_PRESS/2.0f), 0.0f, 0.0f};
+  const Quaternion QUAT_TRIM_DOWN = {cosf(TRIM_ANGLE_PER_PRESS/2.0f), 0.0f, sinf(TRIM_ANGLE_PER_PRESS/2.0f), 0.0f};
+  Quaternion QUAT_TRIM_LEFT, QUAT_TRIM_UP;
+  conjugateQuaternion(&QUAT_TRIM_LEFT, QUAT_TRIM_RIGHT);
+  conjugateQuaternion(&QUAT_TRIM_UP, QUAT_TRIM_DOWN);
   
     /* TODO: delete
   trimmedOrientation.w = 1.0f;
@@ -445,10 +446,12 @@ void quadcontrol() {
   trimmedOrientation.z = 0.0f;
 */
   joystickOrientation = trimmedOrientation;
+  float thrust = 0.3f;
   float mVals[4];
 
   bool q = true; // TODO: convert to defines
-  bool c = false;
+  bool j = true;
+  bool e = false;
   bool g = false;
   
   uint32_t scheduleButtonCheck = 0, schedulePID = 0, schedulePrintInfo = 0, packetTimeout = 0, lastRXLoop = 0, worstRXstopwatch = 0, worstPIDstopwatch = 0, worstBtnStopwatch = 0, worstPoutStopwatch = 0;
@@ -478,9 +481,9 @@ void quadcontrol() {
         if (uwTick >= packetTimeout) {
           uint32_t loopDiff = uwTick - lastRXLoop;
           if (uart3bufIndex != UART3_DMA_INDEX) {
-            PRINTF("FATAL: ptout100ms. loop %d ms ago. tick=%d. HAVE data.\r\n", loopDiff, uwTick);
+            PRINTF("FATAL: ptout. loop %d ms ago. tick=%d. HAVE data.\n", loopDiff, uwTick);
           } else {
-            PRINTF("FATAL: ptout100ms. loop %d ms ago. tick=%d. no data.\r\n", loopDiff, uwTick);
+            PRINTF("FATAL: ptout. loop %d ms ago. tick=%d. no data.\n", loopDiff, uwTick);
           }
       /* usually getting:
 FATAL: ptout100ms. loop 50 ms ago. tick=33669. no data.
@@ -488,7 +491,7 @@ B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
       note the timeout is always 50ms(+/- 2ms) after last loop. suspicious AF. Also, this only happens when tick is almost perfectly aligned with timeout.
 */
           txWait(100);
-          PRINTF("B=%d,R=%d,PI=%d,PR=%d,val=%d,inval=%d,lLoop=%d,tout=%d\r\n", worstBtnStopwatch, worstRXstopwatch, worstPIDstopwatch, worstPoutStopwatch, ValidCount, InvalidCount, lastRXLoop, packetTimeout);
+          PRINTF("B=%d,R=%d,PI=%d,PR=%d,val=%d,inval=%d,lLoop=%d,tout=%d\n", worstBtnStopwatch, worstRXstopwatch, worstPIDstopwatch, worstPoutStopwatch, ValidCount, InvalidCount, lastRXLoop, packetTimeout);
           emergencyStop();
         }
         
@@ -532,7 +535,7 @@ B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
         if (sum == checksum) { // valid packet
           ValidCount++;
           if (ValidCount%100 == 0) {
-            PRINTF("Info: val/inval = %d/%d\r\n", ValidCount, InvalidCount);
+            PRINTF("Info: val/inval=%d/%d\n", ValidCount, InvalidCount);
           }
           // Decode packet contents
           GPacket.startByte = packetBuffer[0];
@@ -548,20 +551,26 @@ B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
           thrust = (thrust / 32768.0f) + 0.5f; // between 0.0f and 1.0f max negative/positive int16_t values
           packetTimeout = uwTick + 100;
           if (GPacket.buttons) {
-            PRINTF("Button %d was pressed!\r\n", GPacket.buttons);
+            PRINTF("Btns!=0; %d\n", GPacket.buttons);
             if (GPacket.buttons == 5) emergencyStop();
-            PRINTF("Joystick: %d, %d, %d, %d\n", GPacket.leftRight, GPacket.upDown, GPacket.padLeftRight, GPacket.padUpDown);
+            PRINTF("GPak: %d, %d, %d, %d\n", GPacket.leftRight, GPacket.upDown, GPacket.padLeftRight, GPacket.padUpDown);
+            PRINTF("Thr=%.2f\n", thrust);
             // NOTICE: actually apply trim quats
+            if (GPacket.buttons == JOYSTICK_BUTTON_RIGHT) multiplyQuaternions(&trimmedOrientation, QUAT_TRIM_RIGHT, trimmedOrientation);
+            if (GPacket.buttons == JOYSTICK_BUTTON_LEFT) multiplyQuaternions(&trimmedOrientation, QUAT_TRIM_LEFT, trimmedOrientation);
+            if (GPacket.buttons == JOYSTICK_BUTTON_UP) multiplyQuaternions(&trimmedOrientation, QUAT_TRIM_UP, trimmedOrientation);
+            if (GPacket.buttons == JOYSTICK_BUTTON_DOWN) multiplyQuaternions(&trimmedOrientation, QUAT_TRIM_DOWN, trimmedOrientation);
+            PRINTF("TrimQ: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", trimmedOrientation.w, trimmedOrientation.x, trimmedOrientation.y, trimmedOrientation.z);
           }
           packetIndex = -1;
         } else { // invalid packet
           InvalidCount++;
           // Print packet contents as hex and print an update on invalid/valid counters
-          PRINTF("ERROR: invalid packet: ");
+          PRINTF("ERROR: GPac inval: ");
           for (int i = 0; i < SIZE_OF_GRIFFIN; i++) {
             PRINTF("%02X", packetBuffer[i]);
           }
-          PRINTF(" (val/inval = %d/%d)\r\n", ValidCount, InvalidCount);
+          PRINTF(" (val/inval=%d/%d)\n", ValidCount, InvalidCount);
           
           if (InvalidCount > 20) emergencyStop();
           
@@ -577,7 +586,7 @@ B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
             for (int i = packetIndex; i < SIZE_OF_GRIFFIN; i++) {
               packetBuffer[i - packetIndex] = packetBuffer[i];
             }
-            PRINTF("Packet shifted %d.\r\n", packetIndex);
+            PRINTF("GPac shift %d\n", packetIndex);
           }
         }
       }
@@ -591,10 +600,11 @@ B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
     uint32_t poutStopwatch = uwTick;
     if (uwTick >= schedulePrintInfo) {
       schedulePrintInfo = uwTick + 500; // 2 Hz
-      if (packetTimeout == 0) PRINTLN("Waiting for packet...");
-      if (q) PRINTF("QUATS: W: %.2f X: %.2f Y: %.2f Z: %.2f\r\n", imuOrientation.w, imuOrientation.x, imuOrientation.y, imuOrientation.z);
-      if (c) PRINTF("CMD: Roll %.2f, Pitch %.2f, Yaw %.2f (all in rads)\r\n", orientationErrors.roll, orientationErrors.pitch, orientationErrors.yaw);
-      if (g) PRINTF("GYRO: X: %.2f Y: %.2f Z: %.2f\r\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
+      if (packetTimeout == 0) PRINTLN("Wait 4 GPac...");
+      if (q) PRINTF("QUATS: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", imuOrientation.w, imuOrientation.x, imuOrientation.y, imuOrientation.z);
+      if (j) PRINTF("JOYQ: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", joystickOrientation.w, joystickOrientation.x, joystickOrientation.y, joystickOrientation.z);
+      if (e) PRINTF("ERRS: R=%.2f P=%.2f Y=%.2f (all rads)\n", orientationErrors.roll, orientationErrors.pitch, orientationErrors.yaw);
+      if (g) PRINTF("GYRO: X=%.2f Y=%.2f Z=%.2f\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
     }
     poutStopwatch = uwTick - poutStopwatch;
     if (poutStopwatch > worstPoutStopwatch) worstPoutStopwatch = poutStopwatch;
