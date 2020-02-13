@@ -15,6 +15,7 @@ extern "C" {
 
 // Non-Local Inc
 #include "./../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+#include "stdbool.h"
 
 // Local Inc
 #include "./USART_USER.h"
@@ -42,6 +43,8 @@ void DMA_TX_CONTINUOUS_SPI1(
 
 void DMA2_STREAM0_IT_HANDLER(void);
 void DMA2_STREAM3_IT_HANDLER(void);
+
+bool DMA_TX_USART3_IsBusy();
 
 #ifdef __cplusplus
 }

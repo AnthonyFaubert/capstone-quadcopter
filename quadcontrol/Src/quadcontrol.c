@@ -32,23 +32,62 @@ PUTCHAR_PROTOTYPE {
 
 // TODO: lots of cleanup
 
-char DebugStrBuf[500];
-int DebugStrLen;
+#define TX_BUF_SIZE 500
+static int txBufDataEndIndex = 0;
+static uint8_t txBuf[TX_BUF_SIZE];
+// Maximum size of a single data chunk (no more than this many chars per printf call)
+#define MAX_TX_CHUNK 100
 void PRINTF(const char* fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    DebugStrLen = vsprintf(DebugStrBuf, fmt, args);
-    CDC_Transmit_FS((uint8_t*) DebugStrBuf, DebugStrLen);
-    // TODO: change TX to FIFO-like system like RX
-    txBufferUSART3(DebugStrLen, DebugStrBuf);
-    UART3_TX_DONE_FLAG = 0;
-    va_end(args);
+  char strBuf[MAX_TX_CHUNK];
+  va_list args;
+  va_start(args, fmt);
+  int len = vsprintf(strBuf, fmt, args);
+  // FIXME: check for TX FIFO overflow and wait or something
+  for (int i = 0; i < len; i++) {
+    txBuf[txBufDataEndIndex++] = strBuf[i];
+    txBufDataEndIndex %= TX_BUF_SIZE;
+  }
+  va_end(args);
+}
+
+extern USBD_HandleTypeDef hUsbDeviceFS;
+void task_uartTX() {
+  static int txBufDataStartIndex = 0;
+  if (txBufDataStartIndex == txBufDataEndIndex) return; // no data to send
+  if (DMA_TX_USART3_IsBusy()) return; // waiting for UART to finish
+  
+  int amountToSend;
+  int startIndexAfterSend;
+  if (txBufDataStartIndex > txBufDataEndIndex) {
+    // FIFO wrap around
+    amountToSend = TX_BUF_SIZE - txBufDataStartIndex;
+    startIndexAfterSend = 0;
+  } else {
+    // FIFO didn't wrap around
+    amountToSend = txBufDataEndIndex - txBufDataStartIndex;
+    startIndexAfterSend = txBufDataEndIndex;
+  }
+
+  bool usbPresent = hUsbDeviceFS.dev_state != USBD_STATE_SUSPENDED;
+  if (usbPresent && (CDC_Transmit_FS(txBuf + txBufDataStartIndex, amountToSend) != USBD_OK)) {
+    // USB is connected but not ready
+    return;
+  } else {
+    txBufferUSART3(amountToSend, (char*) (txBuf + txBufDataStartIndex));
+    txBufDataStartIndex = startIndexAfterSend;
+  }
 }
 //#define PRINTF(f_, ...) DebugStrLen = sprintf(DebugStrBuf, (f_), __VA_ARGS__); \
         CDC_Transmit_FS((uint8_t) DebugStrBuf, DebugStrLen); \
         txBufferUSART3(DebugStrLen, DebugStrBuf); \
 
 #define PRINTLN(str) PRINTF("%s\r\n", str);
+          
+// Delay while allowing the TX buffer to send things
+void txWait(uint32_t milliseconds) {
+  uint32_t doneTime = uwTick + milliseconds;
+  while (uwTick < doneTime) task_uartTX();
+}
 
 bool checkButtonState(bool high) {
   if (high) {
@@ -62,7 +101,7 @@ void waitForButtonState(bool high, bool printPrompt) {
     if (printPrompt && (i % 10 == 0)) {
       PRINTLN("Waiting for button press...");
     }
-    HAL_Delay(20);
+    txWait(20);
   }
 }
 void SetPWM(uint16_t ch1, uint16_t ch2, uint16_t ch3, uint16_t ch4) {
@@ -144,14 +183,10 @@ void getQuaternionError(RollPitchYaw* result, Quaternion actual, Quaternion desi
   multiplyQuaternions(&correctionRotation, desired, actual); // Overall rotation of (q*p) is rotate by p and then q
 
   // Convert the quaternion back into something we understand by using it to rotate <0,0,1> (for roll & pitch) and <1,0,0> (for yaw)
-  Quaternion straight, tmpA, tmpB, rotatedVector;
-  straight.w = 0.0f;
-  straight.x = 0.0f;
-  straight.y = 0.0f;
-  straight.z = 1.0f;
+  Quaternion tmpA, tmpB, rotatedVector;
+  Quaternion straight = {0.0f, 0.0f, 0.0f, 1.0f}; // straight = <0,0,1>
   multiplyQuaternions(&tmpA, correctionRotation, straight);
-  straight.x = 1.0f;
-  straight.z = 0.0f;
+  straight.x = 1.0f; straight.z = 0.0f; // straight = <1,0,0>
   multiplyQuaternions(&tmpB, correctionRotation, straight);
   conjugateQuaternion(&correctionRotation, correctionRotation);
   multiplyQuaternions(&rotatedVector, tmpA, correctionRotation);
@@ -163,7 +198,9 @@ void getQuaternionError(RollPitchYaw* result, Quaternion actual, Quaternion desi
   result->yaw = atan2f(rotatedVector.y, rotatedVector.x);
 }
 
-
+// positive rotation along x-axis is pitch tape moving up
+// positive rotation along y-axis is roll tape moving down
+// positive rotation along z-axis is counter-clockwise looking down from above
 uint8_t getQuaternion(Quaternion* quatDat) {
   const float scale = 1.0f / (1<<14);
   uint8_t readings[IMU_NUMBER_OF_BYTES];
@@ -211,9 +248,10 @@ uint8_t getEuler(EulerData* eulerData) {
 
 void emergencyStop() {
   SetPWM(0, 0, 0, 0);
-  while (!UART3_TX_DONE_FLAG);
   PRINTLN("EMERGENCY STOP ACTIVATED!");
-  while (1);
+  while (1) {
+    task_uartTX();
+  }
 }
 
 /*
@@ -356,7 +394,6 @@ void setButtonFrame();
 
 
 GriffinPacket GPacket;
-int UART3_TX_DONE_FLAG = 1;
 int UART3_DMA_INDEX = 0;
 int UART3_DMA_CHUNKS_RECVD = 0;
 char UART3RXBuf[UART3RXBUF_SIZE];
@@ -373,17 +410,17 @@ void quadcontrol() {
   PRINTLN("IMU initialized.");
   
   waitForButtonState(true, true);
-  HAL_Delay(100);
+  txWait(100);
   waitForButtonState(false, true);
   
   PRINTF("Calibrating ESCs.");
   for (uint16_t pwm = 1000; pwm <= 2000; pwm += 200) {
     SetPWM(pwm, pwm, pwm, pwm);
-    HAL_Delay(100);
+    txWait(100);
     PRINTF(".");
   }
   SetPWM(1000, 1000, 1000, 1000);
-  HAL_Delay(1000);
+  txWait(1000);
   PRINTLN(" Done.");
   
   USART3_RX_Config(0, (char *) &GPacket);
@@ -410,7 +447,7 @@ void quadcontrol() {
   joystickOrientation = trimmedOrientation;
   float mVals[4];
 
-  bool q = false; // TODO: convert to defines
+  bool q = true; // TODO: convert to defines
   bool c = false;
   bool g = false;
   
@@ -430,6 +467,13 @@ void quadcontrol() {
     uint32_t pidStopwatch = uwTick;
     if (uwTick >= schedulePID) {
       schedulePID = uwTick + 20; // 50 Hz
+      
+      getQuaternion(&imuOrientation); // FIXME: check for IMU comms error!
+      getGyro(&imuGyroData);
+      
+      multiplyQuaternions(&desiredOrientation, joystickOrientation, trimmedOrientation);
+      getQuaternionError(&orientationErrors, imuOrientation, desiredOrientation);
+      PID(mVals, orientationErrors, imuGyroData, 0.3f);
       if (packetTimeout != 0) {
         if (uwTick >= packetTimeout) {
           uint32_t loopDiff = uwTick - lastRXLoop;
@@ -443,23 +487,20 @@ FATAL: ptout100ms. loop 50 ms ago. tick=33669. no data.
 B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
       note the timeout is always 50ms(+/- 2ms) after last loop. suspicious AF. Also, this only happens when tick is almost perfectly aligned with timeout.
 */
-          HAL_Delay(100);
+          txWait(100);
           PRINTF("B=%d,R=%d,PI=%d,PR=%d,val=%d,inval=%d,lLoop=%d,tout=%d\r\n", worstBtnStopwatch, worstRXstopwatch, worstPIDstopwatch, worstPoutStopwatch, ValidCount, InvalidCount, lastRXLoop, packetTimeout);
           emergencyStop();
         }
-        getQuaternion(&imuOrientation); // FIXME: check for IMU comms error!
-        getGyro(&imuGyroData);
-        // TODO: E-stop if we're upside-down
-        multiplyQuaternions(&desiredOrientation, joystickOrientation, trimmedOrientation);
-        getQuaternionError(&orientationErrors, imuOrientation, desiredOrientation);
         
-        PID(mVals, orientationErrors, imuGyroData, 0.3f);
+        // TODO: E-stop if we're upside-down
         setMotors(mVals);
       }
     }
     pidStopwatch = uwTick - pidStopwatch;
     if (pidStopwatch > worstPIDstopwatch) worstPIDstopwatch = pidStopwatch;
     
+    
+    task_uartTX();
     
     // Tony:  I thought about it, we don't actually need a "FIFO."
     // If each button press equates to one movement/action, then 
@@ -516,11 +557,11 @@ B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
         } else { // invalid packet
           InvalidCount++;
           // Print packet contents as hex and print an update on invalid/valid counters
-          PRINTF("ERROR: invalid packet: "); while (!UART3_TX_DONE_FLAG);
+          PRINTF("ERROR: invalid packet: ");
           for (int i = 0; i < SIZE_OF_GRIFFIN; i++) {
-            PRINTF("%02X", packetBuffer[i]); while (!UART3_TX_DONE_FLAG);
+            PRINTF("%02X", packetBuffer[i]);
           }
-          PRINTF(" (val/inval = %d/%d)\r\n", ValidCount, InvalidCount); while (!UART3_TX_DONE_FLAG);
+          PRINTF(" (val/inval = %d/%d)\r\n", ValidCount, InvalidCount);
           
           if (InvalidCount > 20) emergencyStop();
           
@@ -536,7 +577,7 @@ B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
             for (int i = packetIndex; i < SIZE_OF_GRIFFIN; i++) {
               packetBuffer[i - packetIndex] = packetBuffer[i];
             }
-            PRINTF("Packet shifted %d.\r\n", packetIndex); while (!UART3_TX_DONE_FLAG);
+            PRINTF("Packet shifted %d.\r\n", packetIndex);
           }
         }
       }
