@@ -316,7 +316,8 @@ void PID(float* motorVals, RollPitchYaw rotations, GyroData gyroData, float thru
   average /= 4.0f;
   addScalar(motorVals, thrust - average, motorVals);
 }
-void setMotors(float* motorVals) {
+// Returns error type: 0 = no error, 1 = thrust request not honored, -1 = non-linearity fatal error
+int setMotors(float* motorVals) {
   int error = -1;
   float largest = -INFINITY;
   float smallest = INFINITY;
@@ -330,15 +331,15 @@ void setMotors(float* motorVals) {
   }
   if (error != -1) {
     if ((largest - smallest) < 1.0f) {
-      PRINTF("ERROR: motor %d's thrust (%.2f) is out of range. Thrust request denied.\n", error, motorVals[error]);
       if (largest > 1.0f) {
         addScalar(motorVals, 1.0f - largest, motorVals);
       } else {
         addScalar(motorVals, -smallest, motorVals);
       }
+      PRINTF("ERROR: mval[%d]=%.2f; thrust denied.\n", error, motorVals[error]);
     } else {
-      PRINTF("FATAL: motor %d's thrust (%.2f) is out of range! Linearity failed!\n", error, motorVals[error]);
-      emergencyStop();
+      SetPWM(1000, 1000, 1000, 1000);
+      return -1;
     }
   }
 
@@ -350,6 +351,7 @@ void setMotors(float* motorVals) {
   }
   //PRINTF("MVsRaw: %d, %d, %d, %d\n", thrusts[MOTOR_CHANNEL_MAPPING[0]], thrusts[MOTOR_CHANNEL_MAPPING[1]], thrusts[MOTOR_CHANNEL_MAPPING[2]], thrusts[MOTOR_CHANNEL_MAPPING[3]]);
   SetPWM(thrusts[MOTOR_CHANNEL_MAPPING[0]], thrusts[MOTOR_CHANNEL_MAPPING[1]], thrusts[MOTOR_CHANNEL_MAPPING[2]], thrusts[MOTOR_CHANNEL_MAPPING[3]]);
+  return (error != -1) ? 1 : 0;
 }
 
 // TODO: place somewhere else
@@ -496,7 +498,18 @@ B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
         }
         
         // TODO: E-stop if we're upside-down
-        setMotors(mVals);
+        if (setMotors(mVals) == -1) {
+          PRINTLN("FATAL: nonlinearity!");
+          txWait(5);
+          PRINTF("mvals=[%.2f,%.2f,%.2f,%.2f]", mVals[0], mVals[1], mVals[2], mVals[3]);
+          PRINTF("QUATS: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", imuOrientation.w, imuOrientation.x, imuOrientation.y, imuOrientation.z);
+          txWait(2);
+          PRINTF("JOYQ: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", joystickOrientation.w, joystickOrientation.x, joystickOrientation.y, joystickOrientation.z);
+          PRINTF("ERRS: R=%.2f P=%.2f Y=%.2f (all rads)\n", orientationErrors.roll, orientationErrors.pitch, orientationErrors.yaw);
+          txWait(2);
+          PRINTF("GYRO: X=%.2f Y=%.2f Z=%.2f\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
+          emergencyStop();
+        }
       }
     }
     pidStopwatch = uwTick - pidStopwatch;
