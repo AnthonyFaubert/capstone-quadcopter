@@ -266,11 +266,11 @@ float THRUST_VECTOR_YAW[4] = {1.0f, -1.0f, 1.0f, -1.0f};
 float GAIN_PROPORTIONAL_ROLL = 0.12f;
 float GAIN_PROPORTIONAL_PITCH = 0.12f;
 float GAIN_PROPORTIONAL_YAW = 0.03f;
-float GAIN_DERIVATIVE_ROLL = 0.0015f;
-float GAIN_DERIVATIVE_PITCH = 0.0015f;
+float GAIN_DERIVATIVE_ROLL = 0.002f; // was 0.0015
+float GAIN_DERIVATIVE_PITCH = 0.002f; // was 0.0015
 float GAIN_DERIVATIVE_YAW = 0.0007f;
-uint16_t MIN_THRUSTS[4] = {1100, 1100, 1100, 1100}; // 1050 works
-uint16_t MAX_THRUSTS[4] = {1450, 1450, 1450, 1450};
+uint16_t MIN_THRUSTS[4] = {1050, 1050, 1050, 1050};
+uint16_t MAX_THRUSTS[4] = {1600, 1600, 1600, 1600};
 
 void multiply2Vectors(float* result, float* v, float* u) {
   for (int i = 0; i < 4; i++) {
@@ -478,7 +478,7 @@ void quadcontrol() {
       
       multiplyQuaternions(&desiredOrientation, joystickOrientation, trimmedOrientation);
       getQuaternionError(&orientationErrors, imuOrientation, desiredOrientation);
-      PID(mVals, orientationErrors, imuGyroData, 0.3f);
+      PID(mVals, orientationErrors, imuGyroData, thrust);
       if (packetTimeout != 0) {
         if (uwTick >= packetTimeout) {
           uint32_t loopDiff = uwTick - lastRXLoop;
