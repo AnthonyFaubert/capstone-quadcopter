@@ -570,16 +570,16 @@
 <pad name="88" x="45.72" y="53.34" drill="1.016" shape="octagon"/>
 <pad name="89" x="48.26" y="50.8" drill="1.016" shape="octagon"/>
 <pad name="90" x="48.26" y="53.34" drill="1.016" shape="octagon"/>
-<pad name="91" x="50.8" y="53.34" drill="1.016" shape="octagon"/>
-<pad name="92" x="50.8" y="50.8" drill="1.016" shape="octagon"/>
+<pad name="91" x="50.8" y="50.8" drill="1.016" shape="octagon"/>
+<pad name="92" x="50.8" y="53.34" drill="1.016" shape="octagon"/>
 <pad name="93" x="53.34" y="50.8" drill="1.016" shape="octagon"/>
-<pad name="94" x="55.88" y="50.8" drill="1.016" shape="octagon"/>
-<pad name="95" x="58.42" y="50.8" drill="1.016" shape="octagon"/>
-<pad name="96" x="58.42" y="53.34" drill="1.016" shape="octagon"/>
-<pad name="97" x="55.88" y="53.34" drill="1.016" shape="octagon"/>
-<pad name="98" x="53.34" y="53.34" drill="1.016" shape="octagon"/>
-<pad name="99" x="60.96" y="53.34" drill="1.016" shape="octagon"/>
-<pad name="100" x="60.96" y="50.8" drill="1.016" shape="octagon"/>
+<pad name="94" x="53.34" y="53.34" drill="1.016" shape="octagon"/>
+<pad name="95" x="55.88" y="50.8" drill="1.016" shape="octagon"/>
+<pad name="96" x="55.88" y="53.34" drill="1.016" shape="octagon"/>
+<pad name="97" x="58.42" y="50.8" drill="1.016" shape="octagon"/>
+<pad name="98" x="58.42" y="53.34" drill="1.016" shape="octagon"/>
+<pad name="99" x="60.96" y="50.8" drill="1.016" shape="octagon"/>
+<pad name="100" x="60.96" y="53.34" drill="1.016" shape="octagon"/>
 <rectangle x1="-0.254" y1="50.546" x2="0.254" y2="51.054" layer="51"/>
 <rectangle x1="-0.254" y1="53.086" x2="0.254" y2="53.594" layer="51"/>
 <rectangle x1="2.286" y1="53.086" x2="2.794" y2="53.594" layer="51"/>
@@ -1145,16 +1145,16 @@
 <pad name="88" x="45.72" y="53.34" drill="1.016" shape="octagon"/>
 <pad name="89" x="48.26" y="50.8" drill="1.016" shape="octagon"/>
 <pad name="90" x="48.26" y="53.34" drill="1.016" shape="octagon"/>
-<pad name="91" x="50.8" y="53.34" drill="1.016" shape="octagon"/>
-<pad name="92" x="50.8" y="50.8" drill="1.016" shape="octagon"/>
+<pad name="91" x="50.8" y="50.8" drill="1.016" shape="octagon"/>
+<pad name="92" x="50.8" y="53.34" drill="1.016" shape="octagon"/>
 <pad name="93" x="53.34" y="50.8" drill="1.016" shape="octagon"/>
-<pad name="94" x="55.88" y="50.8" drill="1.016" shape="octagon"/>
-<pad name="95" x="58.42" y="50.8" drill="1.016" shape="octagon"/>
-<pad name="96" x="58.42" y="53.34" drill="1.016" shape="octagon"/>
-<pad name="97" x="55.88" y="53.34" drill="1.016" shape="octagon"/>
-<pad name="98" x="53.34" y="53.34" drill="1.016" shape="octagon"/>
-<pad name="99" x="60.96" y="53.34" drill="1.016" shape="octagon"/>
-<pad name="100" x="60.96" y="50.8" drill="1.016" shape="octagon"/>
+<pad name="94" x="53.34" y="53.34" drill="1.016" shape="octagon"/>
+<pad name="95" x="55.88" y="50.8" drill="1.016" shape="octagon"/>
+<pad name="96" x="55.88" y="53.34" drill="1.016" shape="octagon"/>
+<pad name="97" x="58.42" y="50.8" drill="1.016" shape="octagon"/>
+<pad name="98" x="58.42" y="53.34" drill="1.016" shape="octagon"/>
+<pad name="99" x="60.96" y="50.8" drill="1.016" shape="octagon"/>
+<pad name="100" x="60.96" y="53.34" drill="1.016" shape="octagon"/>
 <rectangle x1="-0.254" y1="50.546" x2="0.254" y2="51.054" layer="51"/>
 <rectangle x1="-0.254" y1="53.086" x2="0.254" y2="53.594" layer="51"/>
 <rectangle x1="2.286" y1="53.086" x2="2.794" y2="53.594" layer="51"/>
@@ -1767,6 +1767,95 @@
 </technologies>
 </device>
 <device name="STM32F407DISC-PROTO" package="STM32F407DISC_WITH_PROTO_HEADERS">
+<connects>
+<connect gate="G$1" pin="3V" pad="55 56 153 178"/>
+<connect gate="G$1" pin="5V" pad="53 54 152 177"/>
+<connect gate="G$1" pin="BOOT0" pad="71 161" route="any"/>
+<connect gate="G$1" pin="GND" pad="1 2 5 23 49 50 51 52 99 100 101 103 112 125 126 150 151 175 176 200"/>
+<connect gate="G$1" pin="NC" pad="48 149"/>
+<connect gate="G$1" pin="NRST" pad="6 128"/>
+<connect gate="G$1" pin="PA0" pad="12 131"/>
+<connect gate="G$1" pin="PA1" pad="11 106"/>
+<connect gate="G$1" pin="PA10" pad="91 171"/>
+<connect gate="G$1" pin="PA13" pad="92 196"/>
+<connect gate="G$1" pin="PA14" pad="89 170"/>
+<connect gate="G$1" pin="PA15" pad="90 195"/>
+<connect gate="G$1" pin="PA2" pad="14 132"/>
+<connect gate="G$1" pin="PA3" pad="13 107"/>
+<connect gate="G$1" pin="PA4" pad="16 133"/>
+<connect gate="G$1" pin="PA5" pad="15 108"/>
+<connect gate="G$1" pin="PA6" pad="18 134"/>
+<connect gate="G$1" pin="PA7" pad="17 109"/>
+<connect gate="G$1" pin="PA8" pad="93 172"/>
+<connect gate="G$1" pin="PA9" pad="94 197"/>
+<connect gate="G$1" pin="PB0" pad="22 136"/>
+<connect gate="G$1" pin="PB1" pad="21 111"/>
+<connect gate="G$1" pin="PB10" pad="34 142"/>
+<connect gate="G$1" pin="PB11" pad="35 118"/>
+<connect gate="G$1" pin="PB12" pad="36 143"/>
+<connect gate="G$1" pin="PB13" pad="37 119"/>
+<connect gate="G$1" pin="PB14" pad="38 144"/>
+<connect gate="G$1" pin="PB15" pad="39 120"/>
+<connect gate="G$1" pin="PB2" pad="24 137"/>
+<connect gate="G$1" pin="PB3" pad="78 189"/>
+<connect gate="G$1" pin="PB4" pad="75 163"/>
+<connect gate="G$1" pin="PB5" pad="76 188"/>
+<connect gate="G$1" pin="PB6" pad="73 162"/>
+<connect gate="G$1" pin="PB7" pad="74 187"/>
+<connect gate="G$1" pin="PB8" pad="69 160"/>
+<connect gate="G$1" pin="PB9" pad="70 185"/>
+<connect gate="G$1" pin="PC0" pad="8 129"/>
+<connect gate="G$1" pin="PC1" pad="7 104"/>
+<connect gate="G$1" pin="PC10" pad="87 169"/>
+<connect gate="G$1" pin="PC11" pad="88 194"/>
+<connect gate="G$1" pin="PC12" pad="85 168"/>
+<connect gate="G$1" pin="PC13" pad="62 181"/>
+<connect gate="G$1" pin="PC14" pad="59 155"/>
+<connect gate="G$1" pin="PC15" pad="60 180"/>
+<connect gate="G$1" pin="PC2" pad="10 130"/>
+<connect gate="G$1" pin="PC3" pad="9 105"/>
+<connect gate="G$1" pin="PC4" pad="20 135"/>
+<connect gate="G$1" pin="PC5" pad="19 110"/>
+<connect gate="G$1" pin="PC6" pad="97 174"/>
+<connect gate="G$1" pin="PC7" pad="98 199"/>
+<connect gate="G$1" pin="PC8" pad="95 173"/>
+<connect gate="G$1" pin="PC9" pad="96 198"/>
+<connect gate="G$1" pin="PD0" pad="86 193"/>
+<connect gate="G$1" pin="PD1" pad="83 167"/>
+<connect gate="G$1" pin="PD10" pad="42 146"/>
+<connect gate="G$1" pin="PD11" pad="43 122"/>
+<connect gate="G$1" pin="PD12" pad="44 147"/>
+<connect gate="G$1" pin="PD13" pad="45 123"/>
+<connect gate="G$1" pin="PD14" pad="46 148"/>
+<connect gate="G$1" pin="PD15" pad="47 124"/>
+<connect gate="G$1" pin="PD2" pad="84 192"/>
+<connect gate="G$1" pin="PD3" pad="81 166"/>
+<connect gate="G$1" pin="PD4" pad="82 191"/>
+<connect gate="G$1" pin="PD5" pad="79 165"/>
+<connect gate="G$1" pin="PD6" pad="80 190"/>
+<connect gate="G$1" pin="PD7" pad="77 164"/>
+<connect gate="G$1" pin="PD8" pad="40 145"/>
+<connect gate="G$1" pin="PD9" pad="41 121"/>
+<connect gate="G$1" pin="PE0" pad="67 159"/>
+<connect gate="G$1" pin="PE1" pad="68 184"/>
+<connect gate="G$1" pin="PE10" pad="28 139"/>
+<connect gate="G$1" pin="PE11" pad="29 115"/>
+<connect gate="G$1" pin="PE12" pad="30 140"/>
+<connect gate="G$1" pin="PE13" pad="31 116"/>
+<connect gate="G$1" pin="PE14" pad="32 141"/>
+<connect gate="G$1" pin="PE15" pad="33 117"/>
+<connect gate="G$1" pin="PE2" pad="65 158"/>
+<connect gate="G$1" pin="PE3" pad="66 183"/>
+<connect gate="G$1" pin="PE4" pad="63 157"/>
+<connect gate="G$1" pin="PE5" pad="64 182"/>
+<connect gate="G$1" pin="PE6" pad="61 156"/>
+<connect gate="G$1" pin="PE7" pad="25 113"/>
+<connect gate="G$1" pin="PE8" pad="26 138"/>
+<connect gate="G$1" pin="PE9" pad="27 114"/>
+<connect gate="G$1" pin="PH0" pad="57 154"/>
+<connect gate="G$1" pin="PH1" pad="58 179"/>
+<connect gate="G$1" pin="VDD" pad="3 4 72 102 127 186"/>
+</connects>
 <technologies>
 <technology name=""/>
 </technologies>
