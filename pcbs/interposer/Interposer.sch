@@ -7171,7 +7171,7 @@ type 0309, grid 2.5 mm</description>
 <part name="SUPPLY2" library="Power_Symbols" library_urn="urn:adsk.eagle:library:16502351" deviceset="EGND" device=""/>
 <part name="SUPPLY4" library="Power_Symbols" library_urn="urn:adsk.eagle:library:16502351" deviceset="+5V" device=""/>
 <part name="U$1" library="Interposer" deviceset="STM32F407DISCOVERY" device="STM32F407DISC-PROTO" value="STM32F407DISCOVERYSTM32F407DISC-PROTO"/>
-<part name="JP5" library="jumper" library_urn="urn:adsk.eagle:library:252" deviceset="JP1Q" device="" package3d_urn="urn:adsk.eagle:package:15455/1"/>
+<part name="JP5" library="jumper" library_urn="urn:adsk.eagle:library:252" deviceset="JP1Q" device="" package3d_urn="urn:adsk.eagle:package:15455/1" value="RPi5V"/>
 <part name="JP6" library="jumper" library_urn="urn:adsk.eagle:library:252" deviceset="JP1Q" device="" package3d_urn="urn:adsk.eagle:package:15455/1"/>
 <part name="SUPPLY3" library="Power_Symbols" library_urn="urn:adsk.eagle:library:16502351" deviceset="+5V" device=""/>
 <part name="SUPPLY5" library="Power_Symbols" library_urn="urn:adsk.eagle:library:16502351" deviceset="EGND" device=""/>
@@ -7179,8 +7179,8 @@ type 0309, grid 2.5 mm</description>
 <part name="JP7" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X3" device="" package3d_urn="urn:adsk.eagle:package:22458/2" value="camServo"/>
 <part name="JP8" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X3" device="" package3d_urn="urn:adsk.eagle:package:22458/2" value="power"/>
 <part name="JP9" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X8" device="" package3d_urn="urn:adsk.eagle:package:22409/2" value="EStopBrd_cable"/>
-<part name="R1" library="adafruit" library_urn="urn:adsk.eagle:library:420" deviceset="R-US_" device="0204/7" package3d_urn="urn:adsk.eagle:package:6240596/1"/>
-<part name="R2" library="adafruit" library_urn="urn:adsk.eagle:library:420" deviceset="R-US_" device="0204/7" package3d_urn="urn:adsk.eagle:package:6240596/1"/>
+<part name="R1_HIGH" library="adafruit" library_urn="urn:adsk.eagle:library:420" deviceset="R-US_" device="0204/7" package3d_urn="urn:adsk.eagle:package:6240596/1"/>
+<part name="R2_LOW" library="adafruit" library_urn="urn:adsk.eagle:library:420" deviceset="R-US_" device="0204/7" package3d_urn="urn:adsk.eagle:package:6240596/1"/>
 <part name="SUPPLY7" library="Power_Symbols" library_urn="urn:adsk.eagle:library:16502351" deviceset="EGND" device=""/>
 <part name="SUPPLY8" library="Power_Symbols" library_urn="urn:adsk.eagle:library:16502351" deviceset="+5V" device=""/>
 <part name="SUPPLY9" library="Power_Symbols" library_urn="urn:adsk.eagle:library:16502351" deviceset="EGND" device=""/>
@@ -7206,7 +7206,7 @@ type 0309, grid 2.5 mm</description>
 <part name="JP17" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X3" device="" package3d_urn="urn:adsk.eagle:package:22458/2" value="t1ch3"/>
 <part name="JP18" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X3" device="" package3d_urn="urn:adsk.eagle:package:22458/2" value="t1ch4"/>
 <part name="JP20" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X5" device="" package3d_urn="urn:adsk.eagle:package:22469/2" value="GNDproto"/>
-<part name="JP19" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X5" device="" package3d_urn="urn:adsk.eagle:package:22469/2" value="POWproto"/>
+<part name="JP19" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X5" device="" package3d_urn="urn:adsk.eagle:package:22469/2" value="RP,RP,ST,VI,VI"/>
 </parts>
 <sheets>
 <sheet>
@@ -7268,11 +7268,11 @@ BNO055</text>
 <attribute name="NAME" x="-77.47" y="-31.115" size="1.778" layer="95" rot="MR180"/>
 <attribute name="VALUE" x="-77.47" y="-5.08" size="1.778" layer="96" rot="MR180"/>
 </instance>
-<instance part="R1" gate="G$1" x="-88.9" y="2.54" smashed="yes" rot="R180">
+<instance part="R1_HIGH" gate="G$1" x="-88.9" y="2.54" smashed="yes" rot="R180">
 <attribute name="NAME" x="-85.09" y="1.0414" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="-85.09" y="5.842" size="1.778" layer="96" rot="R180"/>
 </instance>
-<instance part="R2" gate="G$1" x="-81.28" y="-5.08" smashed="yes" rot="R90">
+<instance part="R2_LOW" gate="G$1" x="-81.28" y="-5.08" smashed="yes" rot="R90">
 <attribute name="NAME" x="-82.7786" y="-8.89" size="1.778" layer="95" rot="R90"/>
 <attribute name="VALUE" x="-77.978" y="-8.89" size="1.778" layer="96" rot="R90"/>
 </instance>
@@ -7622,8 +7622,9 @@ BNO055</text>
 <pinref part="SUPPLY7" gate="G$1" pin="EGND"/>
 <wire x1="-134.62" y1="-25.4" x2="-134.62" y2="-27.94" width="0.1524" layer="91"/>
 <pinref part="JP8" gate="A" pin="3"/>
-<wire x1="-121.92" y1="-25.4" x2="-129.54" y2="-25.4" width="0.1524" layer="91"/>
+<wire x1="-121.92" y1="-25.4" x2="-127" y2="-25.4" width="0.1524" layer="91"/>
 <pinref part="JP20" gate="A" pin="1"/>
+<wire x1="-127" y1="-25.4" x2="-129.54" y2="-25.4" width="0.1524" layer="91"/>
 <wire x1="-129.54" y1="-25.4" x2="-134.62" y2="-25.4" width="0.1524" layer="91"/>
 <wire x1="-121.92" y1="-38.1" x2="-129.54" y2="-38.1" width="0.1524" layer="91"/>
 <wire x1="-129.54" y1="-38.1" x2="-129.54" y2="-25.4" width="0.1524" layer="91"/>
@@ -7644,6 +7645,10 @@ BNO055</text>
 <wire x1="-121.92" y1="-48.26" x2="-129.54" y2="-48.26" width="0.1524" layer="91"/>
 <wire x1="-129.54" y1="-48.26" x2="-129.54" y2="-45.72" width="0.1524" layer="91"/>
 <junction x="-129.54" y="-45.72"/>
+<pinref part="JP8" gate="A" pin="1"/>
+<wire x1="-121.92" y1="-20.32" x2="-127" y2="-20.32" width="0.1524" layer="91"/>
+<wire x1="-127" y1="-20.32" x2="-127" y2="-25.4" width="0.1524" layer="91"/>
+<junction x="-127" y="-25.4"/>
 </segment>
 <segment>
 <pinref part="JP7" gate="A" pin="3"/>
@@ -7680,7 +7685,7 @@ BNO055</text>
 <wire x1="-81.28" y1="-27.94" x2="-81.28" y2="-33.02" width="0.1524" layer="91"/>
 <wire x1="-73.66" y1="-27.94" x2="-81.28" y2="-27.94" width="0.1524" layer="91"/>
 <junction x="-81.28" y="-27.94"/>
-<pinref part="R2" gate="G$1" pin="1"/>
+<pinref part="R2_LOW" gate="G$1" pin="1"/>
 <junction x="-81.28" y="-10.16"/>
 </segment>
 <segment>
@@ -7773,6 +7778,20 @@ BNO055</text>
 <pinref part="SUPPLY11" gate="G$1" pin="+V"/>
 <wire x1="-22.86" y1="71.12" x2="-22.86" y2="73.66" width="0.1524" layer="91"/>
 </segment>
+<segment>
+<pinref part="JP8" gate="A" pin="2"/>
+<pinref part="SUPPLY8" gate="G$1" pin="+V"/>
+<wire x1="-134.62" y1="-22.86" x2="-129.54" y2="-22.86" width="0.1524" layer="91"/>
+<pinref part="JP19" gate="A" pin="5"/>
+<wire x1="-129.54" y1="-22.86" x2="-121.92" y2="-22.86" width="0.1524" layer="91"/>
+<wire x1="-121.92" y1="-10.16" x2="-129.54" y2="-10.16" width="0.1524" layer="91"/>
+<wire x1="-129.54" y1="-10.16" x2="-129.54" y2="-22.86" width="0.1524" layer="91"/>
+<junction x="-129.54" y="-22.86"/>
+<pinref part="JP19" gate="A" pin="4"/>
+<wire x1="-121.92" y1="-7.62" x2="-129.54" y2="-7.62" width="0.1524" layer="91"/>
+<wire x1="-129.54" y1="-7.62" x2="-129.54" y2="-10.16" width="0.1524" layer="91"/>
+<junction x="-129.54" y="-10.16"/>
+</segment>
 </net>
 <net name="STM5V" class="0">
 <segment>
@@ -7805,17 +7824,10 @@ BNO055</text>
 <wire x1="96.52" y1="-10.16" x2="96.52" y2="-7.62" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="SERVO_SIG" class="0">
-<segment>
-<pinref part="U$1" gate="G$1" pin="PA15"/>
-<wire x1="45.72" y1="88.9" x2="40.64" y2="88.9" width="0.1524" layer="91"/>
-<label x="40.64" y="88.9" size="1.778" layer="95" rot="R180" xref="yes"/>
-</segment>
-</net>
 <net name="BATT_SENSE" class="0">
 <segment>
-<pinref part="R2" gate="G$1" pin="2"/>
-<pinref part="R1" gate="G$1" pin="1"/>
+<pinref part="R2_LOW" gate="G$1" pin="2"/>
+<pinref part="R1_HIGH" gate="G$1" pin="1"/>
 <wire x1="-81.28" y1="0" x2="-81.28" y2="2.54" width="0.1524" layer="91"/>
 <wire x1="-81.28" y1="2.54" x2="-83.82" y2="2.54" width="0.1524" layer="91"/>
 <label x="-81.28" y="2.54" size="1.778" layer="95" xref="yes"/>
@@ -7828,7 +7840,7 @@ BNO055</text>
 </net>
 <net name="BAT+" class="0">
 <segment>
-<pinref part="R1" gate="G$1" pin="2"/>
+<pinref part="R1_HIGH" gate="G$1" pin="2"/>
 <pinref part="JP9" gate="A" pin="7"/>
 <wire x1="-93.98" y1="2.54" x2="-96.52" y2="2.54" width="0.1524" layer="91"/>
 <wire x1="-96.52" y1="2.54" x2="-96.52" y2="-12.7" width="0.1524" layer="91"/>
@@ -8076,27 +8088,16 @@ BNO055</text>
 <wire x1="40.64" y1="7.62" x2="45.72" y2="7.62" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="+V" class="0">
-<segment>
-<pinref part="JP8" gate="A" pin="2"/>
-<pinref part="SUPPLY8" gate="G$1" pin="+V"/>
-<wire x1="-134.62" y1="-22.86" x2="-129.54" y2="-22.86" width="0.1524" layer="91"/>
-<pinref part="JP19" gate="A" pin="5"/>
-<wire x1="-129.54" y1="-22.86" x2="-121.92" y2="-22.86" width="0.1524" layer="91"/>
-<wire x1="-121.92" y1="-10.16" x2="-129.54" y2="-10.16" width="0.1524" layer="91"/>
-<wire x1="-129.54" y1="-10.16" x2="-129.54" y2="-22.86" width="0.1524" layer="91"/>
-<junction x="-129.54" y="-22.86"/>
-<pinref part="JP19" gate="A" pin="4"/>
-<wire x1="-121.92" y1="-7.62" x2="-129.54" y2="-7.62" width="0.1524" layer="91"/>
-<wire x1="-129.54" y1="-7.62" x2="-129.54" y2="-10.16" width="0.1524" layer="91"/>
-<junction x="-129.54" y="-10.16"/>
-</segment>
-</net>
 <net name="CAM_SERVO" class="0">
 <segment>
 <pinref part="JP7" gate="A" pin="1"/>
 <wire x1="-30.48" y1="12.7" x2="-38.1" y2="12.7" width="0.1524" layer="91"/>
 <label x="-38.1" y="12.7" size="1.778" layer="95" rot="R180" xref="yes"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="PA15"/>
+<wire x1="45.72" y1="88.9" x2="40.64" y2="88.9" width="0.1524" layer="91"/>
+<label x="40.64" y="88.9" size="1.778" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
 <net name="TIM2_CH4" class="0">
