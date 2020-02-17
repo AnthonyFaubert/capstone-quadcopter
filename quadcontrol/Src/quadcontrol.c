@@ -6,7 +6,7 @@
 //#include "spi.h"
 #include "stdbool.h"
 #include "stdarg.h" // allows wrapping vsprintf
-#include "tim.h"
+
 #include "usart.h"
 #include "usb_device.h"
 #include "gpio.h"
@@ -15,7 +15,10 @@
 #include "accel.h"
 #include "quadcontrol.h"
 #include "math.h" // for acosf() and sqrtf()
+
+#include "VectQuatMath.h"
 #include "Uart3.h"
+#include "MiscPeripherals.h"
 
 // Maximum size of a single data chunk (no more than this many chars per printf call)
 #define MAX_TX_CHUNK 100
@@ -34,14 +37,6 @@ void txWait(uint32_t milliseconds) {
   uint32_t doneTime = uwTick + milliseconds;
   while (uwTick < doneTime) task_Uart3TxFeedDma();
 }
-
-bool checkButtonState(bool high) {
-  if (high) {
-    return HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_SET;
-  } else {
-    return HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_RESET;
-  }
-}
 void waitForButtonState(bool high, bool printPrompt) {
   for (int i = 0; !checkButtonState(high); i++) {
     if (printPrompt && (i % 10 == 0)) {
@@ -50,42 +45,8 @@ void waitForButtonState(bool high, bool printPrompt) {
     txWait(20);
   }
 }
-void SetPWM(uint16_t ch1, uint16_t ch2, uint16_t ch3, uint16_t ch4) {
-  HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_3);
-  HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_4);
-  
-  TIM_OC_InitTypeDef sConfigOC = {0};
-  sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  
-  sConfigOC.Pulse = ch1;
-  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) {
-    Error_Handler();
-  }
-  
-  sConfigOC.Pulse = ch2;
-  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK) {
-    Error_Handler();
-  }
-  
-  sConfigOC.Pulse = ch3;
-  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK) {
-    Error_Handler();
-  }
-  
-  sConfigOC.Pulse = ch4;
-  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4) != HAL_OK) {
-    Error_Handler();
-  }
-  
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
-}
+
+#define CALIBRATE_ESCS_WAIT_MACRO(ms) txWait(ms); if (ms == 100) PRINTF(".")
 
 // WARNING: ab != ba
 // <1,0,0,0>*x = x*<1,0,0,0> = x
@@ -193,7 +154,7 @@ uint8_t getEuler(EulerData* eulerData) {
 }
 
 void emergencyStop() {
-  SetPWM(0, 0, 0, 0);
+  EmergencyShutoff();
   PRINTLN("EMERGENCY STOP ACTIVATED!");
   while (1) {
     task_Uart3TxFeedDma();
@@ -205,7 +166,6 @@ void emergencyStop() {
 CCW2   CW3
  */
 // positive roll thrust will make roll tape go down, similar for rest
-const char MOTOR_CHANNEL_MAPPING[4] = {2, 3, 0, 1}; // with GND down and SIG up, left to right, the slots are: 2, 0, 1, 3
 float THRUST_VECTOR_ROLL[4] = {1.0f, 0.0f, -1.0f, 0.0f};
 float THRUST_VECTOR_PITCH[4] = {0.0f, -1.0f, 0.0f, 1.0f};
 float THRUST_VECTOR_YAW[4] = {1.0f, -1.0f, 1.0f, -1.0f};
@@ -215,8 +175,6 @@ float GAIN_PROPORTIONAL_YAW = 0.03f;
 float GAIN_DERIVATIVE_ROLL = 0.0015f;
 float GAIN_DERIVATIVE_PITCH = 0.0015f;
 float GAIN_DERIVATIVE_YAW = 0.0007f;
-uint16_t MIN_THRUSTS[4] = {1050, 1050, 1050, 1050};
-uint16_t MAX_THRUSTS[4] = {1600, 1600, 1600, 1600};
 
 void multiply2Vectors(float* result, float* v, float* u) {
   for (int i = 0; i < 4; i++) {
@@ -261,43 +219,6 @@ void PID(float* motorVals, RollPitchYaw rotations, GyroData gyroData, float thru
   }
   average /= 4.0f;
   addScalar(motorVals, thrust - average, motorVals);
-}
-// Returns error type: 0 = no error, 1 = thrust request not honored, -1 = non-linearity fatal error
-int setMotors(float* motorVals) {
-  int error = -1;
-  float largest = -INFINITY;
-  float smallest = INFINITY;
-  for (int i = 0; i < 4; i++) {
-    if (motorVals[i] > largest) largest = motorVals[i];
-    if (motorVals[i] < smallest) smallest = motorVals[i];
-    
-    if (motorVals[i] < 0.0f || 1.0f < motorVals[i]) {
-      error = i;
-    }
-  }
-  if (error != -1) {
-    if ((largest - smallest) < 1.0f) {
-      if (largest > 1.0f) {
-        addScalar(motorVals, 1.0f - largest, motorVals);
-      } else {
-        addScalar(motorVals, -smallest, motorVals);
-      }
-      PRINTF("ERROR: mval[%d]=%.2f; thrust denied.\n", error, motorVals[error]);
-    } else {
-      SetPWM(1000, 1000, 1000, 1000);
-      return -1;
-    }
-  }
-
-  float tmp[4];
-  uint16_t thrusts[4];
-  for (int i = 0; i < 4; i++) {
-    tmp[i] = motorVals[i] * (float) (MAX_THRUSTS[i] - MIN_THRUSTS[i]);
-    thrusts[i] = ((uint16_t) tmp[i]) + MIN_THRUSTS[i];
-  }
-  //PRINTF("MVsRaw: %d, %d, %d, %d\n", thrusts[MOTOR_CHANNEL_MAPPING[0]], thrusts[MOTOR_CHANNEL_MAPPING[1]], thrusts[MOTOR_CHANNEL_MAPPING[2]], thrusts[MOTOR_CHANNEL_MAPPING[3]]);
-  SetPWM(thrusts[MOTOR_CHANNEL_MAPPING[0]], thrusts[MOTOR_CHANNEL_MAPPING[1]], thrusts[MOTOR_CHANNEL_MAPPING[2]], thrusts[MOTOR_CHANNEL_MAPPING[3]]);
-  return (error != -1) ? 1 : 0;
 }
 
 // TODO: place somewhere else
@@ -408,13 +329,7 @@ void quadcontrol() {
   waitForButtonState(false, true);
   
   PRINTF("Calibrating ESCs.");
-  for (uint16_t pwm = 1000; pwm <= 2000; pwm += 200) {
-    SetPWM(pwm, pwm, pwm, pwm);
-    txWait(100);
-    PRINTF(".");
-  }
-  SetPWM(1000, 1000, 1000, 1000);
-  txWait(1000);
+  CalibrateESCs();
   PRINTLN(" Done.");
   
   Uart3RxConfig();
@@ -488,7 +403,8 @@ B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
         }
         
         // TODO: E-stop if we're upside-down
-        if (setMotors(mVals) == -1) {
+	int mErrCode = SetMotors(mVals)
+        if (mErrCode == -1) {
           PRINTLN("FATAL: nonlinearity!");
           txWait(5);
           PRINTF("mvals=[%.2f,%.2f,%.2f,%.2f]", mVals[0], mVals[1], mVals[2], mVals[3]);
@@ -499,7 +415,9 @@ B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
           txWait(2);
           PRINTF("GYRO: X=%.2f Y=%.2f Z=%.2f\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
           emergencyStop();
-        }
+        } else if (mErrCode == 1) {
+	  PRINTF("ERROR: mval[%d]=%.2f; thrust denied.\n", error, mVals[error]);
+	}
       }
     }
     pidStopwatch = uwTick - pidStopwatch;

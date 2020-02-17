@@ -7,7 +7,6 @@ extern __IO uint32_t uwTick; // variable returned by HAL_GetTick()
 
 
 void quadcontrol();
-void emergencyStop();
 
 // TODO: clean up
 // LOCATED IN stm32f4xx_it.c //
