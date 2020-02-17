@@ -21,11 +21,6 @@ typedef struct {
   float x, y, z;
 } EulerData;
 
-// W = cos(alpha/2), X = x*sin(alpha/2), Y = y*sin(alpha/2), Z = z*sin(alpha/2)
-// where W,X,Y,Z are the quaternion values and x,y,z is the vector defining your direction, which alpha rotates around 
-typedef struct {
-  float w, x, y, z; // W,X,Y,Z, not capitalized because it's inconvenient
-} Quaternion;
 // A representation of a quaternion rotation as a rotation of alpha along an axis defined by the x,y,z vector
 typedef struct {
   float alpha, x, y, z;
