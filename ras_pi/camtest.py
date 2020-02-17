@@ -4,6 +4,7 @@
 # In[ ]:
 
 import datetime
+import time
 import cv2
 import dlib
 import numpy as np
@@ -79,11 +80,14 @@ def main():
     predictor = dlib.shape_predictor(face_landmark_path)
 
     while cap.isOpened():
-        start_time = datetime.now()
+        #start_time = datetime.datetime.now()
+        cap_start = time.time()
         ret, frame = cap.read()
-        end_time = datetime.now()
-        diff = int((end_time - start_time).total_seconds() * 1000)
-        print("Milliseconds to capture a pic is " + str(diff))
+        #end_time = datetime.datetime.now()
+        cap_end = time.time()
+        cap_diff =(cap_end - cap_start) * 1000
+        print("%.2f ms to capture a pic" %cap_diff)
+        proc_start = time.time()
         if ret:
             face_rects = detector(frame, 0)
 
@@ -91,11 +95,11 @@ def main():
                 shape = predictor(frame, face_rects[0])
                 shape = face_utils.shape_to_np(shape)
 
-                start_time = datetime.now()
+                eul_start = time.time()
                 reprojectdst, euler_angle = get_head_pose(shape)
-                end_time = datetime.now()
-                diff = int((end_time - start_time).total_seconds() * 1000)
-                print("Milliseconds to capture a get head pose is " + str(diff))
+                eul_end = time.time()
+                eul_diff = (eul_end - eul_start) * 1000
+                print("%.2f ms to get euler vectors" %eul_diff)
 
                 for (x, y) in shape:
                     cv2.circle(frame, (x, y), 1, (0, 0, 255), -1)
@@ -110,11 +114,15 @@ def main():
                 cv2.putText(frame, "Z: " + "{:7.2f}".format(euler_angle[2, 0]), (20, 80), cv2.FONT_HERSHEY_SIMPLEX,
                             0.75, (0, 0, 0), thickness=2)
 
-            start_time = datetime.now()
+            proc_end = time.time()
+            proc_diff = (proc_end - proc_start) * 1000
+            print("%.2f ms to process the image" %proc_diff)
+                
+            show_start = time.time()
             cv2.imshow("demo", frame)
-            end_time = datetime.now()
-            diff = int((end_time - start_time).total_seconds() * 1000)
-            print("Milliseconds to display a pic is " + str(diff))
+            show_end = time.time()
+            show_diff = (show_end - show_start) * 1000
+            print("%.2f ms to show the image" %show_diff)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break

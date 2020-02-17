@@ -9,14 +9,14 @@ import struct
 DATA_LENGTH = 12
 
 # open the steam controller driver
-sc_proc = subprocess.Popen('sc-controller', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-time.sleep(5)
-sc_proc.kill()
+#sc_proc = subprocess.Popen('sc-controller', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#time.sleep(5)
+#sc_proc.kill()
 
 # open the jstest-gtk program to ensure that the controller is connected
-js_proc = subprocess.Popen('jstest-gtk', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-time.sleep(1)
-js_proc.kill()
+#js_proc = subprocess.Popen('jstest-gtk', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#time.sleep(0.5)
+#js_proc.kill()
 
 # intialize pygame
 pygame.init()
@@ -48,16 +48,15 @@ def get_yt(): # right trackpad used as stick, axes 3 and 4. Axis 4 is up/down an
     lr_motion = int(joystick.get_axis(3) * 32767)
     ud_motion = int(joystick.get_axis(4) * -32767)
     return (lr_motion, ud_motion)
-
-def send_data(dataValue):
-    ser.write(dataValue)
-    #print(hexify(dataValue))
-    #print()
     
 ser.reset_input_buffer()
 ser.reset_output_buffer()
+lastSend = -1
+worstLoopTime = -1
 while not done:
-    clock.tick(20) #integer value is the frames per second
+    clock.tick(60) #integer value is the frames per second
+    loopTime = time.time()
+    debug_file.flush()
     
     for event in pygame.event.get(): # User did something.
         if event.type == pygame.QUIT: # If user clicked close.
@@ -111,10 +110,23 @@ while not done:
         checksum = sum(data) & 0xFF
         data += struct.pack('>B', checksum)
         print("below is sent data:")
-        send_data(data)
+        ser.write(data)
+        if special == 5:
+            # send multiple E-stops to ensure reception
+            ser.write(data)
+            ser.write(data)
+            done = True
+            time.sleep(3) # give time to receive all debug UART data before ending
         print(hexify(data))
+        timeDiff = time.time() - lastSend
+        if (lastSend != -1) and (timeDiff > 0.030):
+            loopTime = time.time() - loopTime
+            print("ERROR: %f seconds in between packet sends!" % timeDiff)
+            print("This loop time: %f. Worst loop time: %f." % (loopTime, worstLoopTime))
+            #time.sleep(15)
+        lastSend = time.time()
         #print(data)
-        print("ser out waiting " + str(ser.out_waiting))
+        #print("ser out waiting " + str(ser.out_waiting))
         print()
         #ser.reset_output_buffer()
         special = 0
@@ -125,6 +137,9 @@ while not done:
         ser.ready_to_send = True
         debug_file.write(ser.read(ser.in_waiting))
         #ser.reset_input_buffer()
+    loopTime = time.time() - loopTime
+    if loopTime > worstLoopTime:
+        worstLoopTime = loopTime
 
 #turn off motors
 ser.close()
