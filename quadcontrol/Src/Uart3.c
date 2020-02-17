@@ -2,8 +2,9 @@
 
 #include "Uart3.h"
 
-int Uart3RxDmaIndex = 0;
-char Uart3RxBuf[UART3_RXBUF_SIZE];
+// Index of where the DMA is going to put the next byte into the Uart3RxBuf FIFO
+static int Uart3RxDmaIndex = 0;
+static char Uart3RxBuf[UART3_RXBUF_SIZE];
 
 static bool TX3_InProgress = false;
 static int txBufDataEndIndex = 0;
@@ -100,5 +101,50 @@ void task_Uart3TxFeedDma() {
   } else {
     Uart3TxStart(amountToSend, (char*) (txBuf + txBufDataStartIndex));
     txBufDataStartIndex = startIndexAfterSend;
+  }
+}
+
+// Should be called as often as possible; searches for a GriffinPacket in the RX FIFO and extracts it, giving it to a callback for processing
+void task_Uart3RxCheckForPacket() {
+  static int uart3bufIndex = 0;
+  static int packetIndex = -1;
+  static uint8_t packetBuffer[PACKET_SIZE];
+  
+  for (; uart3bufIndex != UART3_DMA_INDEX; uart3bufIndex = (uart3bufIndex + 1) % UART3_RXBUF_SIZE) {
+      // No schedule, runs as fast as possible
+      if ((packetIndex < 0) && (Uart3RxBuf[uart3bufIndex] == PACKET_START_BYTE)) {
+        packetIndex = 0;
+      }
+      if ((packetIndex != -1) && (packetIndex < PACKET_SIZE)) {
+        packetBuffer[packetIndex++] = Uart3RxBuf[uart3bufIndex];
+      }
+      if (packetIndex >= PACKET_SIZE) { // complete packet detected
+        uint8_t checksumComputed = 0;
+        uint8_t checksumReceived;
+        for (int i = 0; i < (PACKET_SIZE - 1); i++) {
+          checksumComputed += (uint8_t) packetBuffer[i];
+        }
+        checksumReceived = packetBuffer[PACKET_SIZE - 1];
+	
+	callback_ProcessPacket(checksumComputed, checksumReceived, packetBuffer);
+	
+	if (checksumComputed == checksumReceived) {
+	  packetIndex = -1; // get a whole new packet
+	} else { // invalid packet
+          // Find the index of another packet start inside this packet
+          for (packetIndex = 1; packetIndex < PACKET_SIZE; packetIndex++) {
+            if (packetBuffer[packetIndex] == PACKET_START_BYTE) break;
+          }
+          if (packetIndex == SIZE_OF_GRIFFIN) {
+            // No packet start found, invalidate packet
+            packetIndex = -1;
+          } else {
+            // Packet start found, move everything left by packetIndex amount of bytes
+            for (int i = packetIndex; i < SIZE_OF_GRIFFIN; i++) {
+              packetBuffer[i - packetIndex] = packetBuffer[i];
+            }
+          }
+	}
+      }
   }
 }

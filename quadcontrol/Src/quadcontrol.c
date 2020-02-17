@@ -351,6 +351,53 @@ uint32_t ValidCount = 0;
 #define JOYSTICK_BUTTON_UP 4
 #define TRIM_ANGLE_PER_PRESS 1.0f * PI / 180.0f
 
+static uint32_t packetTimeout = 0, lastRXLoop = 0;
+void callback_ProcessPacket(uint8_t computedChecksum, uint8_t receivedChecksum, uint8_t* packetBuffer) {
+  if (computedChecksum == receivedChecksum) { // valid packet
+    ValidCount++;
+    if (ValidCount%100 == 0) {
+      PRINTF("Info: val/inval=%d/%d\n", ValidCount, InvalidCount);
+    }
+    // Decode packet contents
+    GPacket.startByte = packetBuffer[0];
+    GPacket.leftRight = (int16_t)(packetBuffer[1] << 8) | (int16_t)(packetBuffer[2]);
+    GPacket.upDown = (int16_t)(packetBuffer[3] << 8) | (int16_t)(packetBuffer[4]);
+    GPacket.padLeftRight = (int16_t)(packetBuffer[5] << 8) | (int16_t)(packetBuffer[6]);
+    GPacket.padUpDown = (int16_t)(packetBuffer[7] << 8) | (int16_t)(packetBuffer[8]);
+    GPacket.buttons = (int16_t)(packetBuffer[9] << 8) | (int16_t)(packetBuffer[10]);
+    GPacket.checksum = packetBuffer[11];
+    // Handle packet
+    joystick2Quaternion(&joystickOrientation, GPacket);
+    thrust = (GPacket.padUpDown / 2);
+    thrust = (thrust / 32768.0f) + 0.5f; // between 0.0f and 1.0f max negative/positive int16_t values
+    packetTimeout = uwTick + 100;
+    if (GPacket.buttons) {
+      PRINTF("Btns!=0; %d\n", GPacket.buttons);
+      if (GPacket.buttons == 5) emergencyStop();
+      PRINTF("GPak: %d, %d, %d, %d\n", GPacket.leftRight, GPacket.upDown, GPacket.padLeftRight, GPacket.padUpDown);
+      PRINTF("Thr=%.2f\n", thrust);
+      // NOTICE: actually apply trim quats
+      if (GPacket.buttons == JOYSTICK_BUTTON_RIGHT) multiplyQuaternions(&trimmedOrientation, QUAT_TRIM_RIGHT, trimmedOrientation);
+      if (GPacket.buttons == JOYSTICK_BUTTON_LEFT) multiplyQuaternions(&trimmedOrientation, QUAT_TRIM_LEFT, trimmedOrientation);
+      if (GPacket.buttons == JOYSTICK_BUTTON_UP) multiplyQuaternions(&trimmedOrientation, QUAT_TRIM_UP, trimmedOrientation);
+      if (GPacket.buttons == JOYSTICK_BUTTON_DOWN) multiplyQuaternions(&trimmedOrientation, QUAT_TRIM_DOWN, trimmedOrientation);
+      PRINTF("TrimQ: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", trimmedOrientation.w, trimmedOrientation.x, trimmedOrientation.y, trimmedOrientation.z);
+    }
+    packetIndex = -1;
+  } else { // invalid packet
+    InvalidCount++;
+    // Print packet contents as hex and print an update on invalid/valid counters
+    PRINTF("ERROR: GPac inval: ");
+    for (int i = 0; i < PACKET_SIZE; i++) {
+      PRINTF("%02X", packetBuffer[i]);
+    }
+    PRINTF(" (val/inval=%d/%d)\n", ValidCount, InvalidCount);
+          
+    if (InvalidCount > 20) emergencyStop();
+  }
+}
+
+
 // Main program entry point
 void quadcontrol() {
   BNO055_Init_I2C(&hi2c1); // FIXME: check if successful?
@@ -370,11 +417,8 @@ void quadcontrol() {
   txWait(1000);
   PRINTLN(" Done.");
   
-  USART3_RX_Config(0, (char *) &GPacket);
-  int uart3bufIndex = 0;
+  Uart3RxConfig();
   int usbBufIndex = 0;
-  int packetIndex = -1;
-  uint8_t packetBuffer[SIZE_OF_GRIFFIN];
   
   Quaternion imuOrientation, desiredOrientation, joystickOrientation;
   GyroData imuGyroData;
@@ -402,7 +446,7 @@ void quadcontrol() {
   bool e = false;
   bool g = false;
   
-  uint32_t scheduleButtonCheck = 0, schedulePID = 0, schedulePrintInfo = 0, packetTimeout = 0, lastRXLoop = 0, worstRXstopwatch = 0, worstPIDstopwatch = 0, worstBtnStopwatch = 0, worstPoutStopwatch = 0;
+  uint32_t scheduleButtonCheck = 0, schedulePID = 0, schedulePrintInfo = 0, worstRXstopwatch = 0, worstPIDstopwatch = 0, worstBtnStopwatch = 0, worstPoutStopwatch = 0;
   
   while (1) {
     // Sample button at 100Hz
@@ -463,94 +507,9 @@ B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
     
     
     task_Uart3TxFeedDma();
-    
-    // Tony:  I thought about it, we don't actually need a "FIFO."
-    // If each button press equates to one movement/action, then 
-    // the expectation is that the action will occur once.  We don't
-    // need to remember if the user pressed it continuously (which is
-    // how the FIFO would be filled up).  Below, the expectation is
-    // that, when the button is pressed, it will be serviced and the
-    // indicator cleared. Our CPU is definitely fast enough to do
-    // all of this between button presses.
-    
-    // TODO: clean up into function with a callback for a valid packet
     // Check the RX FIFO for packets
     uint32_t rxStopwatch = uwTick;
-    for (; uart3bufIndex != UART3_DMA_INDEX; uart3bufIndex = (uart3bufIndex + 1) % UART3RXBUF_SIZE) {
-      // No schedule, runs as fast as possible
-      if ((packetIndex < 0) && (UART3RXBuf[uart3bufIndex] == 37)) {
-        packetIndex = 0;
-      }
-      if ((packetIndex != -1) && (packetIndex < SIZE_OF_GRIFFIN)) {
-        packetBuffer[packetIndex++] = UART3RXBuf[uart3bufIndex];
-      }
-      if (packetIndex >= SIZE_OF_GRIFFIN) { // complete packet detected
-        uint8_t sum = 0;
-        uint8_t checksum;
-        for (int i = 0; i < (SIZE_OF_GRIFFIN - 1); i++) {
-          sum += (uint8_t) packetBuffer[i];
-        }
-        checksum = packetBuffer[SIZE_OF_GRIFFIN - 1];
-        if (sum == checksum) { // valid packet
-          ValidCount++;
-          if (ValidCount%100 == 0) {
-            PRINTF("Info: val/inval=%d/%d\n", ValidCount, InvalidCount);
-          }
-          // Decode packet contents
-          GPacket.startByte = packetBuffer[0];
-          GPacket.leftRight = (int16_t)(packetBuffer[1] << 8) | (int16_t)(packetBuffer[2]);
-          GPacket.upDown = (int16_t)(packetBuffer[3] << 8) | (int16_t)(packetBuffer[4]);
-          GPacket.padLeftRight = (int16_t)(packetBuffer[5] << 8) | (int16_t)(packetBuffer[6]);
-          GPacket.padUpDown = (int16_t)(packetBuffer[7] << 8) | (int16_t)(packetBuffer[8]);
-          GPacket.buttons = (int16_t)(packetBuffer[9] << 8) | (int16_t)(packetBuffer[10]);
-          GPacket.checksum = packetBuffer[11];
-          // Hanndle packet
-          joystick2Quaternion(&joystickOrientation, GPacket);
-          thrust = (GPacket.padUpDown / 2);
-          thrust = (thrust / 32768.0f) + 0.5f; // between 0.0f and 1.0f max negative/positive int16_t values
-          packetTimeout = uwTick + 100;
-          if (GPacket.buttons) {
-            PRINTF("Btns!=0; %d\n", GPacket.buttons);
-            if (GPacket.buttons == 5) emergencyStop();
-            PRINTF("GPak: %d, %d, %d, %d\n", GPacket.leftRight, GPacket.upDown, GPacket.padLeftRight, GPacket.padUpDown);
-            PRINTF("Thr=%.2f\n", thrust);
-            // NOTICE: actually apply trim quats
-            if (GPacket.buttons == JOYSTICK_BUTTON_RIGHT) multiplyQuaternions(&trimmedOrientation, QUAT_TRIM_RIGHT, trimmedOrientation);
-            if (GPacket.buttons == JOYSTICK_BUTTON_LEFT) multiplyQuaternions(&trimmedOrientation, QUAT_TRIM_LEFT, trimmedOrientation);
-            if (GPacket.buttons == JOYSTICK_BUTTON_UP) multiplyQuaternions(&trimmedOrientation, QUAT_TRIM_UP, trimmedOrientation);
-            if (GPacket.buttons == JOYSTICK_BUTTON_DOWN) multiplyQuaternions(&trimmedOrientation, QUAT_TRIM_DOWN, trimmedOrientation);
-            PRINTF("TrimQ: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", trimmedOrientation.w, trimmedOrientation.x, trimmedOrientation.y, trimmedOrientation.z);
-          }
-          packetIndex = -1;
-        } else { // invalid packet
-          InvalidCount++;
-          // Print packet contents as hex and print an update on invalid/valid counters
-          PRINTF("ERROR: GPac inval: ");
-          for (int i = 0; i < SIZE_OF_GRIFFIN; i++) {
-            PRINTF("%02X", packetBuffer[i]);
-          }
-          PRINTF(" (val/inval=%d/%d)\n", ValidCount, InvalidCount);
-          
-          if (InvalidCount > 20) emergencyStop();
-          
-          // Find the index of another packet start inside this packet
-          for (packetIndex = 1; packetIndex < SIZE_OF_GRIFFIN; packetIndex++) {
-            if (packetBuffer[packetIndex] == 37) break;
-          }
-          if (packetIndex == SIZE_OF_GRIFFIN) {
-            // No packet start found, invalidate packet
-            packetIndex = -1;
-          } else {
-            // Packet start found, move everything left by packetIndex amount of bytes
-            for (int i = packetIndex; i < SIZE_OF_GRIFFIN; i++) {
-              packetBuffer[i - packetIndex] = packetBuffer[i];
-            }
-            PRINTF("GPac shift %d\n", packetIndex);
-          }
-        }
-      }
-      lastRXLoop = uwTick;
-    }
+    task_Uart3RxCheckForPacket();    
     rxStopwatch = uwTick - rxStopwatch;
     if (rxStopwatch > worstRXstopwatch) worstRXstopwatch = rxStopwatch;
     
