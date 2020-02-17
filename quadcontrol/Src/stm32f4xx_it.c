@@ -205,7 +205,7 @@ void SysTick_Handler(void)
 void DMA1_Stream1_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Stream1_IRQn 0 */
-   DMA1_STREAM1_IT_HANDLER();
+  UART3_DMA_RX_ISR();
   /* USER CODE END DMA1_Stream1_IRQn 0 */
   /* USER CODE BEGIN DMA1_Stream1_IRQn 1 */
 
@@ -218,7 +218,7 @@ void DMA1_Stream1_IRQHandler(void)
 void DMA1_Stream3_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Stream3_IRQn 0 */
-  DMA1_STREAM3_IT_HANDLER();
+  UART3_DMA_TX_ISR();
   /* USER CODE END DMA1_Stream3_IRQn 0 */
   /* USER CODE BEGIN DMA1_Stream3_IRQn 1 */
 

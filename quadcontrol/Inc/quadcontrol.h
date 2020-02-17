@@ -3,7 +3,6 @@
 #define __QUADCONTROL_H__
 
 // Set by generated code / libraries
-extern uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 extern __IO uint32_t uwTick; // variable returned by HAL_GetTick()
 
 

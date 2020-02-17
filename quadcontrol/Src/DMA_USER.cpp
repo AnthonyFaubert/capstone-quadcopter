@@ -1,70 +1,14 @@
 
 
 #include "DMA_USER.h"
-#include "quadcontrol.h"
 
 ////////////////////////  DMA-UART Functions  /////////////////////////
 
 /* Local Global Variables */
-uint32_t RX3_BUFFER;
-uint32_t RX3_POINTER;
-
 uint32_t RX6_BUFFER;
 uint32_t RX6_POINTER;
 
-static bool TX3_InProgress = false;
-
-// Configure USART3 to send received data to a certain memory address via DMA
-void DMA_Config_USART3_RX(uint32_t bufferSize, char * targetAddress)
-{
-  RX3_BUFFER = bufferSize & 0xFFFFFFFFUL;
-  RX3_POINTER = (uint32_t) targetAddress;
-  DMA1_Stream1->CR &= ~DMA_SxCR_EN; // Disable DMA, Stream1
-  DMA1_Stream1->CR |= DMA_SxCR_TCIE; // Activate TC Interrupt
-  //DMA1_Stream1->NDTR = RX3_BUFFER; // Number of transfers
-  DMA1_Stream1->PAR = (uint32_t) &(USART3->DR); // Set Peripheral Address
-  //DMA1_Stream1->M0AR = RX3_POINTER; // Target Memory Address
-  // FIXME PLEASE
-  DMA1_Stream1->NDTR = UART3RXCHUNK_SIZE; // Reset Buffer size
-  DMA1_Stream1->M0AR = (uint32_t) (&UART3RXBuf[UART3_DMA_INDEX]); // Reset address
-  DMA1_Stream1->CR |= DMA_SxCR_EN; // DMA ready to transfer
-}
-
-// Send Data (one-shot) via DMA to USART6
-void DMA_TX_USART3(int bufferSize, char * sendAddress)
-{
-  // TODO: fifo-ify
-  TX3_InProgress = true;
-  DMA1_Stream3->CR &= ~DMA_SxCR_EN;  // Turn off DMA2-Stream6
-  DMA1_Stream3->CR |= DMA_SxCR_TCIE; // Activate TC Interrupt
-  DMA1_Stream3->NDTR = bufferSize & 0xFFFFFFFFUL; // Number of transfers
-  DMA1_Stream3->PAR = (uint32_t) &(USART3->DR); // Set Peripheral Address
-  DMA1_Stream3->M0AR = (uint32_t) sendAddress; // Data-Propagation Address
-  DMA1_Stream3->CR |= DMA_SxCR_EN; // Send-Data Signal
-}
-
-// Reset DMA1 to stream data from USART3 (RX-DMA)
-void DMA1_STREAM1_IT_HANDLER(void)
-{
-  // FIXME: FOR THE LOVE OF ALL THAT IS HOLY
-  DMA1->LIFCR |= (DMA_LIFCR_CTCIF1 + DMA_LIFCR_CHTIF1); // Clear Half-Complete and Complete Interr
-  UART3_DMA_INDEX = (UART3_DMA_INDEX + UART3RXCHUNK_SIZE) % UART3RXBUF_SIZE;
-  //DMA1_Stream1->NDTR = RX3_BUFFER; // Reset Buffer size
-  DMA1_Stream1->NDTR = UART3RXCHUNK_SIZE;
-  //DMA1_Stream1->M0AR = RX3_POINTER; // Reset address
-  DMA1_Stream1->M0AR = (uint32_t) (UART3RXBuf + UART3_DMA_INDEX);
-  UART3_DMA_CHUNKS_RECVD++;
-  DMA1_Stream1->CR |= DMA_SxCR_EN;
-}
-
-// Clear I_Flags to prep for next transmission to USART3 (TX-DMA)
-void DMA1_STREAM3_IT_HANDLER(void) {
-  DMA1->LIFCR |= (DMA_LIFCR_CTCIF3 + DMA_LIFCR_CHTIF3);
-  TX3_InProgress = false;
-}
-bool DMA_TX_USART3_IsBusy() {
-  return TX3_InProgress;
-}
+// TODO: remove this file
 
 // Configure USART6 to send received data to a certain memory address via DMA
 void DMA_Config_USART6_RX(uint32_t bufferSize, char * targetAddress)

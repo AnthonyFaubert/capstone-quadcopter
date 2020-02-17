@@ -15,26 +15,8 @@
 #include "accel.h"
 #include "quadcontrol.h"
 #include "math.h" // for acosf() and sqrtf()
-#include "USART_USER.h" // David's sauce
+#include "Uart3.h"
 
-/*
-#ifdef __GNUC__
-#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
-#else
-#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
-#endif
-
-PUTCHAR_PROTOTYPE {
-        while (HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 10) != HAL_OK) {};
- return ch;
-}
-*/
-
-// TODO: lots of cleanup
-
-#define TX_BUF_SIZE 500
-static int txBufDataEndIndex = 0;
-static uint8_t txBuf[TX_BUF_SIZE];
 // Maximum size of a single data chunk (no more than this many chars per printf call)
 #define MAX_TX_CHUNK 100
 void PRINTF(const char* fmt, ...) {
@@ -42,51 +24,15 @@ void PRINTF(const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
   int len = vsprintf(strBuf, fmt, args);
-  // FIXME: check for TX FIFO overflow and wait or something
-  for (int i = 0; i < len; i++) {
-    txBuf[txBufDataEndIndex++] = strBuf[i];
-    txBufDataEndIndex %= TX_BUF_SIZE;
-  }
+  Uart3TxQueueSend(strBuf, len);
   va_end(args);
 }
-
-extern USBD_HandleTypeDef hUsbDeviceFS;
-void task_uartTX() {
-  static int txBufDataStartIndex = 0;
-  if (txBufDataStartIndex == txBufDataEndIndex) return; // no data to send
-  if (DMA_TX_USART3_IsBusy()) return; // waiting for UART to finish
-  
-  int amountToSend;
-  int startIndexAfterSend;
-  if (txBufDataStartIndex > txBufDataEndIndex) {
-    // FIFO wrap around
-    amountToSend = TX_BUF_SIZE - txBufDataStartIndex;
-    startIndexAfterSend = 0;
-  } else {
-    // FIFO didn't wrap around
-    amountToSend = txBufDataEndIndex - txBufDataStartIndex;
-    startIndexAfterSend = txBufDataEndIndex;
-  }
-
-  bool usbPresent = hUsbDeviceFS.dev_state != USBD_STATE_SUSPENDED;
-  if (usbPresent && (CDC_Transmit_FS(txBuf + txBufDataStartIndex, amountToSend) != USBD_OK)) {
-    // USB is connected but not ready
-    return;
-  } else {
-    txBufferUSART3(amountToSend, (char*) (txBuf + txBufDataStartIndex));
-    txBufDataStartIndex = startIndexAfterSend;
-  }
-}
-//#define PRINTF(f_, ...) DebugStrLen = sprintf(DebugStrBuf, (f_), __VA_ARGS__); \
-        CDC_Transmit_FS((uint8_t) DebugStrBuf, DebugStrLen); \
-        txBufferUSART3(DebugStrLen, DebugStrBuf); \
-
 #define PRINTLN(str) PRINTF("%s\n", str);
           
 // Delay while allowing the TX buffer to send things
 void txWait(uint32_t milliseconds) {
   uint32_t doneTime = uwTick + milliseconds;
-  while (uwTick < doneTime) task_uartTX();
+  while (uwTick < doneTime) task_Uart3TxFeedDma();
 }
 
 bool checkButtonState(bool high) {
@@ -250,7 +196,7 @@ void emergencyStop() {
   SetPWM(0, 0, 0, 0);
   PRINTLN("EMERGENCY STOP ACTIVATED!");
   while (1) {
-    task_uartTX();
+    task_Uart3TxFeedDma();
   }
 }
 
@@ -516,7 +462,7 @@ B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
     if (pidStopwatch > worstPIDstopwatch) worstPIDstopwatch = pidStopwatch;
     
     
-    task_uartTX();
+    task_Uart3TxFeedDma();
     
     // Tony:  I thought about it, we don't actually need a "FIFO."
     // If each button press equates to one movement/action, then 
