@@ -1,6 +1,8 @@
 
+#include "MiscPeripherals.h"
 #include "stdbool.h"
 #include "tim.h"
+#include "gpio.h"
 #include "VectQuatMath.h"
 
 static bool calibrated = false;

@@ -1,6 +1,7 @@
 
-
 #include "Uart3.h"
+#include "usart.h"
+#include "usb_device.h"
 
 // Index of where the DMA is going to put the next byte into the Uart3RxBuf FIFO
 static int Uart3RxDmaIndex = 0;
@@ -31,7 +32,7 @@ void Uart3RxConfig() {
 }
 
 // Send Data (one-shot) via DMA to USART3
-void Uart3TxStart(uint32_t bufferSize, char* sendAddress) {
+static void Uart3TxStart(uint32_t bufferSize, char* sendAddress) {
   while(!(USART3->SR & USART_SR_TC));
   USART3->CR3 |=  USART_CR3_DMAT;
   USART3->SR &= ~USART_SR_TC;
@@ -111,40 +112,40 @@ void task_Uart3RxCheckForPacket() {
   static uint8_t packetBuffer[PACKET_SIZE];
   
   for (; uart3bufIndex != UART3_DMA_INDEX; uart3bufIndex = (uart3bufIndex + 1) % UART3_RXBUF_SIZE) {
-      // No schedule, runs as fast as possible
-      if ((packetIndex < 0) && (Uart3RxBuf[uart3bufIndex] == PACKET_START_BYTE)) {
-        packetIndex = 0;
+    // No schedule, runs as fast as possible
+    if ((packetIndex < 0) && (Uart3RxBuf[uart3bufIndex] == PACKET_START_BYTE)) {
+      packetIndex = 0;
+    }
+    if ((packetIndex != -1) && (packetIndex < PACKET_SIZE)) {
+      packetBuffer[packetIndex++] = Uart3RxBuf[uart3bufIndex];
+    }
+    if (packetIndex >= PACKET_SIZE) { // complete packet detected
+      uint8_t checksumComputed = 0;
+      uint8_t checksumReceived;
+      for (int i = 0; i < (PACKET_SIZE - 1); i++) {
+	checksumComputed += (uint8_t) packetBuffer[i];
       }
-      if ((packetIndex != -1) && (packetIndex < PACKET_SIZE)) {
-        packetBuffer[packetIndex++] = Uart3RxBuf[uart3bufIndex];
-      }
-      if (packetIndex >= PACKET_SIZE) { // complete packet detected
-        uint8_t checksumComputed = 0;
-        uint8_t checksumReceived;
-        for (int i = 0; i < (PACKET_SIZE - 1); i++) {
-          checksumComputed += (uint8_t) packetBuffer[i];
-        }
-        checksumReceived = packetBuffer[PACKET_SIZE - 1];
+      checksumReceived = packetBuffer[PACKET_SIZE - 1];
 	
-	callback_ProcessPacket(checksumComputed, checksumReceived, packetBuffer);
+      callback_ProcessPacket(checksumComputed, checksumReceived, packetBuffer);
 	
-	if (checksumComputed == checksumReceived) {
-	  packetIndex = -1; // get a whole new packet
-	} else { // invalid packet
-          // Find the index of another packet start inside this packet
-          for (packetIndex = 1; packetIndex < PACKET_SIZE; packetIndex++) {
-            if (packetBuffer[packetIndex] == PACKET_START_BYTE) break;
-          }
-          if (packetIndex == SIZE_OF_GRIFFIN) {
-            // No packet start found, invalidate packet
-            packetIndex = -1;
-          } else {
-            // Packet start found, move everything left by packetIndex amount of bytes
-            for (int i = packetIndex; i < SIZE_OF_GRIFFIN; i++) {
-              packetBuffer[i - packetIndex] = packetBuffer[i];
-            }
-          }
+      if (checksumComputed == checksumReceived) {
+	packetIndex = -1; // get a whole new packet
+      } else { // invalid packet
+	// Find the index of another packet start inside this packet
+	for (packetIndex = 1; packetIndex < PACKET_SIZE; packetIndex++) {
+	  if (packetBuffer[packetIndex] == PACKET_START_BYTE) break;
+	}
+	if (packetIndex == SIZE_OF_GRIFFIN) {
+	  // No packet start found, invalidate packet
+	  packetIndex = -1;
+	} else {
+	  // Packet start found, move everything left by packetIndex amount of bytes
+	  for (int i = packetIndex; i < SIZE_OF_GRIFFIN; i++) {
+	    packetBuffer[i - packetIndex] = packetBuffer[i];
+	  }
 	}
       }
+    }
   }
 }

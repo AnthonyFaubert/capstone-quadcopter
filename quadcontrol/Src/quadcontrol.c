@@ -7,10 +7,6 @@
 #include "stdbool.h"
 #include "stdarg.h" // allows wrapping vsprintf
 
-#include "usart.h"
-#include "usb_device.h"
-#include "gpio.h"
-
 #include "bno055.h"
 #include "accel.h"
 #include "quadcontrol.h"
