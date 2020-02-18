@@ -15,10 +15,6 @@ void setButtonFrame(void);
 
 typedef struct {
   float x, y, z;
-} GyroData;
-
-typedef struct {
-  float x, y, z;
 } EulerData;
 
 // A representation of a quaternion rotation as a rotation of alpha along an axis defined by the x,y,z vector
@@ -26,10 +22,6 @@ typedef struct {
   float alpha, x, y, z;
 } RotationAxis;
 
-// A set of angle differences between a current heading and a desired one.
-typedef struct {
-  float roll, pitch, yaw;
-} RollPitchYaw;
 
 typedef struct {
   uint8_t startByte;

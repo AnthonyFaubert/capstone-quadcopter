@@ -15,6 +15,7 @@
 #include "VectQuatMath.h"
 #include "Uart3.h"
 #include "MiscPeripherals.h"
+#include "PID.h"
 
 // Maximum size of a single data chunk (no more than this many chars per printf call)
 #define MAX_TX_CHUNK 100
@@ -43,30 +44,6 @@ void waitForButtonState(bool high, bool printPrompt) {
 }
 
 #define CALIBRATE_ESCS_WAIT_MACRO(ms) txWait(ms); if (ms == 100) PRINTF(".")
-
-// Assuming that the natural orientation is (FIXME), what are the roll, pitch, and yaw errors between this quaternion and the natural orientation
-void getQuaternionError(RollPitchYaw* result, Quaternion actual, Quaternion desired) {
-  // Rotate actual by the opposite of desired, then desired is <1,0,0,0> (rotate by q is q*a*conj(q))
-  // Compute the rotation from actual to desired (invert actual to get back to straight and then go to desired)
-  Quaternion correctionRotation;
-  conjugateQuaternion(&actual, actual);
-  multiplyQuaternions(&correctionRotation, desired, actual); // Overall rotation of (q*p) is rotate by p and then q
-
-  // Convert the quaternion back into something we understand by using it to rotate <0,0,1> (for roll & pitch) and <1,0,0> (for yaw)
-  Quaternion tmpA, tmpB, rotatedVector;
-  Quaternion straight = {0.0f, 0.0f, 0.0f, 1.0f}; // straight = <0,0,1>
-  QuaternionsMultiply(&tmpA, correctionRotation, straight);
-  straight.x = 1.0f; straight.z = 0.0f; // straight = <1,0,0>
-  QuaternionsMultiply(&tmpB, correctionRotation, straight);
-  conjugateQuaternion(&correctionRotation, correctionRotation);
-  QuaternionsMultiply(&rotatedVector, tmpA, correctionRotation);
-  // Overall, rotatedVector = correctionRotation * <0,0,0,1> * correctionRotation^-1 = <0,0,1> rotated by correction
-  result->roll = atan2f(rotatedVector.x, rotatedVector.z);
-  result->pitch = atan2f(rotatedVector.y, rotatedVector.z);
-  QuaternionsMultiply(&rotatedVector, tmpB, correctionRotation);
-  // Overall, rotatedVector = correctionRotation * <0,1,0,0> * correctionRotation^-1 = <1,0,0> rotated by correction
-  result->yaw = atan2f(rotatedVector.y, rotatedVector.x);
-}
 
 // positive rotation along x-axis is pitch tape moving up
 // positive rotation along y-axis is roll tape moving down
@@ -124,65 +101,6 @@ void emergencyStop() {
   }
 }
 
-/*
- CW0  CCW1
-CCW2   CW3
- */
-// positive roll thrust will make roll tape go down, similar for rest
-float THRUST_VECTOR_ROLL[4] = {1.0f, 0.0f, -1.0f, 0.0f};
-float THRUST_VECTOR_PITCH[4] = {0.0f, -1.0f, 0.0f, 1.0f};
-float THRUST_VECTOR_YAW[4] = {1.0f, -1.0f, 1.0f, -1.0f};
-float GAIN_PROPORTIONAL_ROLL = 0.08f;
-float GAIN_PROPORTIONAL_PITCH = 0.08f;
-float GAIN_PROPORTIONAL_YAW = 0.03f;
-float GAIN_DERIVATIVE_ROLL = 0.0015f;
-float GAIN_DERIVATIVE_PITCH = 0.0015f;
-float GAIN_DERIVATIVE_YAW = 0.0007f;
-void PID(float* motorVals, RollPitchYaw rotations, GyroData gyroData, float thrust) { // TODO: derivative
-  float rollVect[4], pitchVect[4], yawVect[4];
-  VectorScale(rollVect, GAIN_PROPORTIONAL_ROLL * rotations.roll, THRUST_VECTOR_ROLL);
-  VectorScale(pitchVect, GAIN_PROPORTIONAL_PITCH * rotations.pitch, THRUST_VECTOR_PITCH);
-  VectorScale(yawVect, GAIN_PROPORTIONAL_YAW * rotations.yaw, THRUST_VECTOR_YAW);
-  Vectors3Add(motorVals, rollVect, pitchVect, yawVect);
-  //PRINTF("MVals: %.2f, %.2f, %.2f, %.2f\n", motorVals[0], motorVals[1], motorVals[2], motorVals[3]);
-  float rollRateError = 0.0f - gyroData.y; // +y = rolling in direction of positive roll torque
-  float pitchRateError = 0.0f + gyroData.x; // -x = rolling in direction of positive pitch torque
-  float yawRateError = 0.0f - gyroData.z; // +z = rolling in direction of positive yaw torque
-  VectorScale(rollVect, GAIN_DERIVATIVE_ROLL * rollRateError, THRUST_VECTOR_ROLL);
-  VectorScale(pitchVect, GAIN_DERIVATIVE_PITCH * pitchRateError, THRUST_VECTOR_PITCH);
-  VectorScale(yawVect, GAIN_DERIVATIVE_YAW * yawRateError, THRUST_VECTOR_YAW);
-  float derivativeMVals[4];
-  Vectors3Add(derivativeMVals, rollVect, pitchVect, yawVect);
-  
-  float average = 0.0f;
-  for (int i = 0; i < 4; i++) {
-    motorVals[i] += derivativeMVals[i];
-    average += motorVals[i];
-  }
-  average /= 4.0f;
-  VectorScalarAdd(motorVals, thrust - average, motorVals);
-}
-
-// TODO: place somewhere else
-// Set max bank angle to 45 degrees
-#define JOYSTICK_MAX_ANGLE (PI / 4.0f)
-void joystick2Quaternion(Quaternion* joyCmdQuatPtr, GriffinPacket packet) {
-   // NOTICE: in progress
-  float roll = packet.leftRight;
-  float pitch = packet.upDown;
-  float yaw = packet.padLeftRight;
-  yaw *= -PI / 32768.0f / 2.0f;
-  roll *= JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
-  pitch *= -JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
-  Quaternion yawQuat = {cosf(yaw), 0.0f, 0.0f, sinf(yaw)};
-  Quaternion rollQuat = {cosf(roll), 0.0f, sinf(roll), 0.0f};
-  Quaternion pitchQuat = {cosf(pitch), sinf(pitch), 0.0f, 0.0f};
-  
-  // Combine rotations; yaw first, then roll, and finally pitch
-  Quaternion tmpQuat;
-  QuaternionsMultiply(&tmpQuat, rollQuat, yawQuat);
-  QuaternionsMultiply(joyCmdQuatPtr, pitchQuat, tmpQuat);
-}
 
 //  SYNTAX: "b7" = bit7     b7        b6        b5        b4       B3       b2       b1       b0
 // Button Format        [RESERVED, RESERVED, RESERVED, RESERVED, Button3, Button2, Button1, Button0]
@@ -204,15 +122,12 @@ char UART3RXBuf[UART3RXBUF_SIZE];
 int USBRXBufIndex;
 char USBRXBuf[USBRXBUF_SIZE];
 
+
+
 uint32_t InvalidCount = 0;
 uint32_t ValidCount = 0;
 
-#define JOYSTICK_BUTTON_RIGHT 2
-#define JOYSTICK_BUTTON_LEFT 3
-#define JOYSTICK_BUTTON_DOWN 1
-#define JOYSTICK_BUTTON_UP 4
-#define TRIM_ANGLE_PER_PRESS 1.0f * PI / 180.0f
-
+static Quaternion joystickOrientation = {1.0f, 0.0f, 0.0f, 0.0f};
 static uint32_t packetTimeout = 0, lastRXLoop = 0;
 void callback_ProcessPacket(uint8_t computedChecksum, uint8_t receivedChecksum, uint8_t* packetBuffer) {
   if (computedChecksum == receivedChecksum) { // valid packet
@@ -229,7 +144,7 @@ void callback_ProcessPacket(uint8_t computedChecksum, uint8_t receivedChecksum, 
     GPacket.buttons = (int16_t)(packetBuffer[9] << 8) | (int16_t)(packetBuffer[10]);
     GPacket.checksum = packetBuffer[11];
     // Handle packet
-    joystick2Quaternion(&joystickOrientation, GPacket);
+    Joystick2Quaternion(&joystickOrientation, GPacket);
     thrust = (GPacket.padUpDown / 2);
     thrust = (thrust / 32768.0f) + 0.5f; // between 0.0f and 1.0f max negative/positive int16_t values
     packetTimeout = uwTick + 100;
@@ -238,12 +153,8 @@ void callback_ProcessPacket(uint8_t computedChecksum, uint8_t receivedChecksum, 
       if (GPacket.buttons == 5) emergencyStop();
       PRINTF("GPak: %d, %d, %d, %d\n", GPacket.leftRight, GPacket.upDown, GPacket.padLeftRight, GPacket.padUpDown);
       PRINTF("Thr=%.2f\n", thrust);
-      // NOTICE: actually apply trim quats
-      if (GPacket.buttons == JOYSTICK_BUTTON_RIGHT) QuaternionsMultiply(&trimmedOrientation, QUAT_TRIM_RIGHT, trimmedOrientation);
-      if (GPacket.buttons == JOYSTICK_BUTTON_LEFT) QuaternionsMultiply(&trimmedOrientation, QUAT_TRIM_LEFT, trimmedOrientation);
-      if (GPacket.buttons == JOYSTICK_BUTTON_UP) QuaternionsMultiply(&trimmedOrientation, QUAT_TRIM_UP, trimmedOrientation);
-      if (GPacket.buttons == JOYSTICK_BUTTON_DOWN) QuaternionsMultiply(&trimmedOrientation, QUAT_TRIM_DOWN, trimmedOrientation);
-      PRINTF("TrimQ: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", trimmedOrientation.w, trimmedOrientation.x, trimmedOrientation.y, trimmedOrientation.z);
+      JoystickApplyTrim(GPacket.buttons);
+      PRINTF("TrimQ: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", TrimQuaternion.w, TrimQuaternion.x, TrimQuaternion.y, TrimQuaternion.z);
     }
     packetIndex = -1;
   } else { // invalid packet
@@ -276,24 +187,10 @@ void quadcontrol() {
   Uart3RxConfig();
   int usbBufIndex = 0;
   
-  Quaternion imuOrientation, desiredOrientation, joystickOrientation;
+  Quaternion imuOrientation, desiredOrientation;
   GyroData imuGyroData;
   RollPitchYaw orientationErrors;
-  Quaternion trimmedOrientation = {1.0f, 0.0f, 0.0f, 0.0f};
-  // The rotations for a single trim button press for rotating around the x and y axis, respectively
-  const Quaternion QUAT_TRIM_RIGHT = {cosf(TRIM_ANGLE_PER_PRESS/2.0f), sinf(TRIM_ANGLE_PER_PRESS/2.0f), 0.0f, 0.0f};
-  const Quaternion QUAT_TRIM_DOWN = {cosf(TRIM_ANGLE_PER_PRESS/2.0f), 0.0f, sinf(TRIM_ANGLE_PER_PRESS/2.0f), 0.0f};
-  Quaternion QUAT_TRIM_LEFT, QUAT_TRIM_UP;
-  conjugateQuaternion(&QUAT_TRIM_LEFT, QUAT_TRIM_RIGHT);
-  conjugateQuaternion(&QUAT_TRIM_UP, QUAT_TRIM_DOWN);
-  
-    /* TODO: delete
-  trimmedOrientation.w = 1.0f;
-  trimmedOrientation.x = 0.0f;
-  trimmedOrientation.y = 0.0f;
-  trimmedOrientation.z = 0.0f;
-*/
-  joystickOrientation = trimmedOrientation;
+    
   float thrust = 0.3f;
   float mVals[4];
 
@@ -322,8 +219,8 @@ void quadcontrol() {
       getQuaternion(&imuOrientation); // FIXME: check for IMU comms error!
       getGyro(&imuGyroData);
       
-      QuaternionsMultiply(&desiredOrientation, joystickOrientation, trimmedOrientation);
-      getQuaternionError(&orientationErrors, imuOrientation, desiredOrientation);
+      QuaternionsMultiply(&desiredOrientation, joystickOrientation, TrimQuaternion);
+      GetQuaternionError(&orientationErrors, imuOrientation, desiredOrientation);
       PID(mVals, orientationErrors, imuGyroData, thrust);
       if (packetTimeout != 0) {
         if (uwTick >= packetTimeout) {
