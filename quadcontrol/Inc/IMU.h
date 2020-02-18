@@ -1,17 +1,19 @@
 
-#ifndef __accel_H
-#define __accel_H
+#ifndef __IMU_H__
+#define __IMU_H__
 
-#include <stdint.h>
-#include "usart.h"
+#include "stdbool.h"
+#include "stdint.h"
 
 #define ACC_MEASURE_PERIOD 91 // 20 [ms] => 50Hz; 10 => 100Hz (91 oli enne seal)
 #define	IMU_NUMBER_OF_BYTES 18 // Number of bytes to read from IMU register
 
 extern uint8_t imu_readings[IMU_NUMBER_OF_BYTES];
 
-void BNO055_Init(void);
-void BNO055_Init_I2C(I2C_HandleTypeDef* hi2c_device);
+void IMUInit();
+bool IMUGetOrientation(Quaternion* orientation);
+bool IMUGetGyro(GyroData* gyroData);
+
 void readAccelData(int16_t * destination);
 //void SendAccelData(USART_TypeDef* USARTx, uint8_t* str);
 uint8_t GetAccelData(I2C_HandleTypeDef* hi2c_device, uint8_t* str);

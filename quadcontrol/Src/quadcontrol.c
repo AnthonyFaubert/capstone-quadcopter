@@ -1,21 +1,14 @@
 
-//#include "main.h"
-//#include "dma.h"
-#include "i2c.h"
-//#include "i2s.h"
-//#include "spi.h"
 #include "stdbool.h"
 #include "stdarg.h" // allows wrapping vsprintf
 
-#include "bno055.h"
-#include "accel.h"
 #include "quadcontrol.h"
-#include "math.h" // for acosf() and sqrtf()
 
 #include "VectQuatMath.h"
 #include "Uart3.h"
 #include "MiscPeripherals.h"
 #include "PID.h"
+#include "IMU.h"
 
 // Maximum size of a single data chunk (no more than this many chars per printf call)
 #define MAX_TX_CHUNK 100
@@ -45,53 +38,10 @@ void waitForButtonState(bool high, bool printPrompt) {
 
 #define CALIBRATE_ESCS_WAIT_MACRO(ms) txWait(ms); if (ms == 100) PRINTF(".")
 
+// For old getQuaternion() IMU thingy:
 // positive rotation along x-axis is pitch tape moving up
 // positive rotation along y-axis is roll tape moving down
 // positive rotation along z-axis is counter-clockwise looking down from above
-uint8_t getQuaternion(Quaternion* quatDat) {
-  const float scale = 1.0f / (1<<14);
-  uint8_t readings[IMU_NUMBER_OF_BYTES];
-  uint8_t status = HAL_I2C_Mem_Read(&hi2c1, BNO055_I2C_ADDR_LO<<1, BNO055_QUA_DATA_W_LSB, I2C_MEMADD_SIZE_8BIT, readings, IMU_NUMBER_OF_BYTES, 100);
-  
-  int16_t w = (int16_t)(readings[1] << 8) | (int16_t)(readings[0]);
-  int16_t x = (int16_t)(readings[3] << 8) | (int16_t)(readings[2]);
-  int16_t y = (int16_t)(readings[5] << 8) | (int16_t)(readings[4]);
-  int16_t z = (int16_t)(readings[7] << 8) | (int16_t)(readings[6]);
-  quatDat->w = scale * ((float) w);
-  quatDat->x = scale * ((float) x);
-  quatDat->y = scale * ((float) y);
-  quatDat->z = scale * ((float) z);
-  //while (HAL_I2C_GetState(hi2c_device) != HAL_I2C_STATE_READY) {} 
-  return status;
-}
-uint8_t getGyro(GyroData* gyroData) {
-  const float scale = 1.0f / 16.0f;
-  uint8_t readings[IMU_NUMBER_OF_BYTES];
-  uint8_t status = HAL_I2C_Mem_Read(&hi2c1, BNO055_I2C_ADDR_LO<<1, BNO055_GYR_DATA_X_LSB, I2C_MEMADD_SIZE_8BIT, readings, IMU_NUMBER_OF_BYTES, 100);
-
-  int16_t x = (int16_t)(readings[1] << 8) | (int16_t)(readings[0]);
-  int16_t y = (int16_t)(readings[3] << 8) | (int16_t)(readings[2]);
-  int16_t z = (int16_t)(readings[5] << 8) | (int16_t)(readings[4]);
-  gyroData->x = scale * ((float) x);
-  gyroData->y = scale * ((float) y);
-  gyroData->z = scale * ((float) z);
-  //while (HAL_I2C_GetState(hi2c_device) != HAL_I2C_STATE_READY) {} 
-  return status;
-}
-uint8_t getEuler(EulerData* eulerData) {
-  const float scale = 1.0f / 16.0f;
-  uint8_t readings[IMU_NUMBER_OF_BYTES];
-  uint8_t status = HAL_I2C_Mem_Read(&hi2c1, BNO055_I2C_ADDR_LO<<1, BNO055_EUL_HEADING_LSB, I2C_MEMADD_SIZE_8BIT, readings, IMU_NUMBER_OF_BYTES, 100);
-  
-  int16_t x = (int16_t)(readings[1] << 8) | (int16_t)(readings[0]);
-  int16_t y = (int16_t)(readings[3] << 8) | (int16_t)(readings[2]);
-  int16_t z = (int16_t)(readings[5] << 8) | (int16_t)(readings[4]);
-  eulerData->x = scale * ((float) x);
-  eulerData->y = scale * ((float) y);
-  eulerData->z = scale * ((float) z);
-  //while (HAL_I2C_GetState(hi2c_device) != HAL_I2C_STATE_READY) {} 
-  return status;
-}
 
 void emergencyStop() {
   EmergencyShutoff();
@@ -173,7 +123,7 @@ void callback_ProcessPacket(uint8_t computedChecksum, uint8_t receivedChecksum, 
 
 // Main program entry point
 void quadcontrol() {
-  BNO055_Init_I2C(&hi2c1); // FIXME: check if successful?
+  IMUInit(); // FIXME: check if successful?
   PRINTLN("IMU initialized.");
   
   waitForButtonState(true, true);
@@ -216,8 +166,8 @@ void quadcontrol() {
     if (uwTick >= schedulePID) {
       schedulePID = uwTick + 20; // 50 Hz
       
-      getQuaternion(&imuOrientation); // FIXME: check for IMU comms error!
-      getGyro(&imuGyroData);
+      IMUGetOrientation(&imuOrientation); // FIXME: check for IMU comms error!
+      IMUGetGyro(&imuGyroData);
       
       QuaternionsMultiply(&desiredOrientation, joystickOrientation, TrimQuaternion);
       GetQuaternionError(&orientationErrors, imuOrientation, desiredOrientation);
