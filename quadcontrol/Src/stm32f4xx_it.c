@@ -23,6 +23,7 @@
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "Uart3.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

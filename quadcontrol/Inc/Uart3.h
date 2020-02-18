@@ -2,6 +2,9 @@
 #ifndef __UART3_H__
 #define __UART3_H__
 
+#include "stdbool.h"
+#include "stdint.h"
+
 #define UART3_RXBUF_SIZE 500
 #define UART3_RXCHUNK_SIZE 5
 #define UART3_TXBUF_SIZE 500
@@ -26,5 +29,9 @@ void task_Uart3RxCheckForPacket();
 // Is given computed and RXed checksums and the packet buffer.
 // The packet buffer will be overwritten when you return, so if you want to keep the contents, they must be copied.
 extern void callback_ProcessPacket(uint8_t computedChecksum, uint8_t receivedChecksum, uint8_t* packetBuffer);
+
+// Interrupt Service Routines for DMA
+void UART3_DMA_RX_ISR();
+void UART3_DMA_TX_ISR();
 
 #endif

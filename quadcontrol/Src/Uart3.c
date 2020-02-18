@@ -25,8 +25,8 @@ void Uart3RxConfig() {
   DMA1_Stream1->PAR = (uint32_t) &(USART3->DR); // Set Peripheral Address
 
   // DMA buffer config
-  DMA1_Stream1->NDTR = UART3RXCHUNK_SIZE; // Reset Buffer size (Number of transfers)
-  DMA1_Stream1->M0AR = (uint32_t) (&UART3RXBuf[UART3_DMA_INDEX]); // Reset address (Target Memory Address)
+  DMA1_Stream1->NDTR = UART3_RXCHUNK_SIZE; // Reset Buffer size (Number of transfers)
+  DMA1_Stream1->M0AR = (uint32_t) (&Uart3RxBuf[Uart3RxDmaIndex]); // Reset address (Target Memory Address)
   
   DMA1_Stream1->CR |= DMA_SxCR_EN; // DMA ready to transfer
 }
@@ -72,8 +72,8 @@ void UART3_DMA_TX_ISR() {
 void Uart3TxQueueSend(char* buffer, int len) {
   // FIXME: check for TX FIFO overflow and wait or something
   for (int i = 0; i < len; i++) {
-    txBuf[txBufDataEndIndex++] = strBuf[i];
-    txBufDataEndIndex %= TX_BUF_SIZE;
+    txBuf[txBufDataEndIndex++] = buffer[i];
+    txBufDataEndIndex %= UART3_TXBUF_SIZE;
   }  
 }
 
@@ -87,7 +87,7 @@ void task_Uart3TxFeedDma() {
   int startIndexAfterSend;
   if (txBufDataStartIndex > txBufDataEndIndex) {
     // FIFO wrap around
-    amountToSend = TX_BUF_SIZE - txBufDataStartIndex;
+    amountToSend = UART3_TXBUF_SIZE - txBufDataStartIndex;
     startIndexAfterSend = 0;
   } else {
     // FIFO didn't wrap around
@@ -111,7 +111,7 @@ void task_Uart3RxCheckForPacket() {
   static int packetIndex = -1;
   static uint8_t packetBuffer[PACKET_SIZE];
   
-  for (; uart3bufIndex != UART3_DMA_INDEX; uart3bufIndex = (uart3bufIndex + 1) % UART3_RXBUF_SIZE) {
+  for (; uart3bufIndex != Uart3RxDmaIndex; uart3bufIndex = (uart3bufIndex + 1) % UART3_RXBUF_SIZE) {
     // No schedule, runs as fast as possible
     if ((packetIndex < 0) && (Uart3RxBuf[uart3bufIndex] == PACKET_START_BYTE)) {
       packetIndex = 0;
@@ -136,12 +136,12 @@ void task_Uart3RxCheckForPacket() {
 	for (packetIndex = 1; packetIndex < PACKET_SIZE; packetIndex++) {
 	  if (packetBuffer[packetIndex] == PACKET_START_BYTE) break;
 	}
-	if (packetIndex == SIZE_OF_GRIFFIN) {
+	if (packetIndex == PACKET_SIZE) {
 	  // No packet start found, invalidate packet
 	  packetIndex = -1;
 	} else {
 	  // Packet start found, move everything left by packetIndex amount of bytes
-	  for (int i = packetIndex; i < SIZE_OF_GRIFFIN; i++) {
+	  for (int i = packetIndex; i < PACKET_SIZE; i++) {
 	    packetBuffer[i - packetIndex] = packetBuffer[i];
 	  }
 	}

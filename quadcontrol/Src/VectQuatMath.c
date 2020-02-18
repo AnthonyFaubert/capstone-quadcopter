@@ -1,6 +1,5 @@
 
 #include "VectQuatMath.h"
-#define PI 3.14159265358979323846f
 
 // WARNING: ab != ba
 // <1,0,0,0>*x = x*<1,0,0,0> = x
@@ -28,7 +27,7 @@ void Vectors2Multiply(float* result, float* v, float* u) {
   }
 }
 // Multiply a 3D vector by a scalar
-void VectorScalarMultiply(float* result, float scalar, float* v) {
+void VectorScale(float* result, float scalar, float* v) {
   for (int i = 0; i < 4; i++) {
     result[i] = scalar * v[i];
   }

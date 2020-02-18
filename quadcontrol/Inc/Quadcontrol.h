@@ -6,7 +6,7 @@
 #include "stdint.h"
 
 // Set by generated code / libraries
-extern __IO uint32_t uwTick; // variable returned by HAL_GetTick()
+extern uint32_t volatile uwTick; // variable returned by HAL_GetTick()
 
 void Quadcontrol();
 

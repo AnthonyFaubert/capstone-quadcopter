@@ -1,13 +1,7 @@
 
 #include "PID.h"
+#include "VectQuatMath.h"
 #include "math.h"
-
-// The rotations for a single trim button press
-static const Quaternion QUAT_TRIM_RIGHT = {cosf(TRIM_ANGLE_PER_PRESS/2.0f), sinf(TRIM_ANGLE_PER_PRESS/2.0f), 0.0f, 0.0f};
-static const Quaternion QUAT_TRIM_DOWN = {cosf(TRIM_ANGLE_PER_PRESS/2.0f), 0.0f, sinf(TRIM_ANGLE_PER_PRESS/2.0f), 0.0f};
-static const Quaternion QUAT_TRIM_LEFT = {cosf(TRIM_ANGLE_PER_PRESS/2.0f), -sinf(TRIM_ANGLE_PER_PRESS/2.0f), 0.0f, 0.0f};
-static const Quaternion QUAT_TRIM_UP = {cosf(TRIM_ANGLE_PER_PRESS/2.0f), 0.0f, -sinf(TRIM_ANGLE_PER_PRESS/2.0f), 0.0f};
-
 
 Quaternion TrimQuaternion = {1.0f, 0.0f, 0.0f, 0.0f};
 
@@ -16,8 +10,8 @@ void GetQuaternionError(RollPitchYaw* result, Quaternion actual, Quaternion desi
   // Rotate actual by the opposite of desired, then desired is <1,0,0,0> (rotate by q is q*a*conj(q))
   // Compute the rotation from actual to desired (invert actual to get back to straight and then go to desired)
   Quaternion correctionRotation;
-  conjugateQuaternion(&actual, actual);
-  multiplyQuaternions(&correctionRotation, desired, actual); // Overall rotation of (q*p) is rotate by p and then q
+  QuaternionConjugate(&actual, actual);
+  QuaternionsMultiply(&correctionRotation, desired, actual); // Overall rotation of (q*p) is rotate by p and then q
 
   // Convert the quaternion back into something we understand by using it to rotate <0,0,1> (for roll & pitch) and <1,0,0> (for yaw)
   Quaternion tmpA, tmpB, rotatedVector;
@@ -25,7 +19,7 @@ void GetQuaternionError(RollPitchYaw* result, Quaternion actual, Quaternion desi
   QuaternionsMultiply(&tmpA, correctionRotation, straight);
   straight.x = 1.0f; straight.z = 0.0f; // straight = <1,0,0>
   QuaternionsMultiply(&tmpB, correctionRotation, straight);
-  conjugateQuaternion(&correctionRotation, correctionRotation);
+  QuaternionConjugate(&correctionRotation, correctionRotation);
   QuaternionsMultiply(&rotatedVector, tmpA, correctionRotation);
   // Overall, rotatedVector = correctionRotation * <0,0,0,1> * correctionRotation^-1 = <0,0,1> rotated by correction
   result->roll = atan2f(rotatedVector.x, rotatedVector.z);
@@ -93,6 +87,28 @@ void Joystick2Quaternion(Quaternion* joyCmdQuatPtr, uint16_t rollInt, uint16_t p
 
 // Takes in a button press and applies trim to the trim quaternion
 void JoystickApplyTrim(uint16_t button) {
+  // The rotations for a single trim button press (set in the function that uses them
+  static Quaternion QUAT_TRIM_RIGHT = {0.0f, 0.0f, 0.0f, 0.0f};
+  static Quaternion QUAT_TRIM_DOWN  = {0.0f, 0.0f, 0.0f, 0.0f};
+  static Quaternion QUAT_TRIM_LEFT  = {0.0f, 0.0f, 0.0f, 0.0f};
+  static Quaternion QUAT_TRIM_UP    = {0.0f, 0.0f, 0.0f, 0.0f};
+  static bool initDone = false;
+  if (!initDone) {
+    float w = cosf(TRIM_ANGLE_PER_PRESS / 2.0f);
+    QUAT_TRIM_RIGHT.w = w;
+    QUAT_TRIM_LEFT.w  = w;
+    QUAT_TRIM_UP.w    = w;
+    QUAT_TRIM_DOWN.w  = w;
+    
+    float xy = sinf(TRIM_ANGLE_PER_PRESS / 2.0f);
+    QUAT_TRIM_RIGHT.x = xy;
+    QUAT_TRIM_LEFT.x  = -xy;
+    QUAT_TRIM_DOWN.y = xy;
+    QUAT_TRIM_UP.y   = -xy;
+    
+    initDone = true;
+  }
+  
   switch (button) {
   case JOYSTICK_BUTTON_TRIM_RIGHT: QuaternionsMultiply(&TrimQuaternion, QUAT_TRIM_RIGHT, TrimQuaternion);
   case JOYSTICK_BUTTON_TRIM_LEFT:  QuaternionsMultiply(&TrimQuaternion, QUAT_TRIM_LEFT, TrimQuaternion);

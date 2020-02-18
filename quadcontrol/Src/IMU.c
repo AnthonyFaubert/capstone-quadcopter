@@ -23,6 +23,8 @@ static uint8_t PWRMode = Normalpwr;
 // specify operation mode for sensors [ACCONLY|MAGONLY|GYROONLY|ACCMAG|ACCGYRO|MAGGYRO|AMG|NDOF|NDOF_FMC_OFF]
 static uint8_t OPRMode = NDOF;
 
+// TODO: remove this commented out code
+/*
 // BNO055 data status register
 static uint8_t status;
 // scale resolutions per LSB for the sensors
@@ -43,11 +45,12 @@ static const char read_devid[] = {START_BYTE, REG_READ, BNO055_CHIP_ID, 0x01};
 static const char read_calib[2] = {REG_READ, BNO055_CALIB_STAT};
 static const char reset_sensor[3] = {REG_WRITE, BNO055_SYS_TRIGGER, 0x01 << 5};
 static uint8_t get_readings[1] = {BNO055_ACC_DATA_X_LSB};
+*/
 
-extern I2C_HandleTypeDef* hi2c1;
+extern I2C_HandleTypeDef hi2c1;
 // Configure BNO sensor
 void IMUInit() {
-  I2C_HandleTypeDef* hi2c_device = hi2c1;
+  I2C_HandleTypeDef* hi2c_device = &hi2c1;
   // Select BNO055 config mode
   uint8_t opr_config_mode[2] = {BNO055_OPR_MODE, CONFIGMODE};
   HAL_I2C_Master_Transmit(hi2c_device, BNO055_I2C_ADDR_LO<<1, opr_config_mode, sizeof(opr_config_mode), 10);

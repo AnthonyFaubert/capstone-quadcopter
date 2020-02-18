@@ -2,6 +2,8 @@
 #ifndef __PID_H__
 #define __PID_H__
 
+#include "stdbool.h"
+#include "stdint.h"
 #include "VectQuatMath.h"
 
 // Set max bank angle to 45 degrees

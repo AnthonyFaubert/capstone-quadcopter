@@ -4,6 +4,7 @@
 #include "tim.h"
 #include "gpio.h"
 #include "VectQuatMath.h"
+#include "math.h" // for INFINITY
 
 static bool calibrated = false;
 
@@ -70,12 +71,12 @@ int SetMotors(float* motorVals) {
   if (error != -1) {
     if ((largest - smallest) < 1.0f) {
       if (largest > 1.0f) {
-        addScalar(motorVals, 1.0f - largest, motorVals);
+        VectorScalarAdd(motorVals, 1.0f - largest, motorVals);
       } else {
-        addScalar(motorVals, -smallest, motorVals);
+        VectorScalarAdd(motorVals, -smallest, motorVals);
       }
     } else {
-      SetPWM(1000, 1000, 1000, 1000);
+      setESCs(1000, 1000, 1000, 1000);
       return SETMOTORS_FAILED_NONLINEAR;
     }
   }
@@ -83,11 +84,11 @@ int SetMotors(float* motorVals) {
   float tmp[4];
   uint16_t thrusts[4];
   for (int i = 0; i < 4; i++) {
-    tmp[i] = motorVals[i] * (float) (MAX_THRUSTS[i] - MIN_THRUSTS[i]);
-    thrusts[i] = ((uint16_t) tmp[i]) + MIN_THRUSTS[i];
+    tmp[i] = motorVals[i] * (float) (MAX_THRUST - MIN_THRUST);
+    thrusts[i] = ((uint16_t) tmp[i]) + MIN_THRUST;
   }
   //PRINTF("MVsRaw: %d, %d, %d, %d\n", thrusts[MOTOR_CHANNEL_MAPPING[0]], thrusts[MOTOR_CHANNEL_MAPPING[1]], thrusts[MOTOR_CHANNEL_MAPPING[2]], thrusts[MOTOR_CHANNEL_MAPPING[3]]);
-  setPWM(thrusts[MOTOR_CHANNEL_MAPPING[0]], thrusts[MOTOR_CHANNEL_MAPPING[1]], thrusts[MOTOR_CHANNEL_MAPPING[2]], thrusts[MOTOR_CHANNEL_MAPPING[3]]);
+  setESCs(thrusts[MOTORMAP_CH1_MOTOR], thrusts[MOTORMAP_CH2_MOTOR], thrusts[MOTORMAP_CH3_MOTOR], thrusts[MOTORMAP_CH4_MOTOR]);
   return (error != -1) ? SETMOTORS_THRUST_DENIED : SETMOTORS_OK;
 }
 
@@ -100,10 +101,10 @@ void EmergencyShutoff() {
 #endif
 void CalibrateESCs() {
   for (uint16_t pwm = 1000; pwm <= 2000; pwm += 200) {
-    SetPWM(pwm, pwm, pwm, pwm);
+    setESCs(pwm, pwm, pwm, pwm);
     CALIBRATE_ESCS_WAIT_MACRO(100);
   }
-  SetPWM(1000, 1000, 1000, 1000);
+  setESCs(1000, 1000, 1000, 1000);
   CALIBRATE_ESCS_WAIT_MACRO(1000);
   calibrated = true;
 }

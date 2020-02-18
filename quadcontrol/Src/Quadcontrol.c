@@ -1,4 +1,5 @@
 
+#include "stdio.h" // provides vsprintf
 #include "stdarg.h" // allows wrapping vsprintf
 
 #include "Quadcontrol.h"
@@ -20,14 +21,14 @@ void PRINTF(const char* fmt, ...) {
   va_end(args);
 }
 #define PRINTLN(str) PRINTF("%s\n", str);
-          
+
 // Delay while allowing the TX buffer to send things
 void txWait(uint32_t milliseconds) {
   uint32_t doneTime = uwTick + milliseconds;
   while (uwTick < doneTime) task_Uart3TxFeedDma();
 }
 void waitForButtonState(bool high, bool printPrompt) {
-  for (int i = 0; !checkButtonState(high); i++) {
+  for (int i = 0; !CheckButtonState(high); i++) {
     if (printPrompt && (i % 10 == 0)) {
       PRINTLN("Waiting for button press...");
     }
@@ -71,7 +72,7 @@ void callback_ProcessPacket(uint8_t computedChecksum, uint8_t receivedChecksum, 
     GPacket.buttons = (int16_t)(packetBuffer[9] << 8) | (int16_t)(packetBuffer[10]);
     GPacket.checksum = packetBuffer[11];
     // Handle packet
-    Joystick2Quaternion(&joystickOrientation, GPacket);
+    Joystick2Quaternion(&joystickOrientation, GPacket.leftRight, GPacket.upDown, GPacket.padLeftRight);
     thrust = (GPacket.padUpDown / 2);
     thrust = (thrust / 32768.0f) + 0.5f; // between 0.0f and 1.0f max negative/positive int16_t values
     packetTimeout = uwTick + 100;
@@ -83,7 +84,6 @@ void callback_ProcessPacket(uint8_t computedChecksum, uint8_t receivedChecksum, 
       JoystickApplyTrim(GPacket.buttons);
       PRINTF("TrimQ: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", TrimQuaternion.w, TrimQuaternion.x, TrimQuaternion.y, TrimQuaternion.z);
     }
-    packetIndex = -1;
   } else { // invalid packet
     InvalidCount++;
     // Print packet contents as hex and print an update on invalid/valid counters
@@ -92,7 +92,7 @@ void callback_ProcessPacket(uint8_t computedChecksum, uint8_t receivedChecksum, 
       PRINTF("%02X", packetBuffer[i]);
     }
     PRINTF(" (val/inval=%d/%d)\n", ValidCount, InvalidCount);
-          
+    
     if (InvalidCount > 20) emergencyStop();
   }
 }
@@ -103,12 +103,12 @@ void task_CheckButton() {
     // Sample button at 100Hz
   if (uwTick > scheduleTask) {
     scheduleTask = uwTick + 10; // 100 Hz
-    if (checkButtonState(true)) emergencyStop();
-  }  
+    if (CheckButtonState(true)) emergencyStop();
+  }
 }
 
 // Main program entry point
-void quadcontrol() {
+void Quadcontrol() {
   IMUInit(); // FIXME: check if successful?
   PRINTLN("IMU init.");
   Uart3RxConfig();
@@ -122,8 +122,6 @@ void quadcontrol() {
   CalibrateESCs();
   PRINTLN(" Done.");
   
-  int usbBufIndex = 0;
-  
   Quaternion imuOrientation, desiredOrientation;
   GyroData imuGyroData;
   RollPitchYaw orientationErrors;
@@ -135,7 +133,7 @@ void quadcontrol() {
   bool e = false;
   bool g = false;
   
-  uint32_t scheduleButtonCheck = 0, schedulePID = 0, schedulePrintInfo = 0;
+  uint32_t schedulePID = 0, schedulePrintInfo = 0;
   
   while (1) {
     task_CheckButton();
@@ -153,11 +151,8 @@ void quadcontrol() {
       if (packetTimeout != 0) {
         if (uwTick >= packetTimeout) {
           uint32_t loopDiff = uwTick - lastRXLoop;
-          if (uart3bufIndex != UART3_DMA_INDEX) {
-            PRINTF("FATAL: ptout. loop %d ms ago. tick=%d. HAVE data.\n", loopDiff, uwTick);
-          } else {
-            PRINTF("FATAL: ptout. loop %d ms ago. tick=%d. no data.\n", loopDiff, uwTick);
-          }
+	  PRINTF("FATAL: ptout. loop %d ms ago. tick=%d.", loopDiff, uwTick);
+	  // TODO: remove comment:
       /* usually getting:
 FATAL: ptout100ms. loop 50 ms ago. tick=33669. no data.
 B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
@@ -167,7 +162,7 @@ B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
         }
         
         // TODO: E-stop if we're upside-down
-	int mErrCode = SetMotors(mVals)
+	int mErrCode = SetMotors(mVals);
         if (mErrCode == -1) {
           PRINTLN("FATAL: nonlinearity!");
           txWait(5);
@@ -180,7 +175,8 @@ B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
           PRINTF("GYRO: X=%.2f Y=%.2f Z=%.2f\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
           emergencyStop();
         } else if (mErrCode == 1) {
-	  PRINTF("ERROR: mval[%d]=%.2f; thrust denied.\n", error, mVals[error]);
+	  PRINTLN("ERROR: thrust denied.");
+	  PRINTF("mvals=[%.2f,%.2f,%.2f,%.2f]", mVals[0], mVals[1], mVals[2], mVals[3]);
 	}
       }
     }

@@ -2,6 +2,8 @@
 #ifndef __VECT_QUAT_MATH_H__
 #define __VECT_QUAT_MATH_H__
 
+#define PI 3.14159265358979323846f
+
 // W = cos(alpha/2), X = x*sin(alpha/2), Y = y*sin(alpha/2), Z = z*sin(alpha/2)
 // where W,X,Y,Z are the quaternion values and x,y,z is the vector defining your direction, which alpha rotates around 
 typedef struct {

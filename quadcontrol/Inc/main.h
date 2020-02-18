@@ -33,8 +33,6 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "./USART_USER.h"
-#include "./DMA_USER.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
