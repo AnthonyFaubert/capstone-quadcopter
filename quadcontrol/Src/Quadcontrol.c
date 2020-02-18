@@ -1,8 +1,7 @@
 
-#include "stdbool.h"
 #include "stdarg.h" // allows wrapping vsprintf
 
-#include "quadcontrol.h"
+#include "Quadcontrol.h"
 
 #include "VectQuatMath.h"
 #include "Uart3.h"
@@ -51,34 +50,12 @@ void emergencyStop() {
   }
 }
 
-
-//  SYNTAX: "b7" = bit7     b7        b6        b5        b4       B3       b2       b1       b0
-// Button Format        [RESERVED, RESERVED, RESERVED, RESERVED, Button3, Button2, Button1, Button0]
-uint8_t BUTTON_PRESS;
-// Button3 = ?
-// Button2 = ?
-// Button1 = ?
-// Button0 = ?
-GriffinPacket InvalidPacket;
-void setButtonFrame();
-
-
-
-GriffinPacket GPacket;
-int UART3_DMA_INDEX = 0;
-int UART3_DMA_CHUNKS_RECVD = 0;
-char UART3RXBuf[UART3RXBUF_SIZE];
-
-int USBRXBufIndex;
-char USBRXBuf[USBRXBUF_SIZE];
-
-
-
-uint32_t InvalidCount = 0;
-uint32_t ValidCount = 0;
-
+static GriffinPacket GPacket;
+static float thrust;
 static Quaternion joystickOrientation = {1.0f, 0.0f, 0.0f, 0.0f};
 static uint32_t packetTimeout = 0, lastRXLoop = 0;
+static uint32_t ValidCount = 0, InvalidCount = 0; // TODO: rename to include "Packet"
+
 void callback_ProcessPacket(uint8_t computedChecksum, uint8_t receivedChecksum, uint8_t* packetBuffer) {
   if (computedChecksum == receivedChecksum) { // valid packet
     ValidCount++;
@@ -121,10 +98,21 @@ void callback_ProcessPacket(uint8_t computedChecksum, uint8_t receivedChecksum, 
 }
 
 
+void task_CheckButton() {
+  static uint32_t scheduleTask = 0;
+    // Sample button at 100Hz
+  if (uwTick > scheduleTask) {
+    scheduleTask = uwTick + 10; // 100 Hz
+    if (checkButtonState(true)) emergencyStop();
+  }  
+}
+
 // Main program entry point
 void quadcontrol() {
   IMUInit(); // FIXME: check if successful?
-  PRINTLN("IMU initialized.");
+  PRINTLN("IMU init.");
+  Uart3RxConfig();
+  PRINTLN("RX init.");
   
   waitForButtonState(true, true);
   txWait(100);
@@ -134,14 +122,12 @@ void quadcontrol() {
   CalibrateESCs();
   PRINTLN(" Done.");
   
-  Uart3RxConfig();
   int usbBufIndex = 0;
   
   Quaternion imuOrientation, desiredOrientation;
   GyroData imuGyroData;
   RollPitchYaw orientationErrors;
     
-  float thrust = 0.3f;
   float mVals[4];
 
   bool q = true; // TODO: convert to defines
@@ -149,20 +135,12 @@ void quadcontrol() {
   bool e = false;
   bool g = false;
   
-  uint32_t scheduleButtonCheck = 0, schedulePID = 0, schedulePrintInfo = 0, worstRXstopwatch = 0, worstPIDstopwatch = 0, worstBtnStopwatch = 0, worstPoutStopwatch = 0;
+  uint32_t scheduleButtonCheck = 0, schedulePID = 0, schedulePrintInfo = 0;
   
   while (1) {
-    // Sample button at 100Hz
-    uint32_t btnStopwatch = uwTick;
-    if (uwTick > scheduleButtonCheck) {
-      scheduleButtonCheck = uwTick + 10; // 100 Hz
-      if (checkButtonState(true)) emergencyStop();
-    }
-    btnStopwatch = uwTick - btnStopwatch;
-    if (btnStopwatch > worstBtnStopwatch) worstBtnStopwatch = btnStopwatch;
+    task_CheckButton();
     
     // Get IMU data and run PID loop, updating PWM values
-    uint32_t pidStopwatch = uwTick;
     if (uwTick >= schedulePID) {
       schedulePID = uwTick + 20; // 50 Hz
       
@@ -185,8 +163,6 @@ FATAL: ptout100ms. loop 50 ms ago. tick=33669. no data.
 B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
       note the timeout is always 50ms(+/- 2ms) after last loop. suspicious AF. Also, this only happens when tick is almost perfectly aligned with timeout.
 */
-          txWait(100);
-          PRINTF("B=%d,R=%d,PI=%d,PR=%d,val=%d,inval=%d,lLoop=%d,tout=%d\n", worstBtnStopwatch, worstRXstopwatch, worstPIDstopwatch, worstPoutStopwatch, ValidCount, InvalidCount, lastRXLoop, packetTimeout);
           emergencyStop();
         }
         
@@ -208,20 +184,13 @@ B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
 	}
       }
     }
-    pidStopwatch = uwTick - pidStopwatch;
-    if (pidStopwatch > worstPIDstopwatch) worstPIDstopwatch = pidStopwatch;
     
-    
+    // Start TX DMA if needed
     task_Uart3TxFeedDma();
+    
     // Check the RX FIFO for packets
-    uint32_t rxStopwatch = uwTick;
     task_Uart3RxCheckForPacket();    
-    rxStopwatch = uwTick - rxStopwatch;
-    if (rxStopwatch > worstRXstopwatch) worstRXstopwatch = rxStopwatch;
     
-    // 1 more byte for packet: got middle 10 bytes 
-    
-    uint32_t poutStopwatch = uwTick;
     if (uwTick >= schedulePrintInfo) {
       schedulePrintInfo = uwTick + 500; // 2 Hz
       if (packetTimeout == 0) PRINTLN("Wait 4 GPac...");
@@ -230,7 +199,5 @@ B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
       if (e) PRINTF("ERRS: R=%.2f P=%.2f Y=%.2f (all rads)\n", orientationErrors.roll, orientationErrors.pitch, orientationErrors.yaw);
       if (g) PRINTF("GYRO: X=%.2f Y=%.2f Z=%.2f\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
     }
-    poutStopwatch = uwTick - poutStopwatch;
-    if (poutStopwatch > worstPoutStopwatch) worstPoutStopwatch = poutStopwatch;
   }
 }

@@ -30,7 +30,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "quadcontrol.h"
+#include "Quadcontrol.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -101,9 +101,7 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  //USART3_ReturnToSender(); // BASIC_USART_TEST:  Return exact message sent to MCU
-                           // Contains while(1) loop
-  quadcontrol();
+  Quadcontrol();
 
   /* USER CODE END 2 */
  
