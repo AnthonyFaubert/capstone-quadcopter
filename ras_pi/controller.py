@@ -48,6 +48,12 @@ def get_yt(): # right trackpad used as stick, axes 3 and 4. Axis 4 is up/down an
     lr_motion = int(joystick.get_axis(3) * 32767)
     ud_motion = int(joystick.get_axis(4) * -32767)
     return (lr_motion, ud_motion)
+
+def connection():
+    if (pygame.joystick.get_count() == 0):
+        return False
+    else:
+        return True
     
 ser.reset_input_buffer()
 ser.reset_output_buffer()
@@ -77,28 +83,6 @@ while not done:
             elif (event.button == 3):
                 special = 4
                 print("button 4")
-
-#        elif (event.type == pygame.JOYAXISMOTION and (event.axis == 6 or event.axis == 7)):
-#            print("axis 6 is " + str(joystick.get_axis(6)))
-#            print("axis 7 is " + str(joystick.get_axis(7)))
-#            if joystick.get_axis(6) < -0.1:
-#                special = 1
-#            elif joystick.get_axis(6) > 0.1:
-#                special = 2
-#            elif joystick.get_axis(7) < -0.1:
-#                special = 3
-#            elif joystick.get_axis(7) > 0.1:
-#                special = 4
-
-#    if (joystick.get_axis(6) > 0.1):
-#        special = 1
-#    elif (joystick.get_axis(6) < -0.1):
-#        special = 2
-#    elif (joystick.get_axis(7) > 0.1):
-#        special = 3
-#    elif (joystick.get_axis(7) < -0.1):
-#        special = 4
-
 
 #   print("value of special is: " + str(special))
 
