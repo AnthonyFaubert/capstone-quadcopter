@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import time
+import code
 
 face_cascade = cv2.CascadeClassifier('./haarcascade_frontalface_default.xml') #filter can be swapped with ....face_alt.xml
 no_face_frames = 0
@@ -11,16 +12,17 @@ if (face_cascade.empty()):
     print("No cascade filter found.")
 
 cap = cv2.VideoCapture(0)
-num_faces = 0
+faces = []
 init_frames = 0
     
 if not cap.isOpened():
     print("unable to open camera")
 else:
-    while(num_faces == 0):
+    while(len(faces) == 0):
         ret, img = cap.read()
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         faces, num_faces = face_cascade.detectMultiScale2(gray, 1.8, 3)
+        #code.interact(local=locals())
         init_frames = init_frames + 1
 
 print("The total number of intialization frames before a face was found was " + str(init_frames))
@@ -40,7 +42,7 @@ while(cap.isOpened() and (not face_cascade.empty())):
     # first val in next function is scale factor, lower val means you can go further away
     # second val is number of bounding boxes that must intersect to count as a face
     # largr vals are better for up close, smaller valsfor further away
-    faces, num_faces = face_cascade.detectMultiScale2(gray, 1.8, 3)
+    faces, num_faces = face_cascade.detectMultiScale2(gray, 1.5, 3)
     face_det = False
     for (x,y,w,h) in faces:
         center = [x + (0.5*w), y + (0.5*h)]
@@ -52,6 +54,7 @@ while(cap.isOpened() and (not face_cascade.empty())):
         print('y of bounding: ' + str(y))
         print('width: ' + str(w))
         print('height: ' + str(h))
+        #change checks below to abs val
         if (center[0] < (prev_center[0]+50) and center[0] > (prev_center[0]-50)
             and center[1] < (prev_center[1]+50) and center[1] > (prev_center[1]-50)
             and size[0] < (prev_size[0]*2) and size[0] > (prev_size[0]*0.5)
@@ -61,7 +64,7 @@ while(cap.isOpened() and (not face_cascade.empty())):
             prev_size = [w, h]
         face_det = True
 
-    if (num_faces == 0):
+    if (not face_det):
         no_face_frames = no_face_frames + 1
         print("Number of frames with no face is " + str(no_face_frames) + ".")
 
@@ -77,3 +80,5 @@ while(cap.isOpened() and (not face_cascade.empty())):
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+
+print("total initialization frames = " + str(init_frames))
