@@ -29,20 +29,35 @@ void GetQuaternionError(RollPitchYaw* result, Quaternion actual, Quaternion desi
   result->yaw = atan2f(rotatedVector.y, rotatedVector.x);
 }
 
-/*
- CW0  CCW1
-CCW2   CW3
+// Filter results from GetQuaternionError to improve PID step response
+void LimitErrors(RollPitchYaw* errors) {
+#ifdef LIMIT_PID_ERROR_YAW
+  if (errors->yaw > LIMIT_PID_ERROR_YAW) errors->yaw = LIMIT_PID_ERROR_YAW;
+  else if (errors->yaw < -LIMIT_PID_ERROR_YAW) errors->yaw = -LIMIT_PID_ERROR_YAW;
+#endif
+#ifdef LIMIT_PID_ERROR_PITCH
+  if (errors->pitch > LIMIT_PID_ERROR_PITCH) errors->pitch = LIMIT_PID_ERROR_PITCH;
+  else if (errors->pitch < -LIMIT_PID_ERROR_PITCH) errors->pitch = -LIMIT_PID_ERROR_PITCH;
+#endif  
+#ifdef LIMIT_PID_ERROR_ROLL
+  if (errors->roll > LIMIT_PID_ERROR_ROLL) errors->roll = LIMIT_PID_ERROR_ROLL;
+  else if (errors->roll < -LIMIT_PID_ERROR_ROLL) errors->roll = -LIMIT_PID_ERROR_ROLL;
+#endif  
+}
+
+/* from the point of view of positive gain causing the roll/pitch/yaw
++yaw <-----+
+   +pitch   \
+     /\      \
+    CCW1
+ CW0    CW3-> +roll
+    CCW2
  */
 // positive roll thrust will make roll tape go down, similar for rest
+// Motor vectors which define which directions are which
 float THRUST_VECTOR_ROLL[4] = {1.0f, 0.0f, -1.0f, 0.0f};
 float THRUST_VECTOR_PITCH[4] = {0.0f, -1.0f, 0.0f, 1.0f};
 float THRUST_VECTOR_YAW[4] = {1.0f, -1.0f, 1.0f, -1.0f};
-float GAIN_PROPORTIONAL_ROLL = 0.08f;
-float GAIN_PROPORTIONAL_PITCH = 0.08f;
-float GAIN_PROPORTIONAL_YAW = 0.03f;
-float GAIN_DERIVATIVE_ROLL = 0.0015f;
-float GAIN_DERIVATIVE_PITCH = 0.0015f;
-float GAIN_DERIVATIVE_YAW = 0.0007f;
 void PID(float* motorVals, RollPitchYaw rotations, GyroData gyroData, float thrust) { // TODO: derivative
   float rollVect[4], pitchVect[4], yawVect[4];
   VectorScale(rollVect, GAIN_PROPORTIONAL_ROLL * rotations.roll, THRUST_VECTOR_ROLL);

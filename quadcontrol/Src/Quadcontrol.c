@@ -147,6 +147,7 @@ void Quadcontrol() {
       
       QuaternionsMultiply(&desiredOrientation, joystickOrientation, TrimQuaternion);
       GetQuaternionError(&orientationErrors, imuOrientation, desiredOrientation);
+      LimitErrors(&orientationErrors);
       PID(mVals, orientationErrors, imuGyroData, thrust);
       if (packetTimeout != 0) {
         if (uwTick >= packetTimeout) {

@@ -15,6 +15,20 @@
 #define JOYSTICK_BUTTON_TRIM_UP 4
 #define TRIM_ANGLE_PER_PRESS 1.0f * PI / 180.0f
 
+// Used by LimitErrors()    (pi/8) = 22.5 degrees
+#define LIMIT_PID_ERROR_YAW (PI / 8.0f)
+//#define LIMIT_PID_ERROR_PITCH
+//#define LIMIT_PID_ERROR_ROLL
+
+// Gain values for PID
+#define GAIN_PROPORTIONAL_ROLL  0.08f
+#define GAIN_PROPORTIONAL_PITCH 0.08f
+#define GAIN_PROPORTIONAL_YAW   0.05f
+#define GAIN_DERIVATIVE_ROLL   0.0015f
+#define GAIN_DERIVATIVE_PITCH  0.0015f
+#define GAIN_DERIVATIVE_YAW    0.0007f
+
+
 typedef struct {
   float x, y, z;
 } GyroData;
@@ -29,6 +43,8 @@ extern Quaternion TrimQuaternion;
 
 // Gives the changes in roll, pitch, and yaw required to get from the actual orientation to the desired orientation
 void GetQuaternionError(RollPitchYaw* result, Quaternion actual, Quaternion desired);
+// Filter results from GetQuaternionError to improve PID step response
+void LimitErrors(RollPitchYaw* quatErrors);
 // Takes in values from GetQuaternionError(), gyroscope data, and a thrust value to produce the values which should be applied to the motors
 void PID(float* motorVals, RollPitchYaw rotations, GyroData gyroData, float thrust);
 // Takes in raw values from the joystick and produces a Quaternion representing the desired orientation
