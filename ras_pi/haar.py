@@ -2,6 +2,13 @@ import numpy as np
 import cv2
 import time
 import code
+import socket
+import imutils
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.bind(('localhost', 8000))
+s.listen(1)
+conn, addr = s.accept() #use conn.recv(), conn.send()
 
 face_cascade = cv2.CascadeClassifier('./haarcascade_frontalface_default.xml') #filter can be swapped with ....face_alt.xml
 no_face_frames = 0
@@ -33,7 +40,9 @@ prev_size = [faces[0][2], faces[0][3]]
 while(cap.isOpened() and (not face_cascade.empty())):
     start_cap = time.time()
     ret, img = cap.read()
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    angle = 0 # need to change this to socket.recv
+    rot = imutils.rotate(img, angle)
+    gray = cv2.cvtColor(rot, cv2.COLOR_BGR2GRAY)
     end_cap = time.time()
     delta_cap = (end_cap - start_cap) * 1000
     print("%.2f ms to capture a pic" %delta_cap)
@@ -63,6 +72,9 @@ while(cap.isOpened() and (not face_cascade.empty())):
             img = cv2.rectangle(img, (x,y), (x+w,y+h), (0,255,0), 2)
             prev_size = [w, h]
         face_det = True
+
+    x_err = prev_center[0] - 239
+    y_err = prev_center[1] - 179
 
     if (not face_det):
         no_face_frames = no_face_frames + 1

@@ -5,6 +5,10 @@ import time
 import serial
 import subprocess
 import struct
+import socket
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s = s.connect(('localhost', 8000))
 
 DATA_LENGTH = 12
 
