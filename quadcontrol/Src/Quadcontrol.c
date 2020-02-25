@@ -10,6 +10,9 @@
 #include "PID.h"
 #include "IMU.h"
 
+int USBRXBufIndex;
+char USBRXBuf[USBRXBUF_SIZE];
+
 // Maximum size of a single data chunk (no more than this many chars per printf call)
 #define MAX_TX_CHUNK 100
 void PRINTF(const char* fmt, ...) {
