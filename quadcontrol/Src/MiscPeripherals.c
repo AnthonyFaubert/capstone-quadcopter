@@ -8,6 +8,10 @@
 
 static bool calibrated = false;
 
+void setIMUResetState(bool reset) {
+	HAL_GPIO_WritePin(GPIOE, IMU_RST_L_Pin, reset ? GPIO_PIN_RESET : GPIO_PIN_SET);
+}
+
 // Returns whether or not the blue button state matches the given state (pressed=true)
 bool CheckButtonState(bool high) {
   if (high) {
@@ -18,10 +22,10 @@ bool CheckButtonState(bool high) {
 }
 
 static void setESCs(uint16_t ch1, uint16_t ch2, uint16_t ch3, uint16_t ch4) {
-  HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_3);
-  HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_4);
+  HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_4);
   
   TIM_OC_InitTypeDef sConfigOC = {0};
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
@@ -29,29 +33,29 @@ static void setESCs(uint16_t ch1, uint16_t ch2, uint16_t ch3, uint16_t ch4) {
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   
   sConfigOC.Pulse = ch1;
-  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) {
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) {
     Error_Handler();
   }
   
   sConfigOC.Pulse = ch2;
-  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK) {
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK) {
     Error_Handler();
   }
   
   sConfigOC.Pulse = ch3;
-  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK) {
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_3) != HAL_OK) {
     Error_Handler();
   }
   
   sConfigOC.Pulse = ch4;
-  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4) != HAL_OK) {
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_4) != HAL_OK) {
     Error_Handler();
   }
   
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 }
 
 // Returns error type: 0 = no error, 1 = thrust request not honored, -1 = non-linearity fatal error

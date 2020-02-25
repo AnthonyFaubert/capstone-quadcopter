@@ -112,6 +112,8 @@ void task_CheckButton() {
 
 // Main program entry point
 void Quadcontrol() {
+  setIMUResetState(false);
+  txWait(500);
   IMUInit(); // FIXME: check if successful?
   PRINTLN("IMU init.");
   Uart3RxConfig();
@@ -129,7 +131,7 @@ void Quadcontrol() {
   GyroData imuGyroData;
   RollPitchYaw orientationErrors;
     
-  float mVals[4];
+  float mVals[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
   bool q = true; // TODO: convert to defines
   bool j = true;
@@ -137,6 +139,7 @@ void Quadcontrol() {
   bool g = false;
   
   uint32_t schedulePID = 0, schedulePrintInfo = 0;
+
   
   while (1) {
     task_CheckButton();
@@ -146,6 +149,7 @@ void Quadcontrol() {
       schedulePID = uwTick + 20; // 50 Hz
       
       IMUGetOrientation(&imuOrientation); // FIXME: check for IMU comms error!
+      ApplyOrientationCorrection(&imuOrientation);
       IMUGetGyro(&imuGyroData);
       
       QuaternionsMultiply(&desiredOrientation, joystickOrientation, TrimQuaternion);

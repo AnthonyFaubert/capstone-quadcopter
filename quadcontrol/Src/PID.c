@@ -5,6 +5,11 @@
 
 Quaternion TrimQuaternion = {1.0f, 0.0f, 0.0f, 0.0f};
 
+void ApplyOrientationCorrection(Quaternion* orientation) {
+  static Quaternion orientationCorrection = ORIENTATION_CORRECTION_QUATERNION;
+  QuaternionsMultiply(orientation, orientationCorrection, *orientation);
+}
+
 // Gives the changes in roll, pitch, and yaw required to get from the actual orientation to the desired orientation
 void GetQuaternionError(RollPitchYaw* result, Quaternion actual, Quaternion desired) {
   // Rotate actual by the opposite of desired, then desired is <1,0,0,0> (rotate by q is q*a*conj(q))

@@ -28,6 +28,8 @@
 #define GAIN_DERIVATIVE_PITCH  0.0015f
 #define GAIN_DERIVATIVE_YAW    0.0007f
 
+#define ORIENTATION_CORRECTION_QUATERNION {0.64278760968f, 0.0f, 0.0f, -0.76604444311f}
+
 
 typedef struct {
   float x, y, z;
@@ -40,6 +42,9 @@ typedef struct {
 
 // Trim quaternion maintained by JoystickApplyTrim()
 extern Quaternion TrimQuaternion;
+
+// Apply IMU physical orientation mismatch correction factor 
+void ApplyOrientationCorrection(Quaternion* orientation);
 
 // Gives the changes in roll, pitch, and yaw required to get from the actual orientation to the desired orientation
 void GetQuaternionError(RollPitchYaw* result, Quaternion actual, Quaternion desired);
