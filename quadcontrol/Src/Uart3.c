@@ -147,6 +147,7 @@ void task_Uart3RxCheckForPacket() {
 	  for (int i = packetIndex; i < PACKET_SIZE; i++) {
 	    packetBuffer[i - packetIndex] = packetBuffer[i];
 	  }
+          return; // skip the uart3bufIndex incrementing
 	}
       }
     }
