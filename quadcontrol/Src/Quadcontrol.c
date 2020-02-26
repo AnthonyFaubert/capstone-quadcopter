@@ -112,12 +112,12 @@ void task_CheckButton() {
 
 // Main program entry point
 void Quadcontrol() {
+  Uart3RxConfig();
+  PRINTLN("RX init.");
   setIMUResetState(false);
   txWait(500);
   IMUInit(); // FIXME: check if successful?
   PRINTLN("IMU init.");
-  Uart3RxConfig();
-  PRINTLN("RX init.");
   
   waitForButtonState(true, true);
   txWait(100);

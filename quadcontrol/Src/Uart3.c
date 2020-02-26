@@ -14,6 +14,8 @@ static uint8_t txBuf[UART3_TXBUF_SIZE];
 extern USBD_HandleTypeDef hUsbDeviceFS; // has flag for if USB is connected
 extern uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 
+static volatile uint32_t noOptimizePlz;
+
 
 void Uart3RxConfig() {
   USART3->CR1 &= ~USART_CR1_RXNEIE; // Disable USART3_Receive_Interrupt
@@ -28,6 +30,7 @@ void Uart3RxConfig() {
   DMA1_Stream1->NDTR = UART3_RXCHUNK_SIZE; // Reset Buffer size (Number of transfers)
   DMA1_Stream1->M0AR = (uint32_t) (&Uart3RxBuf[Uart3RxDmaIndex]); // Reset address (Target Memory Address)
   
+  noOptimizePlz = USART3->SR ^ USART3->DR; // Clear overrun error so that the system doesn't lock up
   DMA1_Stream1->CR |= DMA_SxCR_EN; // DMA ready to transfer
 }
 
