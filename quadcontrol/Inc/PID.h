@@ -28,7 +28,7 @@
 #define GAIN_DERIVATIVE_PITCH  0.0015f
 #define GAIN_DERIVATIVE_YAW    0.0007f
 
-#define ORIENTATION_CORRECTION_QUATERNION {0.64278760968f, 0.0f, 0.0f, -0.76604444311f}
+#define ORIENTATION_CORRECTION_QUATERNION {0.64278760968f, 0.0f, 0.0f, 0.76604444311f}
 
 
 typedef struct {
@@ -53,7 +53,7 @@ void LimitErrors(RollPitchYaw* quatErrors);
 // Takes in values from GetQuaternionError(), gyroscope data, and a thrust value to produce the values which should be applied to the motors
 void PID(float* motorVals, RollPitchYaw rotations, GyroData gyroData, float thrust);
 // Takes in raw values from the joystick and produces a Quaternion representing the desired orientation
-void Joystick2Quaternion(Quaternion* joystick, uint16_t roll, uint16_t pitch, uint16_t yaw);
+void Joystick2Quaternion(Quaternion* joystick, int16_t roll, int16_t pitch, int16_t yaw);
 // Takes in a button press and applies trim to TrimQuaternion
 void JoystickApplyTrim(uint16_t button);
 

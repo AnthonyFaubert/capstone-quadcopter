@@ -7,7 +7,8 @@ Quaternion TrimQuaternion = {1.0f, 0.0f, 0.0f, 0.0f};
 
 void ApplyOrientationCorrection(Quaternion* orientation) {
   static Quaternion orientationCorrection = ORIENTATION_CORRECTION_QUATERNION;
-  QuaternionsMultiply(orientation, orientationCorrection, *orientation);
+  QuaternionsMultiply(orientation, *orientation, orientationCorrection);
+  //QuaternionsMultiply(orientation, orientationCorrection, *orientation);
 }
 
 // Gives the changes in roll, pitch, and yaw required to get from the actual orientation to the desired orientation
@@ -16,7 +17,7 @@ void GetQuaternionError(RollPitchYaw* result, Quaternion actual, Quaternion desi
   // Compute the rotation from actual to desired (invert actual to get back to straight and then go to desired)
   Quaternion correctionRotation;
   QuaternionConjugate(&actual, actual);
-  QuaternionsMultiply(&correctionRotation, desired, actual); // Overall rotation of (q*p) is rotate by p and then q
+  QuaternionsMultiply(&correctionRotation, actual, desired); // Overall rotation of (q*p) is rotate by p and then q
 
   // Convert the quaternion back into something we understand by using it to rotate <0,0,1> (for roll & pitch) and <1,0,0> (for yaw)
   Quaternion tmpA, tmpB, rotatedVector;
@@ -88,13 +89,13 @@ void PID(float* motorVals, RollPitchYaw rotations, GyroData gyroData, float thru
   VectorScalarAdd(motorVals, thrust - average, motorVals);
 }
 
-void Joystick2Quaternion(Quaternion* joyCmdQuatPtr, uint16_t rollInt, uint16_t pitchInt, uint16_t yawInt) {
+void Joystick2Quaternion(Quaternion* joyCmdQuatPtr, int16_t rollInt, int16_t pitchInt, int16_t yawInt) {
   float roll = rollInt;
   float pitch = pitchInt;
   float yaw = yawInt;
   yaw *= -PI / 32768.0f / 2.0f;
-  roll *= JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
-  pitch *= -JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
+  roll *= -JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
+  pitch *= JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
   Quaternion yawQuat = {cosf(yaw), 0.0f, 0.0f, sinf(yaw)};
   Quaternion rollQuat = {cosf(roll), 0.0f, sinf(roll), 0.0f};
   Quaternion pitchQuat = {cosf(pitch), sinf(pitch), 0.0f, 0.0f};
