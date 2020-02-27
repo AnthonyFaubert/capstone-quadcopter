@@ -9,26 +9,20 @@ import socket
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s = s.connect(('localhost', 8000))
+s.setblocking(False)
+
+manual = True
+auto = False
 
 DATA_LENGTH = 12
-
-# open the steam controller driver
-#sc_proc = subprocess.Popen('sc-controller', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-#time.sleep(5)
-#sc_proc.kill()
-
-# open the jstest-gtk program to ensure that the controller is connected
-#js_proc = subprocess.Popen('jstest-gtk', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-#time.sleep(0.5)
-#js_proc.kill()
 
 # intialize pygame
 pygame.init()
 
 done = False
 ready_to_send = True
-screen = pygame.display.set_mode((100, 100))
-pygame.display.set_caption("My Game")
+#screen = pygame.display.set_mode((100, 100))
+#pygame.display.set_caption("My Game")
 clock = pygame.time.Clock()
 
 joystick = pygame.joystick.Joystick(0)
@@ -88,13 +82,21 @@ while not done:
                 special = 4
                 print("button 4")
 
-#   print("value of special is: " + str(special))
-
-    if ready_to_send:
         tilt = get_tilt()
         yt = get_yt()
         ready_to_send = True  #needs to be set to False eventually
+        
+        face_data_bytes = s.recv(1000)
+        face_data_extra = len(face_data_bytes) % 12
+        face_data_start = len(face_data_bytes) - 12 - face_data_extra
+        face_data_end = len(face_data_bytes) - face_data_extra
+        final_face_bytes = face_data_bytes[face_data_start:face_data_end]
+        face_date = struct.unpack('>hhhhhh', final_face_bytes)
+        
+        #if (manual):
         data = struct.pack('>Bhhhhh', 37, tilt[0], tilt[1], yt[0], yt[1], special)
+        #else:
+        #data = struct.pack('>Bhhhhh', 37, face_data x lr, face_dat width, 0, face_data y, special)
         checksum = sum(data) & 0xFF
         data += struct.pack('>B', checksum)
         print("below is sent data:")
@@ -118,7 +120,12 @@ while not done:
         print()
         #ser.reset_output_buffer()
         special = 0
-    
+
+    #send angle to haar.py
+    angle = struct.pack('>b', )
+    s.send(angle)
+
+
     if (ser.in_waiting > 0):
         #print("below is bytes waiting")
         #print(ser.in_waiting)
