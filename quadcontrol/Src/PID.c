@@ -57,6 +57,26 @@ void LimitErrors(RollPitchYaw* errors) {
 #endif  
 }
 
+GyroData limitGyro(GyroData original) {
+  GyroData result;
+#ifdef LIMIT_GYRO_ERROR_ROLL
+  if (original.x > LIMIT_GYRO_ERROR_ROLL) result.x = LIMIT_GYRO_ERROR_ROLL;
+  else if (original.x < -LIMIT_GYRO_ERROR_ROLL) result.x = -LIMIT_GYRO_ERROR_ROLL;
+  else result.x = original.x;
+#endif
+#ifdef LIMIT_GYRO_ERROR_PITCH
+  if (original.y > LIMIT_GYRO_ERROR_PITCH) result.y = LIMIT_GYRO_ERROR_PITCH;
+  else if (original.y < -LIMIT_GYRO_ERROR_PITCH) result.y = -LIMIT_GYRO_ERROR_PITCH;
+  else result.y = original.y;
+#endif
+#ifdef LIMIT_GYRO_ERROR_YAW
+  if (original.z > LIMIT_GYRO_ERROR_YAW) result.z = LIMIT_GYRO_ERROR_YAW;
+  else if (original.z < -LIMIT_GYRO_ERROR_YAW) result.z = -LIMIT_GYRO_ERROR_YAW;
+  else result.z = original.z;
+#endif
+  return result;
+}
+
 /* from the point of view of the thrust vectors
 +yaw <-----+
    +pitch   \
@@ -78,6 +98,7 @@ void PID(float* motorVals, RollPitchYaw rotations, GyroData gyroData, float thru
   VectorScale(yawVect, GAIN_PROPORTIONAL_YAW * rotations.yaw, THRUST_VECTOR_YAW);
   Vectors3Add(motorVals, rollVect, pitchVect, yawVect);
 
+  gyroData = limitGyro(gyroData);
   // derivativeMVals = Derivative commands
   float derivativeMVals[4];
   VectorScale(rollVect, GAIN_DERIVATIVE_ROLL * gyroData.x, THRUST_VECTOR_ROLL);
