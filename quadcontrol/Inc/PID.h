@@ -29,6 +29,8 @@
 #define GAIN_DERIVATIVE_YAW    0.0007f
 
 #define ORIENTATION_CORRECTION_QUATERNION {0.9063077870366499f, 0.0f, 0.0f, 0.42261826174069944f}
+#define GYRO_CORRECTION_COSINE 0.6427876096865394f
+#define GYRO_CORRECTION_SINE 0.766044443118978f
 
 
 typedef struct {
@@ -45,6 +47,8 @@ extern Quaternion TrimQuaternion;
 
 // Apply IMU physical orientation mismatch correction factor 
 void ApplyOrientationCorrection(Quaternion* orientation);
+// Apply IMU physical orientation mismatch correction factor to gyro data
+void ApplyGyroCorrection(GyroData* gyroData);
 
 // Gives the changes in roll, pitch, and yaw required to get from the actual orientation to the desired orientation
 void GetQuaternionError(RollPitchYaw* result, Quaternion actual, Quaternion desired);

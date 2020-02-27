@@ -10,6 +10,13 @@ void ApplyOrientationCorrection(Quaternion* orientation) {
   QuaternionsMultiply(orientation, *orientation, imuOrientationCorrection);
 }
 
+void ApplyGyroCorrection(GyroData* gyroData) {
+  float pitch = GYRO_CORRECTION_COSINE * gyroData->x + GYRO_CORRECTION_SINE * gyroData->y;
+  float roll = GYRO_CORRECTION_SINE * gyroData->x - GYRO_CORRECTION_COSINE * gyroData->y;
+  gyroData->x = roll;
+  gyroData->y = pitch;
+}
+
 // Gives the changes in roll, pitch, and yaw required to get from the actual orientation to the desired orientation
 void GetQuaternionError(RollPitchYaw* result, Quaternion actual, Quaternion desired) {
   // Rotate actual by the opposite of desired, then desired is <1,0,0,0> (rotate by q is q*a*conj(q))
