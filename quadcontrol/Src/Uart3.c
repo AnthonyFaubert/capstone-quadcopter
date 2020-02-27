@@ -1,7 +1,6 @@
 
 #include "Uart3.h"
 #include "usart.h"
-#include "usb_device.h"
 
 // Index of where the DMA is going to put the next byte into the Uart3RxBuf FIFO
 static int Uart3RxDmaIndex = 0;
@@ -10,9 +9,6 @@ static char Uart3RxBuf[UART3_RXBUF_SIZE];
 static bool TX3_InProgress = false;
 static int txBufDataEndIndex = 0;
 static uint8_t txBuf[UART3_TXBUF_SIZE];
-
-extern USBD_HandleTypeDef hUsbDeviceFS; // has flag for if USB is connected
-extern uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 
 static volatile uint32_t noOptimizePlz;
 
@@ -98,14 +94,8 @@ void task_Uart3TxFeedDma() {
     startIndexAfterSend = txBufDataEndIndex;
   }
 
-  bool usbPresent = hUsbDeviceFS.dev_state != USBD_STATE_SUSPENDED;
-  if (usbPresent && (CDC_Transmit_FS(txBuf + txBufDataStartIndex, amountToSend) != USBD_OK)) {
-    // USB is connected but not ready
-    return;
-  } else {
-    Uart3TxStart(amountToSend, (char*) (txBuf + txBufDataStartIndex));
-    txBufDataStartIndex = startIndexAfterSend;
-  }
+  Uart3TxStart(amountToSend, (char*) (txBuf + txBufDataStartIndex));
+  txBufDataStartIndex = startIndexAfterSend;
 }
 
 // Should be called as often as possible; searches for a GriffinPacket in the RX FIFO and extracts it, giving it to a callback for processing
