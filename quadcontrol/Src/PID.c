@@ -62,15 +62,15 @@ void LimitErrors(RollPitchYaw* errors) {
    +pitch   \
      /\      \
     CCW1
- CW0    CW3-> +roll
-    CCW2
+ CW0    CW2-> +roll
+    CCW3
  */
 // positive roll thrust will make roll tape go down, similar for rest
 // Motor vectors which define which directions are which
 float THRUST_VECTOR_ROLL[4] = {1.0f, 0.0f, -1.0f, 0.0f};
 float THRUST_VECTOR_PITCH[4] = {0.0f, -1.0f, 0.0f, 1.0f};
 float THRUST_VECTOR_YAW[4] = {1.0f, -1.0f, 1.0f, -1.0f};
-void PID(float* motorVals, RollPitchYaw rotations, GyroData gyroData, float thrust) { // TODO: derivative
+void PID(float* motorVals, RollPitchYaw rotations, GyroData gyroData, float thrust) {
   float rollVect[4], pitchVect[4], yawVect[4];
   // motorVals = Proportional commands
   VectorScale(rollVect, GAIN_PROPORTIONAL_ROLL * rotations.roll, THRUST_VECTOR_ROLL);

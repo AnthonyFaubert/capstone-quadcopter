@@ -8,11 +8,11 @@
 #define MIN_THRUST 1050
 #define MAX_THRUST 1600
 
- // with GND down and SIG up, left to right, the slots(channels) are: 2, 0, 1, 3
-#define MOTORMAP_CH1_MOTOR 2
-#define MOTORMAP_CH2_MOTOR 0
-#define MOTORMAP_CH3_MOTOR 3
-#define MOTORMAP_CH4_MOTOR 1
+// Mappings from PWM channels to indexes in the motor value arrays
+#define MOTORMAP_CH1_MOTOR 1
+#define MOTORMAP_CH2_MOTOR 2
+#define MOTORMAP_CH3_MOTOR 0
+#define MOTORMAP_CH4_MOTOR 3
 
 // setIMUResetState(true) turns on IMU hard reset, false to turn off
 void setIMUResetState(bool reset);
