@@ -6,9 +6,8 @@
 Quaternion TrimQuaternion = {1.0f, 0.0f, 0.0f, 0.0f};
 
 void ApplyOrientationCorrection(Quaternion* orientation) {
-  static Quaternion orientationCorrection = ORIENTATION_CORRECTION_QUATERNION;
-  QuaternionsMultiply(orientation, *orientation, orientationCorrection);
-  //QuaternionsMultiply(orientation, orientationCorrection, *orientation);
+  static Quaternion imuOrientationCorrection = ORIENTATION_CORRECTION_QUATERNION;
+  QuaternionsMultiply(orientation, *orientation, imuOrientationCorrection);
 }
 
 // Gives the changes in roll, pitch, and yaw required to get from the actual orientation to the desired orientation
@@ -122,10 +121,10 @@ void JoystickApplyTrim(uint16_t button) {
     QUAT_TRIM_DOWN.w  = w;
     
     float xy = sinf(TRIM_ANGLE_PER_PRESS / 2.0f);
-    QUAT_TRIM_RIGHT.x = xy;
-    QUAT_TRIM_LEFT.x  = -xy;
-    QUAT_TRIM_DOWN.y = xy;
-    QUAT_TRIM_UP.y   = -xy;
+    QUAT_TRIM_RIGHT.y = -xy;
+    QUAT_TRIM_LEFT.y  = xy;
+    QUAT_TRIM_DOWN.x = -xy;
+    QUAT_TRIM_UP.x   = xy;
     
     initDone = true;
   }
