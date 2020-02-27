@@ -128,16 +128,16 @@ void Quadcontrol() {
   CalibrateESCs();
   PRINTLN(" Done.");
   
-  Quaternion imuOrientation, desiredOrientation;
+  Quaternion imuOrientation;
   GyroData imuGyroData;
   RollPitchYaw orientationErrors;
     
   float mVals[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
   bool q = false; // TODO: convert to defines
-  bool j = false;
+  bool j = true;
   bool e = true;
-  bool g = true;
+  bool g = false;
   bool m = false;
   
   uint32_t schedulePID = 0, schedulePrintInfo = 0;
@@ -155,13 +155,13 @@ void Quadcontrol() {
       IMUGetGyro(&imuGyroData);
       ApplyGyroCorrection(&imuGyroData);
       
-      QuaternionsMultiply(&desiredOrientation, joystickOrientation, TrimQuaternion);
-      GetQuaternionError(&orientationErrors, imuOrientation, desiredOrientation);
+      GetQuaternionError(&orientationErrors, imuOrientation, joystickOrientation);
       LimitErrors(&orientationErrors);
       PID(mVals, orientationErrors, imuGyroData, thrust);
       if (packetTimeout != 0) {
         if (uwTick >= packetTimeout) {
-	  PRINTF("FATAL: p. timeout. (diff=%d ms=%d-%d)\n", uwTick - lastRXLoop, uwTick, lastRXLoop);
+          uint32_t time = uwTick;
+	  PRINTF("FATAL: p. timeout. (diff=%d ms=%d-%d)\n", time - lastRXLoop, time, lastRXLoop);
           emergencyStop();
         }
         

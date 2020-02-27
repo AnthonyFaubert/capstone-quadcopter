@@ -23,7 +23,7 @@ void GetQuaternionError(RollPitchYaw* result, Quaternion actual, Quaternion desi
   // Compute the rotation from actual to desired (invert actual to get back to straight and then go to desired)
   Quaternion correctionRotation;
   QuaternionConjugate(&actual, actual);
-  QuaternionsMultiply(&correctionRotation, actual, desired); // Overall rotation of (q*p) is rotate by p and then q
+  QuaternionsMultiply(&correctionRotation, desired, actual); // Overall rotation of (q*p) is rotate by p and then q
 
   // Convert the quaternion back into something we understand by using it to rotate <0,0,1> (for roll & pitch) and <1,0,0> (for yaw)
   Quaternion tmpA, tmpB, rotatedVector;
@@ -121,16 +121,20 @@ void Joystick2Quaternion(Quaternion* joyCmdQuatPtr, int16_t rollInt, int16_t pit
   float pitch = pitchInt;
   float yaw = yawInt;
   yaw *= -PI / 32768.0f / 2.0f;
-  roll *= -JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
-  pitch *= JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
+  roll *= JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
+  pitch *= -JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
   Quaternion yawQuat = {cosf(yaw), 0.0f, 0.0f, sinf(yaw)};
   Quaternion rollQuat = {cosf(roll), 0.0f, sinf(roll), 0.0f};
   Quaternion pitchQuat = {cosf(pitch), sinf(pitch), 0.0f, 0.0f};
   
-  // Combine rotations; yaw first, then roll, and finally pitch
+  //// Combine rotations; roll, pitch, then yaw
+  //// Ideally roll and pitch at the same time and then yaw, but that's too complicated
   Quaternion tmpQuat;
-  QuaternionsMultiply(&tmpQuat, rollQuat, yawQuat);
-  QuaternionsMultiply(joyCmdQuatPtr, pitchQuat, tmpQuat);
+  QuaternionsMultiply(&tmpQuat, TrimQuaternion, yawQuat);
+  QuaternionsMultiply(&tmpQuat, pitchQuat, tmpQuat);
+  QuaternionsMultiply(joyCmdQuatPtr, rollQuat, tmpQuat);
+  //QuaternionsMultiply(&tmpQuat, pitchQuat, rollQuat);
+  //QuaternionsMultiply(joyCmdQuatPtr, yawQuat, tmpQuat);
 }
 
 // Takes in a button press and applies trim to the trim quaternion
@@ -149,18 +153,22 @@ void JoystickApplyTrim(uint16_t button) {
     QUAT_TRIM_DOWN.w  = w;
     
     float xy = sinf(TRIM_ANGLE_PER_PRESS / 2.0f);
-    QUAT_TRIM_RIGHT.y = -xy;
-    QUAT_TRIM_LEFT.y  = xy;
-    QUAT_TRIM_DOWN.x = -xy;
-    QUAT_TRIM_UP.x   = xy;
+    QUAT_TRIM_RIGHT.y = xy;
+    QUAT_TRIM_LEFT.y  = -xy;
+    QUAT_TRIM_DOWN.x = xy;
+    QUAT_TRIM_UP.x   = -xy;
     
     initDone = true;
   }
   
   switch (button) {
-  case JOYSTICK_BUTTON_TRIM_RIGHT: QuaternionsMultiply(&TrimQuaternion, QUAT_TRIM_RIGHT, TrimQuaternion);
-  case JOYSTICK_BUTTON_TRIM_LEFT:  QuaternionsMultiply(&TrimQuaternion, QUAT_TRIM_LEFT, TrimQuaternion);
-  case JOYSTICK_BUTTON_TRIM_UP:    QuaternionsMultiply(&TrimQuaternion, QUAT_TRIM_UP, TrimQuaternion);
-  case JOYSTICK_BUTTON_TRIM_DOWN:  QuaternionsMultiply(&TrimQuaternion, QUAT_TRIM_DOWN, TrimQuaternion);
+  case JOYSTICK_BUTTON_TRIM_RIGHT: QuaternionsMultiply(&TrimQuaternion, TrimQuaternion, QUAT_TRIM_RIGHT);
+      break;
+  case JOYSTICK_BUTTON_TRIM_LEFT:  QuaternionsMultiply(&TrimQuaternion, TrimQuaternion, QUAT_TRIM_LEFT);
+      break;
+  case JOYSTICK_BUTTON_TRIM_UP:    QuaternionsMultiply(&TrimQuaternion, TrimQuaternion, QUAT_TRIM_UP);
+      break;
+  case JOYSTICK_BUTTON_TRIM_DOWN:  QuaternionsMultiply(&TrimQuaternion, TrimQuaternion, QUAT_TRIM_DOWN);
+      break;
   }
 }
