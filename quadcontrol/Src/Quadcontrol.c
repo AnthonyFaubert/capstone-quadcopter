@@ -135,9 +135,9 @@ void Quadcontrol() {
 
   bool q = true; // TODO: convert to defines
   bool j = true;
-  bool e = false;
+  bool e = true;
   bool g = false;
-  bool m = true;
+  bool m = false;
   
   uint32_t schedulePID = 0, schedulePrintInfo = 0;
 
@@ -199,11 +199,11 @@ B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
     if (uwTick >= schedulePrintInfo) {
       schedulePrintInfo = uwTick + 500; // 2 Hz
       if (packetTimeout == 0) PRINTLN("Wait 4 GPac...");
-      if (q) PRINTF("QUATS: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", imuOrientation.w, imuOrientation.x, imuOrientation.y, imuOrientation.z);
+      if (q) PRINTF("   QUATS: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", imuOrientation.w, imuOrientation.x, imuOrientation.y, imuOrientation.z);
       if (j) PRINTF("JOYQ: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", joystickOrientation.w, joystickOrientation.x, joystickOrientation.y, joystickOrientation.z);
-      if (e) PRINTF("ERRS: R=%.2f P=%.2f Y=%.2f (all rads)\n", orientationErrors.roll, orientationErrors.pitch, orientationErrors.yaw);
+      if (e) PRINTF("  ERRS: R=%.2f P=%.2f Y=%.2f (all rads)\n", orientationErrors.roll, orientationErrors.pitch, orientationErrors.yaw);
       if (g) PRINTF("GYRO: X=%.2f Y=%.2f Z=%.2f\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
-      if (m) PRINTF("mvals=[%.2f,%.2f,%.2f,%.2f]\n", mVals[0], mVals[1], mVals[2], mVals[3]);
+      if (m) PRINTF("     mvals=[%.2f,%.2f,%.2f,%.2f]\n", mVals[0], mVals[1], mVals[2], mVals[3]);
     }
   }
 }
