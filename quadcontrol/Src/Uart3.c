@@ -111,7 +111,7 @@ void task_Uart3TxFeedDma() {
 // Should be called as often as possible; searches for a GriffinPacket in the RX FIFO and extracts it, giving it to a callback for processing
 void task_Uart3RxCheckForPacket() {
   static int uart3bufIndex = 0;
-  static int packetIndex = -1;
+  volatile static int packetIndex = -1; // tell compiler to stop being a complete moron
   static uint8_t packetBuffer[PACKET_SIZE];
   
   for (; uart3bufIndex != Uart3RxDmaIndex; uart3bufIndex = (uart3bufIndex + 1) % UART3_RXBUF_SIZE) {
@@ -147,7 +147,7 @@ void task_Uart3RxCheckForPacket() {
 	  for (int i = packetIndex; i < PACKET_SIZE; i++) {
 	    packetBuffer[i - packetIndex] = packetBuffer[i];
 	  }
-          return; // skip the uart3bufIndex incrementing
+          packetIndex = PACKET_SIZE - packetIndex;
 	}
       }
     }
