@@ -6,14 +6,14 @@
 #include "stdint.h"
 #include "VectQuatMath.h"
 
-// Set max bank angle to 45 degrees
-#define JOYSTICK_MAX_ANGLE (PI / 4.0f)
+// Set max bank angle to 22.5 degrees
+#define JOYSTICK_MAX_ANGLE (PI / 8.0f)
 
 #define JOYSTICK_BUTTON_TRIM_RIGHT 2
 #define JOYSTICK_BUTTON_TRIM_LEFT 3
 #define JOYSTICK_BUTTON_TRIM_DOWN 1
 #define JOYSTICK_BUTTON_TRIM_UP 4
-#define TRIM_ANGLE_PER_PRESS 1.0f * PI / 180.0f
+#define TRIM_ANGLE_PER_PRESS (1.0f * PI / 180.0f)
 
 // Used by LimitErrors()    (pi/8) = 22.5 degrees
 #define LIMIT_PID_ERROR_YAW (PI / 8.0f)
