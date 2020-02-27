@@ -57,7 +57,7 @@ void LimitErrors(RollPitchYaw* errors) {
 #endif  
 }
 
-/* from the point of view of positive gain causing the roll/pitch/yaw
+/* from the point of view of the thrust vectors
 +yaw <-----+
    +pitch   \
      /\      \
@@ -72,20 +72,20 @@ float THRUST_VECTOR_PITCH[4] = {0.0f, -1.0f, 0.0f, 1.0f};
 float THRUST_VECTOR_YAW[4] = {1.0f, -1.0f, 1.0f, -1.0f};
 void PID(float* motorVals, RollPitchYaw rotations, GyroData gyroData, float thrust) { // TODO: derivative
   float rollVect[4], pitchVect[4], yawVect[4];
+  // motorVals = Proportional commands
   VectorScale(rollVect, GAIN_PROPORTIONAL_ROLL * rotations.roll, THRUST_VECTOR_ROLL);
   VectorScale(pitchVect, GAIN_PROPORTIONAL_PITCH * rotations.pitch, THRUST_VECTOR_PITCH);
   VectorScale(yawVect, GAIN_PROPORTIONAL_YAW * rotations.yaw, THRUST_VECTOR_YAW);
   Vectors3Add(motorVals, rollVect, pitchVect, yawVect);
-  //PRINTF("MVals: %.2f, %.2f, %.2f, %.2f\n", motorVals[0], motorVals[1], motorVals[2], motorVals[3]);
-  float rollRateError = 0.0f - gyroData.y; // +y = rolling in direction of positive roll torque
-  float pitchRateError = 0.0f + gyroData.x; // -x = rolling in direction of positive pitch torque
-  float yawRateError = 0.0f - gyroData.z; // +z = rolling in direction of positive yaw torque
-  VectorScale(rollVect, GAIN_DERIVATIVE_ROLL * rollRateError, THRUST_VECTOR_ROLL);
-  VectorScale(pitchVect, GAIN_DERIVATIVE_PITCH * pitchRateError, THRUST_VECTOR_PITCH);
-  VectorScale(yawVect, GAIN_DERIVATIVE_YAW * yawRateError, THRUST_VECTOR_YAW);
+
+  // derivativeMVals = Derivative commands
   float derivativeMVals[4];
+  VectorScale(rollVect, GAIN_DERIVATIVE_ROLL * gyroData.x, THRUST_VECTOR_ROLL);
+  VectorScale(pitchVect, GAIN_DERIVATIVE_PITCH * gyroData.y, THRUST_VECTOR_PITCH);
+  VectorScale(yawVect, GAIN_DERIVATIVE_YAW * gyroData.z, THRUST_VECTOR_YAW);
   Vectors3Add(derivativeMVals, rollVect, pitchVect, yawVect);
   
+  // motorVals += derivativeMVals and thrust/average adjustment
   float average = 0.0f;
   for (int i = 0; i < 4; i++) {
     motorVals[i] += derivativeMVals[i];

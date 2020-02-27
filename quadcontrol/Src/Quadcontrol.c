@@ -98,6 +98,7 @@ void callback_ProcessPacket(uint8_t computedChecksum, uint8_t receivedChecksum, 
     
     if (InvalidCount > 20) emergencyStop();
   }
+  lastRXLoop = uwTick;
 }
 
 
@@ -133,10 +134,10 @@ void Quadcontrol() {
     
   float mVals[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-  bool q = true; // TODO: convert to defines
-  bool j = true;
+  bool q = false; // TODO: convert to defines
+  bool j = false;
   bool e = true;
-  bool g = false;
+  bool g = true;
   bool m = false;
   
   uint32_t schedulePID = 0, schedulePrintInfo = 0;
@@ -152,6 +153,7 @@ void Quadcontrol() {
       IMUGetOrientation(&imuOrientation); // FIXME: check for IMU comms error!
       ApplyOrientationCorrection(&imuOrientation);
       IMUGetGyro(&imuGyroData);
+      ApplyGyroCorrection(&imuGyroData);
       
       QuaternionsMultiply(&desiredOrientation, joystickOrientation, TrimQuaternion);
       GetQuaternionError(&orientationErrors, imuOrientation, desiredOrientation);
@@ -159,14 +161,7 @@ void Quadcontrol() {
       PID(mVals, orientationErrors, imuGyroData, thrust);
       if (packetTimeout != 0) {
         if (uwTick >= packetTimeout) {
-          uint32_t loopDiff = uwTick - lastRXLoop;
-	  PRINTF("FATAL: ptout. loop %d ms ago. tick=%d.", loopDiff, uwTick);
-	  // TODO: remove comment:
-      /* usually getting:
-FATAL: ptout100ms. loop 50 ms ago. tick=33669. no data.
-B=1,R=7,PI=8,PR=1,val=515,inval=0,lLoop=33619,tout=33669
-      note the timeout is always 50ms(+/- 2ms) after last loop. suspicious AF. Also, this only happens when tick is almost perfectly aligned with timeout.
-*/
+	  PRINTF("FATAL: p. timeout. (diff=%d ms=%d-%d)\n", uwTick - lastRXLoop, uwTick, lastRXLoop);
           emergencyStop();
         }
         
