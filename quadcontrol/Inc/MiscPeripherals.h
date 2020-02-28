@@ -6,7 +6,7 @@
 #include "stdint.h"
 
 #define MIN_THRUST 1050
-#define MAX_THRUST 1600
+#define MAX_THRUST 2000
 
 // Mappings from PWM channels to indexes in the motor value arrays
 #define MOTORMAP_CH1_MOTOR 1
