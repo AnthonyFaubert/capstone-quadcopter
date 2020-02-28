@@ -13,13 +13,14 @@
 
 #define LPF_PERIOD 25
 #define LPF_TYPE GyroData
+#define LPF_TYPE_INIT {0.0f, 0.0f, 0.0f}
 #define LPF_ADDIN(sum, b) sum.x += b.x; sum.y += b.y; sum.z += b.z;
 #define LPF_SUBOUT(sum, b) sum.x -= b.x; sum.y -= b.y; sum.z -= b.z;
 #define LPF_SUMDIVPERIOD(result, sum) result.x = sum.x/LPF_PERIOD; result.y = sum.y/LPF_PERIOD; result.y = sum.y/LPF_PERIOD;
 LPF_TYPE lowPassFilter(LPF_TYPE newVal) {
   static LPF_TYPE LPF_FIFO[LPF_PERIOD];
   static int LPFIndex = 0;
-  static LPF_TYPE LPFSum = 0.0f;
+  static LPF_TYPE LPFSum = LPF_TYPE_INIT;
   
   LPF_ADDIN(LPFSum, newVal);
   LPF_SUBOUT(LPFSum, LPF_FIFO[LPFIndex]);
@@ -66,8 +67,8 @@ void waitForButtonState(bool high, bool printPrompt) {
 
 void taskPrintLog() {
   static uint32_t schedule = 0;
-  static logPrintIndex = 0;
-  static logPrintType = 0;
+  static int logPrintIndex = 0;
+  static int logPrintType = 0;
   
   // Wait for the TX FIFO to flush before beginning
   if (schedule == 0) {
@@ -101,7 +102,7 @@ void taskPrintLog() {
     } else if (logPrintType == 1) { // orientation
       bytesSent += PRINTF("%.4f %.4f %.4f %.4f\n", oriLog[logPrintIndex].w, oriLog[logPrintIndex].x, oriLog[logPrintIndex].y, oriLog[logPrintIndex].z);
     } else if (logPrintType == 2) { // p-errors
-      bytesSent += PRINTF("%.3f %.3f %.3f\n", pErrorLog[logPrintIndex].x, pErrorLog[logPrintIndex].y, pErrorLog[logPrintIndex].z);
+      bytesSent += PRINTF("%.3f %.3f %.3f\n", pErrorLog[logPrintIndex].roll, pErrorLog[logPrintIndex].pitch, pErrorLog[logPrintIndex].yaw);
     } else if (logPrintType == 3) { // mVals
       bytesSent += PRINTF("%.2f %.2f %.2f\n", mValLog[logPrintIndex*4], mValLog[logPrintIndex*4 + 1], mValLog[logPrintIndex*4 + 2], mValLog[logPrintIndex*4 + 3]);
     }	
@@ -109,7 +110,7 @@ void taskPrintLog() {
     logPrintIndex++;
     float sendDuration = bytesSent;
     sendDuration /= 12.8; // 115200 baud = 12.8 bytes/ms
-    schedule = uwTick + 1 + sendDuration; // 1 ms extra in case of rounding errors
+    schedule = uwTick + 1 + (uint32_t) sendDuration; // 1 ms extra in case of rounding errors
   }
 }
 
