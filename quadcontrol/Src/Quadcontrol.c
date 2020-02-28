@@ -90,11 +90,11 @@ void taskPrintLog() {
 	bytesSent += PRINTF("#name:gyro\n#type:matrix\n#rows:%d\n#columns:3\n", logIndex);
       } else if (logPrintType == 1) {
 	bytesSent += PRINTF("#name:ori\n#type:matrix\n#rows:%d\n#columns:4\n", logIndex);
-      } else if (logPrintType == 1) {
+      } else if (logPrintType == 2) {
 	bytesSent += PRINTF("#name:pErrs\n#type:matrix\n#rows:%d\n#columns:3\n", logIndex);
-      } else if (logPrintType == 1) {
+      } else if (logPrintType == 3) {
 	bytesSent += PRINTF("#name:mVals\n#type:matrix\n#rows:%d\n#columns:4\n", logIndex);
-      }	
+      }
     }
 
     if (logPrintType == 0) { // gyro
@@ -105,11 +105,11 @@ void taskPrintLog() {
       bytesSent += PRINTF("%.3f %.3f %.3f\n", pErrorLog[logPrintIndex].roll, pErrorLog[logPrintIndex].pitch, pErrorLog[logPrintIndex].yaw);
     } else if (logPrintType == 3) { // mVals
       bytesSent += PRINTF("%.2f %.2f %.2f\n", mValLog[logPrintIndex*4], mValLog[logPrintIndex*4 + 1], mValLog[logPrintIndex*4 + 2], mValLog[logPrintIndex*4 + 3]);
-    }	
+    }
     
     logPrintIndex++;
     float sendDuration = bytesSent;
-    sendDuration /= 12.8; // 115200 baud = 12.8 bytes/ms
+    sendDuration /= 12.8f; // 115200 baud = 12.8 bytes/ms
     schedule = uwTick + 1 + (uint32_t) sendDuration; // 1 ms extra in case of rounding errors
   }
 }
