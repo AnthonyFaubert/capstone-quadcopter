@@ -21,8 +21,4 @@ typedef struct {
 } GriffinPacket;
 #define SIZE_OF_GRIFFIN 12
 
-#define USBRXBUF_SIZE 500
-extern int USBRXBufIndex;
-extern char USBRXBuf[USBRXBUF_SIZE];
-
 #endif

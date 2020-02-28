@@ -10,18 +10,43 @@
 #include "PID.h"
 #include "IMU.h"
 
-int USBRXBufIndex;
-char USBRXBuf[USBRXBUF_SIZE];
+
+#define LPF_PERIOD 25
+#define LPF_TYPE GyroData
+#define LPF_ADDIN(sum, b) sum.x += b.x; sum.y += b.y; sum.z += b.z;
+#define LPF_SUBOUT(sum, b) sum.x -= b.x; sum.y -= b.y; sum.z -= b.z;
+#define LPF_SUMDIVPERIOD(result, sum) result.x = sum.x/LPF_PERIOD; result.y = sum.y/LPF_PERIOD; result.y = sum.y/LPF_PERIOD;
+LPF_TYPE lowPassFilter(LPF_TYPE newVal) {
+  static LPF_TYPE LPF_FIFO[LPF_PERIOD];
+  static int LPFIndex = 0;
+  static LPF_TYPE LPFSum = 0.0f;
+  
+  LPF_ADDIN(LPFSum, newVal);
+  LPF_SUBOUT(LPFSum, LPF_FIFO[LPFIndex]);
+  LPF_FIFO[LPFIndex] = newVal;
+  LPFIndex = (LPFIndex + 1) % LPF_PERIOD;
+
+  LPF_TYPE result;
+  LPF_SUMDIVPERIOD(result, LPFSum);
+  return result;
+}
+
+int logIndex = 0;
+GyroData gyroLog[1000];
+Quaternion oriLog[1000];
+RollPitchYaw pErrorLog[1000];
+float mValLog[4000];
 
 // Maximum size of a single data chunk (no more than this many chars per printf call)
 #define MAX_TX_CHUNK 100
-void PRINTF(const char* fmt, ...) {
+int PRINTF(const char* fmt, ...) {
   char strBuf[MAX_TX_CHUNK];
   va_list args;
   va_start(args, fmt);
   int len = vsprintf(strBuf, fmt, args);
   Uart3TxQueueSend(strBuf, len);
   va_end(args);
+  return len;
 }
 #define PRINTLN(str) PRINTF("%s\n", str);
 
@@ -39,18 +64,63 @@ void waitForButtonState(bool high, bool printPrompt) {
   }
 }
 
-#define CALIBRATE_ESCS_WAIT_MACRO(ms) txWait(ms); if (ms == 100) PRINTF(".")
+void taskPrintLog() {
+  static uint32_t schedule = 0;
+  static logPrintIndex = 0;
+  static logPrintType = 0;
+  
+  // Wait for the TX FIFO to flush before beginning
+  if (schedule == 0) {
+    PRINTF("LOGSTART\n");
+    schedule = uwTick + UART3_TXBUF_SIZE/12; // 115200 baud = 12.8 bytes/ms
+    return;
+  }
+  
+  if (uwTick >= schedule) {
+    if (logPrintType > 50) return;
+    int bytesSent = 0;
 
-// For old getQuaternion() IMU thingy:
-// positive rotation along x-axis is pitch tape moving up
-// positive rotation along y-axis is roll tape moving down
-// positive rotation along z-axis is counter-clockwise looking down from above
+    if (logPrintIndex >= logIndex) {
+	logPrintIndex = 0;
+	logPrintType++;
+    }
+    if (logPrintIndex == 0) {
+      if (logPrintType == 0) {
+	bytesSent += PRINTF("#name:gyro\n#type:matrix\n#rows:%d\n#columns:3\n", logIndex);
+      } else if (logPrintType == 1) {
+	bytesSent += PRINTF("#name:ori\n#type:matrix\n#rows:%d\n#columns:4\n", logIndex);
+      } else if (logPrintType == 1) {
+	bytesSent += PRINTF("#name:pErrs\n#type:matrix\n#rows:%d\n#columns:3\n", logIndex);
+      } else if (logPrintType == 1) {
+	bytesSent += PRINTF("#name:mVals\n#type:matrix\n#rows:%d\n#columns:4\n", logIndex);
+      }	
+    }
+
+    if (logPrintType == 0) { // gyro
+      bytesSent += PRINTF("%.3f %.3f %.3f\n", gyroLog[logPrintIndex].x, gyroLog[logPrintIndex].y, gyroLog[logPrintIndex].z);
+    } else if (logPrintType == 1) { // orientation
+      bytesSent += PRINTF("%.4f %.4f %.4f %.4f\n", oriLog[logPrintIndex].w, oriLog[logPrintIndex].x, oriLog[logPrintIndex].y, oriLog[logPrintIndex].z);
+    } else if (logPrintType == 2) { // p-errors
+      bytesSent += PRINTF("%.3f %.3f %.3f\n", pErrorLog[logPrintIndex].x, pErrorLog[logPrintIndex].y, pErrorLog[logPrintIndex].z);
+    } else if (logPrintType == 3) { // mVals
+      bytesSent += PRINTF("%.2f %.2f %.2f\n", mValLog[logPrintIndex*4], mValLog[logPrintIndex*4 + 1], mValLog[logPrintIndex*4 + 2], mValLog[logPrintIndex*4 + 3]);
+    }	
+    
+    logPrintIndex++;
+    float sendDuration = bytesSent;
+    sendDuration /= 12.8; // 115200 baud = 12.8 bytes/ms
+    schedule = uwTick + 1 + sendDuration; // 1 ms extra in case of rounding errors
+  }
+}
+
+#define CALIBRATE_ESCS_WAIT_MACRO(ms) txWait(ms); if (ms == 100) PRINTF(".")
 
 void emergencyStop() {
   EmergencyShutoff();
   PRINTLN("EMERGENCY STOP ACTIVATED!");
   while (1) {
     task_Uart3TxFeedDma();
+    taskPrintLog();
   }
 }
 
@@ -158,6 +228,16 @@ void Quadcontrol() {
       GetQuaternionError(&orientationErrors, imuOrientation, joystickOrientation);
       LimitErrors(&orientationErrors);
       PID(mVals, orientationErrors, imuGyroData, thrust);
+
+      if (logIndex >= 1000) emergencyStop();
+      gyroLog[logIndex] = imuGyroData;
+      oriLog[logIndex] = imuOrientation;
+      pErrorLog[logIndex] = orientationErrors;
+      for (int i = 0; i < 4; i++) {
+	mValLog[logIndex*4 + i] = mVals[i];
+      }
+      logIndex++;
+
       if (packetTimeout != 0) {
         if (uwTick >= packetTimeout) {
           uint32_t time = uwTick;
