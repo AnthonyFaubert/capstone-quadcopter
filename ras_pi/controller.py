@@ -90,15 +90,16 @@ while not done:
     tilt = get_tilt()
     yt = get_yt()
     ready_to_send = True  #needs to be set to False eventually
-    #face_data_bytes = s.recv(1000)
-    #face_data_extra = len(face_data_bytes) % 12
-    #face_data_start = len(face_data_bytes) - 12 - face_data_extra
-    #face_data_end = len(face_data_bytes) - face_data_extra
+    #face_data_bytes = face_data_extra + s.recv(1000)
+    #face_data_extra_num = len(face_data_bytes) % 12
+    #face_data_extra = face_data_bytes[((len(face_data_bytes)) - face_data_extra_num):]
+    #face_data_start = len(face_data_bytes) - 12 - face_data_extra_num
+    #face_data_end = len(face_data_bytes) - face_data_extra_num
     #final_face_bytes = face_data_bytes[face_data_start:face_data_end]
-    #face_date = struct.unpack('>hhhhhh', final_face_bytes)
+    #face_data = struct.unpack('>hhhhhh', final_face_bytes)
         
-        #if (manual):
-    data = struct.pack('>Bhhhhh', 37, tilt[0], tilt[1], yt[0], yt[1], special)
+        if (manual):
+            data = struct.pack('>Bhhhhh', 37, tilt[0], tilt[1], yt[0], yt[1], special)
         #else:
         #data = struct.pack('>Bhhhhh', 37, face_data x lr, face_dat width, 0, face_data y, special)
     checksum = sum(data) & 0xFF
@@ -119,10 +120,7 @@ while not done:
         print("This loop time: %f. Worst loop time: %f." % (loopTime, worstLoopTime))
             #time.sleep(15)
     lastSend = time.time()
-    #print(data)
-    #print("ser out waiting " + str(ser.out_waiting))
     print()
-    #ser.reset_output_buffer()
     special = 0
 
     #send angle to haar.py
