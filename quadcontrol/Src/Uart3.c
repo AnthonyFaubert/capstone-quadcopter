@@ -77,10 +77,13 @@ void Uart3TxQueueSend(char* buffer, int len) {
 }
 
 // Should be called as often as possible; feeds TX DMA with data from TX FIFO
-void task_Uart3TxFeedDma() {
+// Returns false if the UART is idle even after this call, true otherwise.
+int task_Uart3TxFeedDma() {
   static int txBufDataStartIndex = 0;
-  if (txBufDataStartIndex == txBufDataEndIndex) return; // no data to send
-  if (TX3_InProgress) return; // waiting for UART to finish
+  if (txBufDataStartIndex == txBufDataEndIndex) {
+    return TX3_InProgress; // no data to send
+  }
+  if (TX3_InProgress) return 1; // waiting for UART to finish
   
   int amountToSend;
   int startIndexAfterSend;
@@ -96,6 +99,7 @@ void task_Uart3TxFeedDma() {
 
   Uart3TxStart(amountToSend, (char*) (txBuf + txBufDataStartIndex));
   txBufDataStartIndex = startIndexAfterSend;
+  return 1;
 }
 
 // Should be called as often as possible; searches for a GriffinPacket in the RX FIFO and extracts it, giving it to a callback for processing

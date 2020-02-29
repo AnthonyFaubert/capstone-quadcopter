@@ -21,7 +21,8 @@ void Uart3RxConfig();
 // Copies len bytes from buffer to TX FIFO
 void Uart3TxQueueSend(char* buffer, int len);
 // Should be called as often as possible; feeds TX DMA with data from TX FIFO
-void task_Uart3TxFeedDma(); // also copies everything sent to USB CDC, if available
+// Returns false if the UART is idle even after this call, true otherwise.
+int task_Uart3TxFeedDma(); // also copies everything sent to USB CDC, if available
 
 // Should be called as often as possible; searches for a GriffinPacket in the RX FIFO and extracts it, giving it to a callback for processing
 void task_Uart3RxCheckForPacket();

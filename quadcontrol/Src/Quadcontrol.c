@@ -133,8 +133,8 @@ void emergencyStop() {
   PRINTLN("EMERGENCY STOP ACTIVATED!");
   taskPrintLog(true);
   while (1) {
-    taskPrintLog(false);
-    task_Uart3TxFeedDma();
+    // If idle, run print task
+    if (!task_Uart3TxFeedDma()) taskPrintLog(false);
   }
 }
 
@@ -241,6 +241,7 @@ void Quadcontrol() {
       IMUGetOrientation(&imuOrientation); // FIXME: check for IMU comms error!
       ApplyOrientationCorrection(&imuOrientation);
       IMUGetGyro(&imuGyroData);
+      if (logIndex < LOG_LENGTH) gyroLog[logIndex] = imuGyroData; // log raw gyro
       ApplyGyroCorrection(&imuGyroData);
       
       GetQuaternionError(&orientationErrors, imuOrientation, joystickOrientation);
@@ -273,7 +274,6 @@ void Quadcontrol() {
 	if (logIndex < LOG_LENGTH) {
 	  // Set the initial log time
 	  if (logTimestamp == 0xFFFFFFFF) logTimestamp = uwTick;
-	  gyroLog[logIndex] = imuGyroData;
 	  oriLog[logIndex] = imuOrientation;
 	  pErrorLog[logIndex] = orientationErrors;
 	  for (int i = 0; i < 4; i++) {
