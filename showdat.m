@@ -111,5 +111,34 @@ if (outFile != 0)
 endif
 
 if (outFile == 0)
+  figure();
+else
+  clf;
+endif
+hold on;
+title("PID motor value outputs over time");
+plot(time, mVals(:, 1), 'm');
+plot(time, mVals(:, 2), 'b');
+plot(time, mVals(:, 3), 'k');
+plot(time, mVals(:, 4), 'g');
+## big = max(max(mVals));
+## small = min(min(mVals));
+## areas = (mVals > 1) | (mVals < 0);
+## for i = 1:length(mVals(:, 1))
+##   for j = 1:4
+    
+##   end
+## end
+## if ( || () < 0))
+##   patch(time(areas(:, 2)), mVals(:, 2)(areas(:, 2)))
+## endif
+xlabel("Time (s)");
+ylabel("Motor value (valid range [0, 1], actual values will be clipped to range)");
+legend("motor 0", "motor 1", "motor 2", "motor 3");
+if (outFile != 0)
+  print(IMAGE_DPI, sprintf("%s_mVals.png", outFile));
+endif
+
+if (outFile == 0)
   uiwait();
 endif
