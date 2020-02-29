@@ -32,11 +32,12 @@ LPF_TYPE lowPassFilter(LPF_TYPE newVal) {
   return result;
 }
 
+#define LOG_LENGTH 1000
 int logIndex = 0;
-GyroData gyroLog[1000];
-Quaternion oriLog[1000];
-RollPitchYaw pErrorLog[1000];
-float mValLog[4000];
+GyroData gyroLog[LOG_LENGTH];
+Quaternion oriLog[LOG_LENGTH];
+RollPitchYaw pErrorLog[LOG_LENGTH];
+float mValLog[4*LOG_LENGTH];
 
 // Maximum size of a single data chunk (no more than this many chars per printf call)
 #define MAX_TX_CHUNK 100
@@ -104,7 +105,7 @@ void taskPrintLog() {
     } else if (logPrintType == 2) { // p-errors
       bytesSent += PRINTF("%.3f %.3f %.3f\n", pErrorLog[logPrintIndex].roll, pErrorLog[logPrintIndex].pitch, pErrorLog[logPrintIndex].yaw);
     } else if (logPrintType == 3) { // mVals
-      bytesSent += PRINTF("%.2f %.2f %.2f\n", mValLog[logPrintIndex*4], mValLog[logPrintIndex*4 + 1], mValLog[logPrintIndex*4 + 2], mValLog[logPrintIndex*4 + 3]);
+      bytesSent += PRINTF("%.2f %.2f %.2f %.2f\n", mValLog[logPrintIndex*4], mValLog[logPrintIndex*4 + 1], mValLog[logPrintIndex*4 + 2], mValLog[logPrintIndex*4 + 3]);
     }
     
     logPrintIndex++;
@@ -231,7 +232,7 @@ void Quadcontrol() {
       LimitErrors(&orientationErrors);
       PID(mVals, orientationErrors, imuGyroData, thrust);
       
-      if (logIndex <= 1000) {
+      if (logIndex < LOG_LENGTH) {
         gyroLog[logIndex] = imuGyroData;
         oriLog[logIndex] = imuOrientation;
         pErrorLog[logIndex] = orientationErrors;
