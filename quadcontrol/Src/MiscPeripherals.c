@@ -63,19 +63,23 @@ uint8_t SetMotors(float* motorVals) {
   if (!calibrated) return SETMOTORS_FAILED_NOTCALIBRATED;
   uint8_t errors = SETMOTORS_OK;
 
-  // Find largest/smallest values and clip values that are out of bounds
+  // Find largest/smallest values and copy motor values, clipping values that are out of bounds
+  float tmp[4];
   float largest = -INFINITY;
   float smallest = INFINITY;
   for (int i = 0; i < 4; i++) {
     if (motorVals[i] > largest) largest = motorVals[i];
     if (motorVals[i] < smallest) smallest = motorVals[i];
-    
+
+    // copy, clip, and detect errors
     if (motorVals[i] < 0.0f) {
-      motorVals[i] = 0.0f;
+      tmp[i] = 0.0f;
       errors |= SETMOTORS_CLIPPED_0 << i;
     } else if (1.0f < motorVals[i]) {
-      motorVals[i] = 1.0f;
+      tmp[i] = 1.0f;
       errors |= SETMOTORS_CLIPPED_0 << i;
+    } else {
+      tmp[i] = motorVals[i];
     }
   }
 
@@ -97,10 +101,9 @@ uint8_t SetMotors(float* motorVals) {
   */
 
   // Convert motor values [0.0f, 1.0f] to PWM values
-  float tmp[4];
   uint16_t thrusts[4];
   for (int i = 0; i < 4; i++) {
-    tmp[i] = motorVals[i] * (float) (MAX_THRUST - MIN_THRUST);
+    tmp[i] *= (float) (MAX_THRUST - MIN_THRUST);
     thrusts[i] = ((uint16_t) tmp[i]) + MIN_THRUST;
   }
   //PRINTF("MVsRaw: %d, %d, %d, %d\n", thrusts[MOTOR_CHANNEL_MAPPING[0]], thrusts[MOTOR_CHANNEL_MAPPING[1]], thrusts[MOTOR_CHANNEL_MAPPING[2]], thrusts[MOTOR_CHANNEL_MAPPING[3]]);

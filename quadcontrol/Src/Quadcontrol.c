@@ -39,7 +39,6 @@ GyroData gyroLog[LOG_LENGTH];
 Quaternion oriLog[LOG_LENGTH];
 RollPitchYaw pErrorLog[LOG_LENGTH];
 float mValLog[4*LOG_LENGTH];
-uint8_t motorErrorLog[LOG_LENGTH];
 
 // Maximum size of a single data chunk (no more than this many chars per printf call)
 #define MAX_TX_CHUNK 100
@@ -96,8 +95,6 @@ bool taskPrintLog(bool start) {
 	bytesSent += PRINTF("#name:pErrs\n#type:matrix\n#rows:%d\n#columns:3\n", logIndex);
       } else if (logPrintType == 3) {
 	bytesSent += PRINTF("#name:mVals\n#type:matrix\n#rows:%d\n#columns:4\n", logIndex);
-      } else if (logPrintType == 4) {
-	bytesSent += PRINTF("#name:mErrs\n#type:matrix\n#rows:%d\n#columns:4\n", logIndex);
       } else {
 	// Done, go back into waiting to start another log
 	PRINTF("LOGEND\n");
@@ -113,14 +110,7 @@ bool taskPrintLog(bool start) {
     } else if (logPrintType == 2) { // p-errors
       bytesSent += PRINTF("%.3f %.3f %.3f\n", pErrorLog[logPrintIndex].roll, pErrorLog[logPrintIndex].pitch, pErrorLog[logPrintIndex].yaw);
     } else if (logPrintType == 3) { // mVals
-      bytesSent += PRINTF("%.2f %.2f %.2f %.2f\n", mValLog[logPrintIndex*4], mValLog[logPrintIndex*4 + 1], mValLog[logPrintIndex*4 + 2], mValLog[logPrintIndex*4 + 3]);
-    } else if (logPrintType == 4) { // motorErrors
-      bytesSent += PRINTF("%d %d %d %d\n",
-			  (motorErrorLog[logPrintIndex] & SETMOTORS_CLIPPED_0) ? 1 : 0,
-			  (motorErrorLog[logPrintIndex] & SETMOTORS_CLIPPED_1) ? 1 : 0,
-			  (motorErrorLog[logPrintIndex] & SETMOTORS_CLIPPED_2) ? 1 : 0,
-			  (motorErrorLog[logPrintIndex] & SETMOTORS_CLIPPED_3) ? 1 : 0
-			  );
+      bytesSent += PRINTF("%.3f %.3f %.3f %.3f\n", mValLog[logPrintIndex*4], mValLog[logPrintIndex*4 + 1], mValLog[logPrintIndex*4 + 2], mValLog[logPrintIndex*4 + 3]);
     }
     
     logPrintIndex++;
@@ -284,7 +274,6 @@ void Quadcontrol() {
 	  for (int i = 0; i < 4; i++) {
 	    mValLog[logIndex*4 + i] = mVals[i];
 	  }
-	  motorErrorLog[logIndex] = mErrors;
 	  logIndex++;
 	}
       }
