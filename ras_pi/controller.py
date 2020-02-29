@@ -2,6 +2,7 @@
 
 import pygame
 import time
+import datetime
 import serial
 import subprocess
 import struct
@@ -24,6 +25,7 @@ pygame.joystick.init()
 
 done = False
 ready_to_send = True
+d = datetime.datetime.now()
 #screen = pygame.display.set_mode((100, 100))
 #pygame.display.set_caption("My Game")
 clock = pygame.time.Clock()
@@ -31,8 +33,8 @@ clock = pygame.time.Clock()
 joystick = pygame.joystick.Joystick(0)
 joystick.init()
 
-debug_path = "./../../../../../var/www/html/debug.txt"
-debug_file = open(r'/var/www/html/debug.txt','wb')
+debug_str = "/var/www/html/debug_" + str(d.year) + str(d.month) + str(d.day) + "_" + str(d.hour) + "-" + str(d.minute) + ".txt"
+debug_file = open(debug_str,'wb')
 
 ser = serial.Serial(port = "/dev/ttyS0", baudrate = 115200, write_timeout = None, timeout = None) #read timeout should get set to None
 special = 0
