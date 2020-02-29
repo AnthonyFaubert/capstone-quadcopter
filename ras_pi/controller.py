@@ -6,10 +6,12 @@ import serial
 import subprocess
 import struct
 import socket
+import code
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s = s.connect(('localhost', 8000))
-s.setblocking(False)
+#s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#s.connect(('localhost', 8000))
+print("connection established!")
+#s.setblocking(False)
 
 manual = True
 auto = False
@@ -18,6 +20,7 @@ DATA_LENGTH = 12
 
 # intialize pygame
 pygame.init()
+pygame.joystick.init()
 
 done = False
 ready_to_send = True
@@ -58,7 +61,7 @@ ser.reset_output_buffer()
 lastSend = -1
 worstLoopTime = -1
 while not done:
-    clock.tick(60) #integer value is the frames per second
+    clock.tick(70) #integer value is the frames per second
     loopTime = time.time()
     debug_file.flush()
     
@@ -82,48 +85,47 @@ while not done:
                 special = 4
                 print("button 4")
 
-        tilt = get_tilt()
-        yt = get_yt()
-        ready_to_send = True  #needs to be set to False eventually
-        
-        face_data_bytes = s.recv(1000)
-        face_data_extra = len(face_data_bytes) % 12
-        face_data_start = len(face_data_bytes) - 12 - face_data_extra
-        face_data_end = len(face_data_bytes) - face_data_extra
-        final_face_bytes = face_data_bytes[face_data_start:face_data_end]
-        face_date = struct.unpack('>hhhhhh', final_face_bytes)
+    tilt = get_tilt()
+    yt = get_yt()
+    ready_to_send = True  #needs to be set to False eventually
+    #face_data_bytes = s.recv(1000)
+    #face_data_extra = len(face_data_bytes) % 12
+    #face_data_start = len(face_data_bytes) - 12 - face_data_extra
+    #face_data_end = len(face_data_bytes) - face_data_extra
+    #final_face_bytes = face_data_bytes[face_data_start:face_data_end]
+    #face_date = struct.unpack('>hhhhhh', final_face_bytes)
         
         #if (manual):
-        data = struct.pack('>Bhhhhh', 37, tilt[0], tilt[1], yt[0], yt[1], special)
+    data = struct.pack('>Bhhhhh', 37, tilt[0], tilt[1], yt[0], yt[1], special)
         #else:
         #data = struct.pack('>Bhhhhh', 37, face_data x lr, face_dat width, 0, face_data y, special)
-        checksum = sum(data) & 0xFF
-        data += struct.pack('>B', checksum)
-        print("below is sent data:")
-        ser.write(data)
-        if special == 5:
+    checksum = sum(data) & 0xFF
+    data += struct.pack('>B', checksum)
+    print("below is sent data:")
+    ser.write(data)
+    if special == 5:
             # send multiple E-stops to ensure reception
-            ser.write(data)
-            ser.write(data)
-            done = True
-            time.sleep(3) # give time to receive all debug UART data before ending
-        print(hexify(data))
-        timeDiff = time.time() - lastSend
-        if (lastSend != -1) and (timeDiff > 0.030):
-            loopTime = time.time() - loopTime
-            print("ERROR: %f seconds in between packet sends!" % timeDiff)
-            print("This loop time: %f. Worst loop time: %f." % (loopTime, worstLoopTime))
+        ser.write(data)
+        ser.write(data)
+        #done = True
+        time.sleep(3) # give time to receive all debug UART data before ending
+    print(hexify(data))
+    timeDiff = time.time() - lastSend
+    if (lastSend != -1) and (timeDiff > 0.030):
+        loopTime = time.time() - loopTime
+        print("ERROR: %f seconds in between packet sends!" % timeDiff)
+        print("This loop time: %f. Worst loop time: %f." % (loopTime, worstLoopTime))
             #time.sleep(15)
-        lastSend = time.time()
-        #print(data)
-        #print("ser out waiting " + str(ser.out_waiting))
-        print()
-        #ser.reset_output_buffer()
-        special = 0
+    lastSend = time.time()
+    #print(data)
+    #print("ser out waiting " + str(ser.out_waiting))
+    print()
+    #ser.reset_output_buffer()
+    special = 0
 
     #send angle to haar.py
-    angle = struct.pack('>b', )
-    s.send(angle)
+    #angle = struct.pack('>b', )
+    #s.send(angle)
 
 
     if (ser.in_waiting > 0):

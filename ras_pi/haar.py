@@ -11,6 +11,7 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind(('localhost', 8000))
 s.listen(1)
 conn, addr = s.accept() #use conn.recv(), conn.send()
+print("Connection established!")
 conn.setblocking(False)
 
 face_cascade = cv2.CascadeClassifier('./haarcascade_frontalface_default.xml') #filter can be swapped with ....face_alt.xml
@@ -20,6 +21,7 @@ no_face_frames = 0
 
 if (face_cascade.empty()):
     print("ERROR: No cascade filter found.")
+    quit()
 
 cap = cv2.VideoCapture(0)
 faces = []
@@ -27,6 +29,7 @@ init_frames = 0
     
 if not cap.isOpened():
     print("ERROR: Unable to open camera")
+    quit()
 else:
     while(len(faces) == 0):
         ret, img = cap.read()
@@ -39,14 +42,16 @@ prev_center = [faces[0][0]+(0.5*faces[0][2]), faces[0][1]+(0.5*faces[0][3])]
 prev_size = [faces[0][2], faces[0][3]]
 
 consec_missed = 0
+loop_time = 1
     
 while(cap.isOpened() and (not face_cascade.empty())):
     start_cap = time.time()
     ret, img = cap.read()
-    bytes_angle = conn.recv(1000)
-    angle = struct.unpack('>b', bytes_angle[-1])
-    rot = imutils.rotate(img, angle)
-    gray = cv2.cvtColor(rot, cv2.COLOR_BGR2GRAY)
+    #bytes_angle = conn.recv(1000)
+    #angle = struct.unpack('>b', bytes_angle[-1])
+    #rot = imutils.rotate(img, angle)
+    #gray = cv2.cvtColor(rot, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     end_cap = time.time()
     delta_cap = (end_cap - start_cap) * 1000
     print("%.2f ms to capture a pic" %delta_cap)
@@ -85,8 +90,9 @@ while(cap.isOpened() and (not face_cascade.empty())):
     y_err = prev_center[1] - 179
     
     if (face_det):
-        send_data = struct.pack('>hhhhhh', x_err, x_diff, y_err, y_diff, prev_size[0], w_diff)
-        conn.send(send_data)
+        consec_missed = 0
+        #send_data = struct.pack('>hhhhhh', x_err, x_diff, y_err, y_diff, prev_size[0], w_diff)
+        #conn.send(send_data)
     else: #not face_det
         no_face_frames = no_face_frames + 1
         consec_missed += 1
@@ -94,7 +100,7 @@ while(cap.isOpened() and (not face_cascade.empty())):
         #send_data = struct.pack()
         #conn.send(send_data)
 
-    if (consec_missed > 30):
+    if (consec_missed > 1000):
         consec_missed = 0
     
     end_calc = time.time()
