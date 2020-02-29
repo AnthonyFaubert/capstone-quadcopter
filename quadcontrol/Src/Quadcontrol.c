@@ -39,6 +39,7 @@ GyroData gyroLog[LOG_LENGTH];
 Quaternion oriLog[LOG_LENGTH];
 RollPitchYaw pErrorLog[LOG_LENGTH];
 float mValLog[4*LOG_LENGTH];
+float throttleLog[LOG_LENGTH];
 
 // Maximum size of a single data chunk (no more than this many chars per printf call)
 #define MAX_TX_CHUNK 100
@@ -95,6 +96,8 @@ bool taskPrintLog(bool start) {
 	bytesSent += PRINTF("#name:pErrs\n#type:matrix\n#rows:%d\n#columns:3\n", logIndex);
       } else if (logPrintType == 3) {
 	bytesSent += PRINTF("#name:mVals\n#type:matrix\n#rows:%d\n#columns:4\n", logIndex);
+      } else if (logPrintType == 4) {
+	bytesSent += PRINTF("#name:throttle\n#type:matrix\n#rows:%d\n#columns:1\n", logIndex);
       } else {
 	// Done, go back into waiting to start another log
 	PRINTF("LOGEND\n");
@@ -111,6 +114,8 @@ bool taskPrintLog(bool start) {
       bytesSent += PRINTF("%.3f %.3f %.3f\n", pErrorLog[logPrintIndex].roll, pErrorLog[logPrintIndex].pitch, pErrorLog[logPrintIndex].yaw);
     } else if (logPrintType == 3) { // mVals
       bytesSent += PRINTF("%.3f %.3f %.3f %.3f\n", mValLog[logPrintIndex*4], mValLog[logPrintIndex*4 + 1], mValLog[logPrintIndex*4 + 2], mValLog[logPrintIndex*4 + 3]);
+    } else if (logPrintType == 4) { // throttle
+      bytesSent += PRINTF("%.3f\n", throttleLog[logPrintIndex]);
     }
     
     logPrintIndex++;
@@ -260,7 +265,7 @@ void Quadcontrol() {
           PRINTF("GYRO: X=%.2f Y=%.2f Z=%.2f\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
         }
 	if (mErrors & SETMOTORS_CLIPPED_ANY) {
-	  PRINTLN("Warning: clipped motor(s). code=0x%X", mErrors);
+	  PRINTF("Warning: clipped motor(s). code=0x%02X\n", mErrors);
 	  PRINTF("mvals=[%.2f,%.2f,%.2f,%.2f]\n", mVals[0], mVals[1], mVals[2], mVals[3]);
 	}
 
@@ -274,6 +279,7 @@ void Quadcontrol() {
 	  for (int i = 0; i < 4; i++) {
 	    mValLog[logIndex*4 + i] = mVals[i];
 	  }
+          throttleLog[logIndex] = thrust;
 	  logIndex++;
 	}
       }

@@ -61,7 +61,7 @@ static void setESCs(uint16_t ch1, uint16_t ch2, uint16_t ch3, uint16_t ch4) {
 // Returns error type: 0 = no error, 1 = thrust request not honored, -1 = non-linearity fatal error
 uint8_t SetMotors(float* motorVals) {
   if (!calibrated) return SETMOTORS_FAILED_NOTCALIBRATED;
-  uint8_t errors = SETMOTORS_OK;
+  uint8_t errors = 0x00;
 
   // Find largest/smallest values and copy motor values, clipping values that are out of bounds
   float tmp[4];
