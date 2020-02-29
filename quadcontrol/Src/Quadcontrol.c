@@ -153,6 +153,7 @@ void callback_ProcessPacket(uint8_t computedChecksum, uint8_t receivedChecksum, 
     if (GPacket.buttons) {
       PRINTF("Btns!=0; %d\n", GPacket.buttons);
       if (GPacket.buttons == 5) emergencyStop();
+      if (GPacket.buttons == 6) logIndex = 0; // Reset the data log
       PRINTF("GPak: %d, %d, %d, %d\n", GPacket.leftRight, GPacket.upDown, GPacket.padLeftRight, GPacket.padUpDown);
       PRINTF("Thr=%.2f\n", thrust);
       JoystickApplyTrim(GPacket.buttons);
@@ -229,15 +230,16 @@ void Quadcontrol() {
       GetQuaternionError(&orientationErrors, imuOrientation, joystickOrientation);
       LimitErrors(&orientationErrors);
       PID(mVals, orientationErrors, imuGyroData, thrust);
-
-      if (logIndex >= 1000) emergencyStop();
-      gyroLog[logIndex] = imuGyroData;
-      oriLog[logIndex] = imuOrientation;
-      pErrorLog[logIndex] = orientationErrors;
-      for (int i = 0; i < 4; i++) {
-	mValLog[logIndex*4 + i] = mVals[i];
+      
+      if (logIndex <= 1000) {
+        gyroLog[logIndex] = imuGyroData;
+        oriLog[logIndex] = imuOrientation;
+        pErrorLog[logIndex] = orientationErrors;
+        for (int i = 0; i < 4; i++) {
+	  mValLog[logIndex*4 + i] = mVals[i];
+        }
+        logIndex++;
       }
-      logIndex++;
 
       if (packetTimeout != 0) {
         if (uwTick >= packetTimeout) {
