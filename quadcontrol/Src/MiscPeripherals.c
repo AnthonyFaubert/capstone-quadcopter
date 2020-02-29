@@ -59,32 +59,44 @@ static void setESCs(uint16_t ch1, uint16_t ch2, uint16_t ch3, uint16_t ch4) {
 }
 
 // Returns error type: 0 = no error, 1 = thrust request not honored, -1 = non-linearity fatal error
-int SetMotors(float* motorVals) {
+uint8_t SetMotors(float* motorVals) {
   if (!calibrated) return SETMOTORS_FAILED_NOTCALIBRATED;
-  int error = -1;
+  uint8_t errors = SETMOTORS_OK;
+
+  // Find largest/smallest values and clip values that are out of bounds
   float largest = -INFINITY;
   float smallest = INFINITY;
   for (int i = 0; i < 4; i++) {
     if (motorVals[i] > largest) largest = motorVals[i];
     if (motorVals[i] < smallest) smallest = motorVals[i];
     
-    if (motorVals[i] < 0.0f || 1.0f < motorVals[i]) {
-      error = i;
+    if (motorVals[i] < 0.0f) {
+      motorVals[i] = 0.0f;
+      errors |= SETMOTORS_CLIPPED_0 << i;
+    } else if (1.0f < motorVals[i]) {
+      motorVals[i] = 1.0f;
+      errors |= SETMOTORS_CLIPPED_0 << i;
     }
   }
-  if (error != -1) {
-    if ((largest - smallest) < 1.0f) {
+
+  if ((largest - smallest) > 1.0f) errors |= SETMOTORS_NOT_LINEARIZABLE;
+
+  /* old shifting code, potentially masks PID problems
+  if (errors) {
+    if ((largest - smallest) > 1.0f) {
+      setESCs(1000, 1000, 1000, 1000);
+      return errors;
+    } else {
       if (largest > 1.0f) {
         VectorScalarAdd(motorVals, 1.0f - largest, motorVals);
       } else {
         VectorScalarAdd(motorVals, -smallest, motorVals);
       }
-    } else {
-      setESCs(1000, 1000, 1000, 1000);
-      return SETMOTORS_FAILED_NONLINEAR;
     }
   }
+  */
 
+  // Convert motor values [0.0f, 1.0f] to PWM values
   float tmp[4];
   uint16_t thrusts[4];
   for (int i = 0; i < 4; i++) {
@@ -93,7 +105,7 @@ int SetMotors(float* motorVals) {
   }
   //PRINTF("MVsRaw: %d, %d, %d, %d\n", thrusts[MOTOR_CHANNEL_MAPPING[0]], thrusts[MOTOR_CHANNEL_MAPPING[1]], thrusts[MOTOR_CHANNEL_MAPPING[2]], thrusts[MOTOR_CHANNEL_MAPPING[3]]);
   setESCs(thrusts[MOTORMAP_CH1_MOTOR], thrusts[MOTORMAP_CH2_MOTOR], thrusts[MOTORMAP_CH3_MOTOR], thrusts[MOTORMAP_CH4_MOTOR]);
-  return (error != -1) ? SETMOTORS_THRUST_DENIED : SETMOTORS_OK;
+  return errors;
 }
 
 void EmergencyShutoff() {

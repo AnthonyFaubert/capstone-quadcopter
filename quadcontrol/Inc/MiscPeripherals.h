@@ -24,17 +24,26 @@ bool CheckButtonState(bool high);
 // Define CALIBRATE_ESCS_WAIT_MACRO(milliseconds) to do something while it waits.
 void CalibrateESCs();
 
-// Possible values returned by SetMotors()
 // Motor values had to be shifted into valid range; total thrust will be different
 #define SETMOTORS_THRUST_DENIED 1
 // ERROR: motor values are non-linear; didn't set PWM values
 #define SETMOTORS_FAILED_NONLINEAR -1
+
+// Possible values returned by SetMotors() (0x00 = everything is fine)
 // ERROR: you never called CalibrateESCs()
-#define SETMOTORS_FAILED_NOTCALIBRATED -2
-// Everything fine
-#define SETMOTORS_OK 0
+#define SETMOTORS_FAILED_NOTCALIBRATED 0xFF
+// Any bitwize combination of these bits:
+// Motor values dynamic range was too large, wouldn't be fixable even with the right throttle value
+#define SETMOTORS_NOT_LINEARIZABLE 0x40
+// Motor number X Was clipped to 0.0f or 1.0f because it was out of range. A different throttle input would potentially fix it.
+#define SETMOTORS_CLIPPED_0 0x01
+#define SETMOTORS_CLIPPED_1 0x02
+#define SETMOTORS_CLIPPED_2 0x04
+#define SETMOTORS_CLIPPED_3 0x08
+// Convenience value
+#define SETMOTORS_CLIPPED_ANY 0x0F
 // Sets the motor values to those specified with checking/adjusting to fit the valid range [0.0, 1.0]
-int SetMotors(float* motorValues);
+uint8_t SetMotors(float* motorValues);
 
 // Turns off motor PWMs
 void EmergencyShutoff();

@@ -39,6 +39,7 @@ GyroData gyroLog[LOG_LENGTH];
 Quaternion oriLog[LOG_LENGTH];
 RollPitchYaw pErrorLog[LOG_LENGTH];
 float mValLog[4*LOG_LENGTH];
+uint8_t motorErrorLog[LOG_LENGTH];
 
 // Maximum size of a single data chunk (no more than this many chars per printf call)
 #define MAX_TX_CHUNK 100
@@ -95,6 +96,8 @@ bool taskPrintLog(bool start) {
 	bytesSent += PRINTF("#name:pErrs\n#type:matrix\n#rows:%d\n#columns:3\n", logIndex);
       } else if (logPrintType == 3) {
 	bytesSent += PRINTF("#name:mVals\n#type:matrix\n#rows:%d\n#columns:4\n", logIndex);
+      } else if (logPrintType == 4) {
+	bytesSent += PRINTF("#name:mErrs\n#type:matrix\n#rows:%d\n#columns:4\n", logIndex);
       } else {
 	// Done, go back into waiting to start another log
 	PRINTF("LOGEND\n");
@@ -111,6 +114,13 @@ bool taskPrintLog(bool start) {
       bytesSent += PRINTF("%.3f %.3f %.3f\n", pErrorLog[logPrintIndex].roll, pErrorLog[logPrintIndex].pitch, pErrorLog[logPrintIndex].yaw);
     } else if (logPrintType == 3) { // mVals
       bytesSent += PRINTF("%.2f %.2f %.2f %.2f\n", mValLog[logPrintIndex*4], mValLog[logPrintIndex*4 + 1], mValLog[logPrintIndex*4 + 2], mValLog[logPrintIndex*4 + 3]);
+    } else if (logPrintType == 4) { // motorErrors
+      bytesSent += PRINTF("%d %d %d %d\n",
+			  (motorErrorLog[logPrintIndex] & SETMOTORS_CLIPPED_0) ? 1 : 0,
+			  (motorErrorLog[logPrintIndex] & SETMOTORS_CLIPPED_1) ? 1 : 0,
+			  (motorErrorLog[logPrintIndex] & SETMOTORS_CLIPPED_2) ? 1 : 0,
+			  (motorErrorLog[logPrintIndex] & SETMOTORS_CLIPPED_3) ? 1 : 0
+			  );
     }
     
     logPrintIndex++;
@@ -242,41 +252,40 @@ void Quadcontrol() {
       LimitErrors(&orientationErrors);
       PID(mVals, orientationErrors, imuGyroData, thrust);
       
-      if (logIndex < LOG_LENGTH) {
-	// Set the initial log time
-	if (logTimestamp == 0xFFFFFFFF) logTimestamp = uwTick;
-        gyroLog[logIndex] = imuGyroData;
-        oriLog[logIndex] = imuOrientation;
-        pErrorLog[logIndex] = orientationErrors;
-        for (int i = 0; i < 4; i++) {
-	  mValLog[logIndex*4 + i] = mVals[i];
-        }
-        logIndex++;
-      }
-
-      if (packetTimeout != 0) {
-        if (uwTick >= packetTimeout) {
+      if (packetTimeout != 0) { // if the RPi is ready
+        if (uwTick >= packetTimeout) { // too long since the last packet
           uint32_t time = uwTick;
 	  PRINTF("FATAL: p. timeout. (diff=%d ms=%d-%d)\n", time - lastRXLoop, time, lastRXLoop);
           emergencyStop();
         }
         
         // TODO: E-stop if we're upside-down
-	int mErrCode = SetMotors(mVals);
-        if (mErrCode == -1) {
-          PRINTLN("FATAL: nonlinearity!");
-          txWait(5);
-          PRINTF("mvals=[%.2f,%.2f,%.2f,%.2f]\n", mVals[0], mVals[1], mVals[2], mVals[3]);
+	
+	uint8_t mErrors = SetMotors(mVals);
+        if (mErrors & SETMOTORS_NOT_LINEARIZABLE) {
+          PRINTLN("ERROR: Nonlinearity!");
           PRINTF("QUATS: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", imuOrientation.w, imuOrientation.x, imuOrientation.y, imuOrientation.z);
-          txWait(2);
           PRINTF("JOYQ: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", joystickOrientation.w, joystickOrientation.x, joystickOrientation.y, joystickOrientation.z);
           PRINTF("ERRS: R=%.2f P=%.2f Y=%.2f (all rads)\n", orientationErrors.roll, orientationErrors.pitch, orientationErrors.yaw);
-          txWait(2);
           PRINTF("GYRO: X=%.2f Y=%.2f Z=%.2f\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
-          emergencyStop();
-        } else if (mErrCode == 1) {
-	  PRINTLN("ERROR: thrust denied.");
-	  PRINTF("mvals=[%.2f,%.2f,%.2f,%.2f]", mVals[0], mVals[1], mVals[2], mVals[3]);
+        }
+	if (mErrors & SETMOTORS_CLIPPED_ANY) {
+	  PRINTLN("Warning: clipped motor(s). code=0x%X", mErrors);
+	  PRINTF("mvals=[%.2f,%.2f,%.2f,%.2f]\n", mVals[0], mVals[1], mVals[2], mVals[3]);
+	}
+
+	// Log data
+	if (logIndex < LOG_LENGTH) {
+	  // Set the initial log time
+	  if (logTimestamp == 0xFFFFFFFF) logTimestamp = uwTick;
+	  gyroLog[logIndex] = imuGyroData;
+	  oriLog[logIndex] = imuOrientation;
+	  pErrorLog[logIndex] = orientationErrors;
+	  for (int i = 0; i < 4; i++) {
+	    mValLog[logIndex*4 + i] = mVals[i];
+	  }
+	  motorErrorLog[logIndex] = mErrors;
+	  logIndex++;
 	}
       }
     }
