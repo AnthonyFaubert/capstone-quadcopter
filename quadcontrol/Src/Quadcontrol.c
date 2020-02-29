@@ -33,7 +33,8 @@ LPF_TYPE lowPassFilter(LPF_TYPE newVal) {
 }
 
 #define LOG_LENGTH 1000
-int logIndex = 0;
+static uint32_t logTimestamp = 0xFFFFFFFF;
+static int logIndex = 0;
 GyroData gyroLog[LOG_LENGTH];
 Quaternion oriLog[LOG_LENGTH];
 RollPitchYaw pErrorLog[LOG_LENGTH];
@@ -66,28 +67,27 @@ void waitForButtonState(bool high, bool printPrompt) {
   }
 }
 
-void taskPrintLog() {
+// Takes in whether or not to start a new log prinout. Returns true when it finishes.
+bool taskPrintLog(bool start) {
   static uint32_t schedule = 0;
   static int logPrintIndex = 0;
-  static int logPrintType = 0;
-  
-  // Wait for the TX FIFO to flush before beginning
-  if (schedule == 0) {
-    PRINTF("LOGSTART\n");
+  static int logPrintType = -1;
+
+  if (start) {
+    // Wait for the TX FIFO to flush before beginning
+    logPrintIndex = 0;
+    logPrintType = 0;
     schedule = uwTick + UART3_TXBUF_SIZE/12; // 115200 baud = 12.8 bytes/ms
-    return;
-  }
-  
-  if (uwTick >= schedule) {
-    if (logPrintType > 50) return;
+  } else if ((logPrintType >= 0) && (uwTick >= schedule)) {
     int bytesSent = 0;
 
     if (logPrintIndex >= logIndex) {
-	logPrintIndex = 0;
-	logPrintType++;
+      logPrintIndex = 0;
+      logPrintType++;
     }
     if (logPrintIndex == 0) {
       if (logPrintType == 0) {
+	bytesSent += PRINTF("LOGSTART %d\n", logTimestamp);
 	bytesSent += PRINTF("#name:gyro\n#type:matrix\n#rows:%d\n#columns:3\n", logIndex);
       } else if (logPrintType == 1) {
 	bytesSent += PRINTF("#name:ori\n#type:matrix\n#rows:%d\n#columns:4\n", logIndex);
@@ -95,6 +95,11 @@ void taskPrintLog() {
 	bytesSent += PRINTF("#name:pErrs\n#type:matrix\n#rows:%d\n#columns:3\n", logIndex);
       } else if (logPrintType == 3) {
 	bytesSent += PRINTF("#name:mVals\n#type:matrix\n#rows:%d\n#columns:4\n", logIndex);
+      } else {
+	// Done, go back into waiting to start another log
+	PRINTF("LOGEND\n");
+	logPrintType = -1;
+	return true; // finished log
       }
     }
 
@@ -113,6 +118,7 @@ void taskPrintLog() {
     sendDuration /= 12.8f; // 115200 baud = 12.8 bytes/ms
     schedule = uwTick + 1 + (uint32_t) sendDuration; // 1 ms extra in case of rounding errors
   }
+  return false; // log not finished
 }
 
 #define CALIBRATE_ESCS_WAIT_MACRO(ms) txWait(ms); if (ms == 100) PRINTF(".")
@@ -120,9 +126,10 @@ void taskPrintLog() {
 void emergencyStop() {
   EmergencyShutoff();
   PRINTLN("EMERGENCY STOP ACTIVATED!");
+  taskPrintLog(true);
   while (1) {
+    taskPrintLog(false);
     task_Uart3TxFeedDma();
-    taskPrintLog();
   }
 }
 
@@ -154,7 +161,10 @@ void callback_ProcessPacket(uint8_t computedChecksum, uint8_t receivedChecksum, 
     if (GPacket.buttons) {
       PRINTF("Btns!=0; %d\n", GPacket.buttons);
       if (GPacket.buttons == 5) emergencyStop();
-      if (GPacket.buttons == 6) logIndex = 0; // Reset the data log
+      if (GPacket.buttons == 6) {
+	logTimestamp = 0xFFFFFFFF; // invalidate the timestamp
+	logIndex = 0; // Reset the data log
+      }
       PRINTF("GPak: %d, %d, %d, %d\n", GPacket.leftRight, GPacket.upDown, GPacket.padLeftRight, GPacket.padUpDown);
       PRINTF("Thr=%.2f\n", thrust);
       JoystickApplyTrim(GPacket.buttons);
@@ -233,6 +243,8 @@ void Quadcontrol() {
       PID(mVals, orientationErrors, imuGyroData, thrust);
       
       if (logIndex < LOG_LENGTH) {
+	// Set the initial log time
+	if (logTimestamp == 0xFFFFFFFF) logTimestamp = uwTick;
         gyroLog[logIndex] = imuGyroData;
         oriLog[logIndex] = imuOrientation;
         pErrorLog[logIndex] = orientationErrors;
