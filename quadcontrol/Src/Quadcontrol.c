@@ -68,20 +68,20 @@ void waitForButtonState(bool high, bool printPrompt) {
   }
 }
 
-// Takes in whether or not to start a new log prinout. Returns true when it finishes.
-bool taskPrintLog(bool start) {
-  static uint32_t schedule = 0;
+// Takes in whether or not to start a new log prinout.
+// Cannot start a log until the last one finishes.
+// Returns the number of bytes sent. If it returns 0, that means it's done logging.
+int taskPrintLog(bool start) {
   static int logPrintIndex = 0;
   static int logPrintType = -1;
 
-  if (start) {
-    // Wait for the TX FIFO to flush before beginning
+  if (start && (logPrintType == -1)) {
     logPrintIndex = 0;
     logPrintType = 0;
-    schedule = uwTick + UART3_TXBUF_SIZE/12; // 115200 baud = 12.8 bytes/ms
-  } else if ((logPrintType >= 0) && (uwTick >= schedule)) {
-    int bytesSent = 0;
-
+  }
+  
+  int bytesSent = 0;
+  if (logPrintType >= 0) {
     if (logPrintIndex >= logIndex) {
       logPrintIndex = 0;
       logPrintType++;
@@ -89,9 +89,9 @@ bool taskPrintLog(bool start) {
     if (logPrintIndex == 0) {
       if (logPrintType == 0) {
 	bytesSent += PRINTF("LOGSTART %d\n", logTimestamp);
-	bytesSent += PRINTF("#name:gyro\n#type:matrix\n#rows:%d\n#columns:3\n", logIndex);
+	bytesSent += PRINTF("#name:gyroRaw\n#type:matrix\n#rows:%d\n#columns:3\n", logIndex);
       } else if (logPrintType == 1) {
-	bytesSent += PRINTF("#name:ori\n#type:matrix\n#rows:%d\n#columns:4\n", logIndex);
+	bytesSent += PRINTF("#name:quats\n#type:matrix\n#rows:%d\n#columns:4\n", logIndex);
       } else if (logPrintType == 2) {
 	bytesSent += PRINTF("#name:pErrs\n#type:matrix\n#rows:%d\n#columns:3\n", logIndex);
       } else if (logPrintType == 3) {
@@ -99,10 +99,8 @@ bool taskPrintLog(bool start) {
       } else if (logPrintType == 4) {
 	bytesSent += PRINTF("#name:throttle\n#type:matrix\n#rows:%d\n#columns:1\n", logIndex);
       } else {
-	// Done, go back into waiting to start another log
 	PRINTF("LOGEND\n");
-	logPrintType = -1;
-	return true; // finished log
+	logPrintType = -1; // Done, go back into waiting to start another log
       }
     }
 
@@ -117,13 +115,9 @@ bool taskPrintLog(bool start) {
     } else if (logPrintType == 4) { // throttle
       bytesSent += PRINTF("%.3f\n", throttleLog[logPrintIndex]);
     }
-    
     logPrintIndex++;
-    float sendDuration = bytesSent;
-    sendDuration /= 12.8f; // 115200 baud = 12.8 bytes/ms
-    schedule = uwTick + 1 + (uint32_t) sendDuration; // 1 ms extra in case of rounding errors
   }
-  return false; // log not finished
+  return bytesSent;
 }
 
 #define CALIBRATE_ESCS_WAIT_MACRO(ms) txWait(ms); if (ms == 100) PRINTF(".")
@@ -217,15 +211,15 @@ void Quadcontrol() {
   PRINTLN(" Done.");
   
   Quaternion imuOrientation;
-  GyroData imuGyroData;
+  GyroData imuGyroData, imuGyroDataRaw;
   RollPitchYaw orientationErrors;
     
   float mVals[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-  bool q = false; // TODO: convert to defines
+  bool q = false; // TODO: convert to defines?
   bool j = true;
   bool e = true;
-  bool g = false;
+  bool g = true;
   bool m = false;
   
   uint32_t schedulePID = 0, schedulePrintInfo = 0;
@@ -241,7 +235,7 @@ void Quadcontrol() {
       IMUGetOrientation(&imuOrientation); // FIXME: check for IMU comms error!
       ApplyOrientationCorrection(&imuOrientation);
       IMUGetGyro(&imuGyroData);
-      if (logIndex < LOG_LENGTH) gyroLog[logIndex] = imuGyroData; // log raw gyro
+      imuGyroDataRaw = imuGyroData; // hold onto raw gyro for logging
       ApplyGyroCorrection(&imuGyroData);
       
       GetQuaternionError(&orientationErrors, imuOrientation, joystickOrientation);
@@ -274,6 +268,7 @@ void Quadcontrol() {
 	if (logIndex < LOG_LENGTH) {
 	  // Set the initial log time
 	  if (logTimestamp == 0xFFFFFFFF) logTimestamp = uwTick;
+          gyroLog[logIndex] = imuGyroDataRaw; // log raw gyro
 	  oriLog[logIndex] = imuOrientation;
 	  pErrorLog[logIndex] = orientationErrors;
 	  for (int i = 0; i < 4; i++) {
