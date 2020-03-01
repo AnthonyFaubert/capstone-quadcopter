@@ -127,6 +127,7 @@ void Joystick2Quaternion(Quaternion* joyCmdQuatPtr, int16_t rollInt, int16_t pit
   Quaternion rollQuat = {cosf(roll), 0.0f, sinf(roll), 0.0f};
   Quaternion pitchQuat = {cosf(pitch), sinf(pitch), 0.0f, 0.0f};
   
+  // FIXME: fix comments
   //// Combine rotations; roll, pitch, then yaw
   //// Ideally roll and pitch at the same time and then yaw, but that's too complicated
   Quaternion tmpQuat;

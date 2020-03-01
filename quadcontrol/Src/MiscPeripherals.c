@@ -85,6 +85,7 @@ uint8_t SetMotors(float* motorVals) {
 
   if ((largest - smallest) > 1.0f) errors |= SETMOTORS_NOT_LINEARIZABLE;
 
+      // TODO: remove
   /* old shifting code, potentially masks PID problems
   if (errors) {
     if ((largest - smallest) > 1.0f) {

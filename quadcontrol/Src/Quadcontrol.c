@@ -193,11 +193,12 @@ void task_CheckButton() {
   }
 }
 
-void experiment_SingleStepRoll(float* mVals) {
-  const float BASELINE_THRUST = 0.4f;
+void experiment_SingleStepPitch(float* mVals) {
+  const float BASELINE_THRUST = 0.3f;
   const float RAMP_TIME_MS = 2000.0f;
   const uint32_t EXPERIMENT_START_MS = 5000; // must be more than ramp time
   const uint32_t EXPERIMENT_DURATION_MS = 2000;
+  const float MOTOR_COMMAND = 0.01f;
   
   if (logTimestamp != 0xFFFFFFFF) { // start experiment 5 seconds into logging
     if (uwTick > logTimestamp+EXPERIMENT_START_MS+EXPERIMENT_DURATION_MS) { // exp. end
@@ -206,8 +207,8 @@ void experiment_SingleStepRoll(float* mVals) {
       thrust = BASELINE_THRUST;
       for (int i = 0; i < 4; i++) mVals[i] = thrust;
       
-      mVals[0] += 0.01f;
-      mVals[1] -= 0.01f;
+      mVals[1] -= MOTOR_COMMAND;
+      mVals[3] += MOTOR_COMMAND;
     } else {
       thrust = uwTick - logTimestamp;
       thrust *= BASELINE_THRUST / RAMP_TIME_MS;
@@ -290,8 +291,8 @@ void Quadcontrol() {
         // TODO: E-stop if we're upside-down
 	
         // FIXME: comment out experiments
-        // experiment_SingleStepRoll(mVals);
-        experiment_CheckMotorMap(mVals);
+        experiment_SingleStepPitch(mVals);
+        //experiment_CheckMotorMap(mVals);
         
         //for (int i = 0; i < 4; i++) mVals[i] = 0.0f; // disable throttle out
 	uint8_t mErrors = SetMotors(mVals);
