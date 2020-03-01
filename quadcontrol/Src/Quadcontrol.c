@@ -193,6 +193,51 @@ void task_CheckButton() {
   }
 }
 
+void experiment_SingleStepRoll(float* mVals) {
+  const float BASELINE_THRUST = 0.4f;
+  const float RAMP_TIME_MS = 2000.0f;
+  const uint32_t EXPERIMENT_START_MS = 5000; // must be more than ramp time
+  const uint32_t EXPERIMENT_DURATION_MS = 2000;
+  
+  if (logTimestamp != 0xFFFFFFFF) { // start experiment 5 seconds into logging
+    if (uwTick > logTimestamp+EXPERIMENT_START_MS+EXPERIMENT_DURATION_MS) { // exp. end
+      for (int i = 0; i < 4; i++) mVals[i] = 0.0f;
+    } else if (uwTick > logTimestamp+EXPERIMENT_START_MS) { // exp. start
+      thrust = BASELINE_THRUST;
+      for (int i = 0; i < 4; i++) mVals[i] = thrust;
+      
+      mVals[0] += 0.01f;
+      mVals[1] -= 0.01f;
+    } else {
+      thrust = uwTick - logTimestamp;
+      thrust *= BASELINE_THRUST / RAMP_TIME_MS;
+      if (thrust > BASELINE_THRUST) thrust = BASELINE_THRUST;
+      for (int i = 0; i < 4; i++) mVals[i] = thrust;
+    }
+  } else {
+    for (int i = 0; i < 4; i++) mVals[i] = 0.0f;
+  }
+}
+void experiment_CheckMotorMap(float* mVals) {
+  const uint32_t EXPERIMENT_START_MS = 1000;
+  const uint32_t EXPERIMENT_DURATION_MS = 10000;
+  
+  if (logTimestamp != 0xFFFFFFFF) { // start experiment 5 seconds into logging
+    if (uwTick > logTimestamp+EXPERIMENT_START_MS+EXPERIMENT_DURATION_MS) { // exp. end
+      for (int i = 0; i < 4; i++) mVals[i] = 0.0f;
+    } else if (uwTick > logTimestamp+EXPERIMENT_START_MS) { // exp. start
+      for (int i = 0; i < 4; i++) mVals[i] = 0.0f;
+      
+      int motor = (uwTick - EXPERIMENT_START_MS) * 4 / EXPERIMENT_DURATION_MS;
+      mVals[motor] = 0.1f;
+    } else {
+      for (int i = 0; i < 4; i++) mVals[i] = 0.0f;
+    }
+  } else {
+    for (int i = 0; i < 4; i++) mVals[i] = 0.0f;
+  }
+}
+
 // Main program entry point
 void Quadcontrol() {
   Uart3RxConfig();
@@ -251,6 +296,10 @@ void Quadcontrol() {
         
         // TODO: E-stop if we're upside-down
 	
+        // FIXME: comment out experiments
+        // experiment_SingleStepRoll(mVals);
+        experiment_CheckMotorMap(mVals);
+        
 	uint8_t mErrors = SetMotors(mVals);
         if (mErrors & SETMOTORS_NOT_LINEARIZABLE) {
           PRINTLN("ERROR: Nonlinearity!");
