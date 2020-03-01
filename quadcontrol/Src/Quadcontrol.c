@@ -201,7 +201,7 @@ void experiment_SingleStepRoll(float* mVals) {
   
   if (logTimestamp != 0xFFFFFFFF) { // start experiment 5 seconds into logging
     if (uwTick > logTimestamp+EXPERIMENT_START_MS+EXPERIMENT_DURATION_MS) { // exp. end
-      for (int i = 0; i < 4; i++) mVals[i] = 0.0f;
+      emergencyStop();
     } else if (uwTick > logTimestamp+EXPERIMENT_START_MS) { // exp. start
       thrust = BASELINE_THRUST;
       for (int i = 0; i < 4; i++) mVals[i] = thrust;
@@ -219,20 +219,13 @@ void experiment_SingleStepRoll(float* mVals) {
   }
 }
 void experiment_CheckMotorMap(float* mVals) {
-  const uint32_t EXPERIMENT_START_MS = 1000;
-  const uint32_t EXPERIMENT_DURATION_MS = 10000;
-  
   if (logTimestamp != 0xFFFFFFFF) { // start experiment 5 seconds into logging
-    if (uwTick > logTimestamp+EXPERIMENT_START_MS+EXPERIMENT_DURATION_MS) { // exp. end
-      for (int i = 0; i < 4; i++) mVals[i] = 0.0f;
-    } else if (uwTick > logTimestamp+EXPERIMENT_START_MS) { // exp. start
-      for (int i = 0; i < 4; i++) mVals[i] = 0.0f;
-      
-      int motor = (uwTick - EXPERIMENT_START_MS) * 4 / EXPERIMENT_DURATION_MS;
-      mVals[motor] = 0.1f;
-    } else {
-      for (int i = 0; i < 4; i++) mVals[i] = 0.0f;
-    }
+    for (int i = 0; i < 4; i++) mVals[i] = 0.0f;
+    if      (uwTick > logTimestamp+13000) emergencyStop();
+    else if (uwTick > logTimestamp+10000) mVals[3] = 0.2f;
+    else if (uwTick > logTimestamp+ 7000) mVals[2] = 0.2f;
+    else if (uwTick > logTimestamp+ 4000) mVals[1] = 0.2f;
+    else if (uwTick > logTimestamp+ 1000) mVals[0] = 0.2f;
   } else {
     for (int i = 0; i < 4; i++) mVals[i] = 0.0f;
   }
@@ -300,6 +293,7 @@ void Quadcontrol() {
         // experiment_SingleStepRoll(mVals);
         experiment_CheckMotorMap(mVals);
         
+        //for (int i = 0; i < 4; i++) mVals[i] = 0.0f; // disable throttle out
 	uint8_t mErrors = SetMotors(mVals);
         if (mErrors & SETMOTORS_NOT_LINEARIZABLE) {
           PRINTLN("ERROR: Nonlinearity!");
