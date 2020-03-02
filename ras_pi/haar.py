@@ -4,16 +4,18 @@ import time
 import datetime
 import code
 import socket
-import imutils
-from collections import deque
+import imutilsx
 import struct
 
-#s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#s.bind(('localhost', 8000))
-#s.listen(1)
-#conn, addr = s.accept() #use conn.recv(), conn.send()
-print("Connection established!")
-#conn.setblocking(False)
+use_socket = False
+# establishing socket connection
+if (use_socket):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(('localhost', 8000))
+    s.listen(1)
+    conn, addr = s.accept() #use conn.recv(), conn.send()
+    print("Connection established!")
+    conn.setblocking(0)
 
 face_cascade = cv2.CascadeClassifier('./haarcascade_frontalface_default.xml') #filter can be swapped with ....face_alt.xml
 no_face_frames = 0
@@ -30,18 +32,18 @@ init_frames = 0
 
 d = datetime.datetime.now()
 
-image_file_path = "/var/www/html/flight_pics/pic_" + str(d.year) + "-" + str("%2d" %d.month) + "-" + str("%2d" %d.day) + "_" + str("%2d" %d.hour) + "." + str("%2d" %d.minute) + "." + str("%2d" %d.second) + ".png" 
+image_file_path = "/var/www/html/flight_pics/pic_%04d-%02d-%02d_%02d.%02d.%02d.png" % (d.year, d.month, d.day, d.hour, d.minute, d.second)
    
 if not cap.isOpened():
     print("ERROR: Unable to open camera")
     quit()
-else:
-    while(len(faces) == 0):
-        ret, img = cap.read()
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray, 1.8, 3)
-        #code.interact(local=locals())
-        init_frames += 1
+
+# loop that waits until a face is detected by the camera
+while(len(faces) == 0):
+    ret, img = cap.read()
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, 1.8, 3)
+    init_frames += 1
 
 cv2.imwrite(image_file_path, img)
 
@@ -50,15 +52,18 @@ prev_size = [faces[0][2], faces[0][3]]
 
 consec_missed = 0
 loop_time = 1
-    
+
+# main program loop
 while(cap.isOpened() and (not face_cascade.empty())):
     start_cap = time.time()
     ret, img = cap.read()
-    #bytes_angle = conn.recv(1000)
-    #angle = struct.unpack('>b', bytes_angle[-1])
-    #rot = imutils.rotate(img, angle)
-    #gray = cv2.cvtColor(rot, cv2.COLOR_BGR2GRAY)
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    if (use_socket):
+        bytes_angle = conn.recv(1000)
+        angle = struct.unpack('>b', bytes_angle[-1])
+        rot = imutils.rotate(img, angle)
+        gray = cv2.cvtColor(rot, cv2.COLOR_BGR2GRAY)
+    else:
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     end_cap = time.time()
     delta_cap = (end_cap - start_cap) * 1000
     print("%.2f ms to capture a pic" %delta_cap)
@@ -70,6 +75,7 @@ while(cap.isOpened() and (not face_cascade.empty())):
     faces = face_cascade.detectMultiScale(gray, 1.8, 3)
     face_det = False
     for (x,y,w,h) in faces:
+        face_det = True
         center = [x + (0.5*w), y + (0.5*h)]
         size = [w, h]
         img = cv2.rectangle(img, (x,y), (x+w,y+h), (0,0,255), 2)
@@ -79,6 +85,7 @@ while(cap.isOpened() and (not face_cascade.empty())):
         print('y of bounding: ' + str(y))
         print('width: ' + str(w))
         print('height: ' + str(h))
+        # check to see if this face is the same as face from last frame
         if (abs(center[0] - prev_center[0]) < (30*(consec_missed+1))
             and abs(center[1] - prev_center[1]) < (30*(consec_missed+1))
             and size[0] < (prev_size[0]*2) and size[0] > (prev_size[0]*0.5)
@@ -91,15 +98,15 @@ while(cap.isOpened() and (not face_cascade.empty())):
             prev_center = [x + (0.5*w), y + (0.5*h)]
             img = cv2.rectangle(img, (x,y), (x+w,y+h), (0,255,0), 2)
             prev_size = [w, h]
-        face_det = True
 
     x_err = prev_center[0] - 239
     y_err = prev_center[1] - 179
     
     if (face_det):
         consec_missed = 0
-        #send_data = struct.pack('>hhhhhh', x_err, x_diff, y_err, y_diff, prev_size[0], w_diff)
-        #conn.send(send_data)
+        if (use_socket):
+            send_data = struct.pack('>hhhhhh', x_err, x_diff, y_err, y_diff, prev_size[0], w_diff)
+            conn.send(send_data)
     else: #not face_det
         no_face_frames = no_face_frames + 1
         consec_missed += 1
@@ -123,4 +130,6 @@ while(cap.isOpened() and (not face_cascade.empty())):
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
+# quitting the program
 print("The total number of intialization frames before a face was found was " + str(init_frames))
+s.close()
