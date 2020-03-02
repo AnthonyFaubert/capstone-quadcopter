@@ -196,9 +196,9 @@ void task_CheckButton() {
 void experiment_SingleStepPitch(float* mVals) {
   const float BASELINE_THRUST = 0.3f;
   const float RAMP_TIME_MS = 2000.0f;
-  const uint32_t EXPERIMENT_START_MS = 5000; // must be more than ramp time
+  const uint32_t EXPERIMENT_START_MS = 8000; // must be more than ramp time
   const uint32_t EXPERIMENT_DURATION_MS = 2000;
-  const float MOTOR_COMMAND = 0.01f;
+  const float MOTOR_COMMAND = 0.05f;
   
   if (logTimestamp != 0xFFFFFFFF) { // start experiment 5 seconds into logging
     if (uwTick > logTimestamp+EXPERIMENT_START_MS+EXPERIMENT_DURATION_MS) { // exp. end
