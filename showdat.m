@@ -42,9 +42,9 @@ fft_gy = fft(gyroRaw(:, 2));
 fft_gz = fft(gyroRaw(:, 3));
 fft_gr = fft(gyroRoll);
 fft_gp = fft(gyroPitch);
-fft_proll = fft(pErrs(:, 1));
-fft_ppitch = fft(pErrs(:, 2));
-fft_pyaw = fft(pErrs(:, 3));
+fft_proll = fft(pErrsRaw(:, 1));
+fft_ppitch = fft(pErrsRaw(:, 2));
+fft_pyaw = fft(pErrsRaw(:, 3));
 
 %{ SingleStepPitch experiment
 figure();
@@ -100,9 +100,9 @@ else
 endif
 hold on;
 title("Proportional error over time");
-plot(time, pErrs(:, 1), 'm');
-plot(time, pErrs(:, 2), 'b');
-plot(time, pErrs(:, 3), 'k');
+plot(time, pErrsRaw(:, 1), 'm');
+plot(time, pErrsRaw(:, 2), 'b');
+plot(time, pErrsRaw(:, 3), 'k');
 xlabel("Time (s)");
 ylabel("Proportional error (unitless)");
 legend("roll", "pitch", "yaw");

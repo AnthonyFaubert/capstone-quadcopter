@@ -94,7 +94,7 @@ int taskPrintLog(bool start) {
       } else if (logPrintType == 1) {
 	bytesSent += PRINTF("#name:quats\n#type:matrix\n#rows:%d\n#columns:4\n", logIndex);
       } else if (logPrintType == 2) {
-	bytesSent += PRINTF("#name:pErrs\n#type:matrix\n#rows:%d\n#columns:3\n", logIndex);
+	bytesSent += PRINTF("#name:pErrsRaw\n#type:matrix\n#rows:%d\n#columns:3\n", logIndex);
       } else if (logPrintType == 3) {
 	bytesSent += PRINTF("#name:mVals\n#type:matrix\n#rows:%d\n#columns:4\n", logIndex);
       } else if (logPrintType == 4) {
@@ -213,7 +213,7 @@ void Quadcontrol() {
   
   Quaternion imuOrientation;
   GyroData imuGyroData, imuGyroDataRaw;
-  RollPitchYaw orientationErrors;
+  RollPitchYaw orientationErrors, rawPErrors;
     
   float mVals[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
@@ -240,6 +240,7 @@ void Quadcontrol() {
       ApplyGyroCorrection(&imuGyroData);
       
       GetQuaternionError(&orientationErrors, imuOrientation, joystickOrientation);
+      rawPErrors = orientationErrors; // get pre-limited pErrors
       LimitErrors(&orientationErrors);
       PID(mVals, orientationErrors, imuGyroData, thrust);
       
@@ -277,7 +278,7 @@ void Quadcontrol() {
 	  if (logTimestamp == 0xFFFFFFFF) logTimestamp = uwTick;
           gyroLog[logIndex] = imuGyroDataRaw; // log raw gyro
 	  oriLog[logIndex] = imuOrientation;
-	  pErrorLog[logIndex] = orientationErrors;
+	  pErrorLog[logIndex] = rawPErrors;
 	  for (int i = 0; i < 4; i++) {
 	    mValLog[logIndex*4 + i] = mVals[i];
 	  }

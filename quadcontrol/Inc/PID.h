@@ -16,14 +16,14 @@
 #define TRIM_ANGLE_PER_PRESS (1.0f * PI / 180.0f)
 
 // Used by LimitErrors()    (pi/8) = 22.5 degrees
-#define LIMIT_PID_ERROR_YAW (PI / 8.0f)
-#define LIMIT_PID_ERROR_PITCH (PI / 8.0f)
-#define LIMIT_PID_ERROR_ROLL (PI / 8.0f)
+//#define LIMIT_PID_ERROR_YAW (PI / 8.0f)
+//#define LIMIT_PID_ERROR_PITCH (PI / 8.0f)
+//#define LIMIT_PID_ERROR_ROLL (PI / 8.0f)
 
 // Used internally to limit gyro values before using them for PID. Same units as gyro (degs/sec)
-#define LIMIT_GYRO_ERROR_ROLL 50.0f
-#define LIMIT_GYRO_ERROR_PITCH 50.0f
-#define LIMIT_GYRO_ERROR_YAW 50.0f
+//#define LIMIT_GYRO_ERROR_ROLL 50.0f
+//#define LIMIT_GYRO_ERROR_PITCH 50.0f
+//#define LIMIT_GYRO_ERROR_YAW 50.0f
 
 // Gain values for PID
 
