@@ -260,7 +260,7 @@ void Quadcontrol() {
         // TODO: E-stop if we're upside-down
 	
         // FIXME: comment out experiments
-	experiment_SineWavePitch(logTimestamp, mVals, &thrust);
+	//experiment_SineWavePitch(logTimestamp, mVals, &thrust);
         //experiment_SingleStepPitch(logTimestamp, mVals, &thrust);
         //experiment_CheckMotorMap(logTimestamp, mVals);
         
