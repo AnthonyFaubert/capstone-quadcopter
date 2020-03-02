@@ -89,7 +89,7 @@ while not done:
             elif (event.button == 3):
                 special = 4
 
-    #receive data from the socket for face position in frame
+    #receive data from haar.py via socket for face position in frame
     if (use_socket):
         face_data_bytes = face_data_extra + s.recv(1000)
         face_data_extra_num = len(face_data_bytes) % 12
@@ -107,7 +107,6 @@ while not done:
     if (cont_freeze_frames == -1):
         prev_tilt = tilt
         prev_yt = yt
-        cont_freeze_frames = 0
 
     if (prev_tilt == tilt and prev_yt == yt and tilt != (0,0) and yt != (0,0)):
         cont_freeze_frames += 1
