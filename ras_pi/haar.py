@@ -1,18 +1,19 @@
 import numpy as np
 import cv2
 import time
+import datetime
 import code
 import socket
 import imutils
 from collections import deque
 import struct
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind(('localhost', 8000))
-s.listen(1)
-conn, addr = s.accept() #use conn.recv(), conn.send()
+#s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#s.bind(('localhost', 8000))
+#s.listen(1)
+#conn, addr = s.accept() #use conn.recv(), conn.send()
 print("Connection established!")
-conn.setblocking(False)
+#conn.setblocking(False)
 
 face_cascade = cv2.CascadeClassifier('./haarcascade_frontalface_default.xml') #filter can be swapped with ....face_alt.xml
 no_face_frames = 0
@@ -26,7 +27,11 @@ if (face_cascade.empty()):
 cap = cv2.VideoCapture(0)
 faces = []
 init_frames = 0
-    
+
+d = datetime.datetime.now()
+
+image_file_path = "/var/www/html/flight_pics/pic_" + str(d.year) + "-" + str("%2d" %d.month) + "-" + str("%2d" %d.day) + "_" + str("%2d" %d.hour) + "." + str("%2d" %d.minute) + "." + str("%2d" %d.second) + ".png" 
+   
 if not cap.isOpened():
     print("ERROR: Unable to open camera")
     quit()
@@ -37,6 +42,8 @@ else:
         faces = face_cascade.detectMultiScale(gray, 1.8, 3)
         #code.interact(local=locals())
         init_frames += 1
+
+cv2.imwrite(image_file_path, img)
 
 prev_center = [faces[0][0]+(0.5*faces[0][2]), faces[0][1]+(0.5*faces[0][3])]
 prev_size = [faces[0][2], faces[0][3]]
@@ -72,8 +79,8 @@ while(cap.isOpened() and (not face_cascade.empty())):
         print('y of bounding: ' + str(y))
         print('width: ' + str(w))
         print('height: ' + str(h))
-        if (abs(center[0] - prev_center[0]) < (25*(consec_missed+1))
-            and abs(center[1] - prev_center[1]) < (25*(consec_missed+1))
+        if (abs(center[0] - prev_center[0]) < (30*(consec_missed+1))
+            and abs(center[1] - prev_center[1]) < (30*(consec_missed+1))
             and size[0] < (prev_size[0]*2) and size[0] > (prev_size[0]*0.5)
             and size[1] < (prev_size[1]*2) and size[1] > (prev_size[1]*0.5)):
             d_time = time.time() - loop_time

@@ -9,6 +9,9 @@ import struct
 import socket
 import code
 
+UART_BAUD_RATE = 460800
+LOOP_RATE = 80 # Hz
+
 #s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 #s.connect(('localhost', 8000))
 print("connection established!")
@@ -31,12 +34,13 @@ d = datetime.datetime.now()
 clock = pygame.time.Clock()
 
 joystick = pygame.joystick.Joystick(0)
-joystick.init()
+joystick.init() 
 
-debug_str = "/var/www/html/debug_" + str(d.year) + str(d.month) + str(d.day) + "_" + str(d.hour) + "-" + str(d.minute) + ".txt"
+debug_str = "/var/www/html/flight_logs/debug_%04d%02d%02d_%02d%02d%02d.txt" % (d.year, d.month, d.day, d.hour, d.minute, d.second)
 debug_file = open(debug_str,'wb')
 
-ser = serial.Serial(port = "/dev/ttyS0", baudrate = 115200, write_timeout = None, timeout = None) #read timeout should get set to None
+ser = serial.Serial(port="/dev/ttyS0", baudrate=UART_BAUD_RATE, write_timeout=None, timeout=None) #read timeout should get set to None
+print(ser.BAUDRATES)
 special = 0
 
 def hexify(bs):
@@ -63,7 +67,7 @@ ser.reset_output_buffer()
 lastSend = -1
 worstLoopTime = -1
 while not done:
-    clock.tick(70) #integer value is the frames per second
+    clock.tick(LOOP_RATE) #integer value is the frames per second
     loopTime = time.time()
     debug_file.flush()
     
@@ -98,8 +102,8 @@ while not done:
     #final_face_bytes = face_data_bytes[face_data_start:face_data_end]
     #face_data = struct.unpack('>hhhhhh', final_face_bytes)
         
-        if (manual):
-            data = struct.pack('>Bhhhhh', 37, tilt[0], tilt[1], yt[0], yt[1], special)
+    if (manual):
+        data = struct.pack('>Bhhhhh', 37, tilt[0], tilt[1], yt[0], yt[1], special)
         #else:
         #data = struct.pack('>Bhhhhh', 37, face_data x lr, face_dat width, 0, face_data y, special)
     checksum = sum(data) & 0xFF
