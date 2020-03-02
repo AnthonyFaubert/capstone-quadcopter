@@ -10,7 +10,7 @@ void experiment_SineWavePitch(uint32_t logTimestamp, float* mVals, float* thrust
   const uint32_t EXPERIMENT_START_MS = 5000; // must be more than ramp time
   const uint32_t EXPERIMENT_DURATION_MS = 14000;
   const float OMEGA = 2*PI; // 1 Hz
-  const float AMPLITUDE = 0.1f;
+  const float AMPLITUDE = 0.2f;
   
   if (logTimestamp != 0xFFFFFFFF) { // start experiment 5 seconds into logging
     if (uwTick > logTimestamp+EXPERIMENT_START_MS+EXPERIMENT_DURATION_MS) { // exp. end
@@ -21,7 +21,7 @@ void experiment_SineWavePitch(uint32_t logTimestamp, float* mVals, float* thrust
 
       float time = uwTick - (logTimestamp + EXPERIMENT_START_MS);
       time /= 1000.0f; // ms -> sec
-      float cmd = AMPLITUDE/2.0f * sin(OMEGA * time);
+      float cmd = AMPLITUDE/2.0f * sinf(OMEGA * time);
       mVals[1] -= cmd;
       mVals[3] += cmd;
     } else {
