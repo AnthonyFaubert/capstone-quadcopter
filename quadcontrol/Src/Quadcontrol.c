@@ -216,6 +216,8 @@ void Quadcontrol() {
   RollPitchYaw orientationErrors, rawPErrors;
     
   float mVals[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  float pErrorStep = 0.1f;
+  int loopCount = 0;
 
   bool q = false; // TODO: convert to defines?
   bool j = true;
@@ -240,6 +242,10 @@ void Quadcontrol() {
       ApplyGyroCorrection(&imuGyroData);
       
       GetQuaternionError(&orientationErrors, imuOrientation, joystickOrientation);
+      orientationErrors.pitch += pErrorStep;
+      if (loopCount%150 == 0) pErrorStep *= -1.0f;
+      loopCount++;
+
       rawPErrors = orientationErrors; // get pre-limited pErrors
       LimitErrors(&orientationErrors);
       PID(mVals, orientationErrors, imuGyroData, thrust);
