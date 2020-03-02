@@ -63,16 +63,22 @@ GyroData limitGyro(GyroData original) {
   if (original.x > LIMIT_GYRO_ERROR_ROLL) result.x = LIMIT_GYRO_ERROR_ROLL;
   else if (original.x < -LIMIT_GYRO_ERROR_ROLL) result.x = -LIMIT_GYRO_ERROR_ROLL;
   else result.x = original.x;
+#else
+  result.x = original.x;
 #endif
 #ifdef LIMIT_GYRO_ERROR_PITCH
   if (original.y > LIMIT_GYRO_ERROR_PITCH) result.y = LIMIT_GYRO_ERROR_PITCH;
   else if (original.y < -LIMIT_GYRO_ERROR_PITCH) result.y = -LIMIT_GYRO_ERROR_PITCH;
   else result.y = original.y;
+#else
+  result.y = original.y;
 #endif
 #ifdef LIMIT_GYRO_ERROR_YAW
   if (original.z > LIMIT_GYRO_ERROR_YAW) result.z = LIMIT_GYRO_ERROR_YAW;
   else if (original.z < -LIMIT_GYRO_ERROR_YAW) result.z = -LIMIT_GYRO_ERROR_YAW;
   else result.z = original.z;
+#else
+  result.z = original.z;
 #endif
   return result;
 }
