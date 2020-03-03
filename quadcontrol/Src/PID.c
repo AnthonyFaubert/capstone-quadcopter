@@ -19,39 +19,29 @@ void ApplyGyroCorrection(GyroData* gyroData) {
 
 // Rotates a 3D vector stored in a Quaternion struct by a quaternion and then returns the resulting 3D vector stored in a Quaternion struct.
 Quaternion QuatRotateVector(Quaternion rotation, Quaternion vector) {
-  Quaternion result, rotation_conj;
-  QuaternionConjugate(&rotation_conj, rotation);
+  Quaternion result, rotation_conj = QuaternionConjugate(rotation);
   QuaternionsMultiply(&result, rotation, vector);
   QuaternionsMultiply(&result, vector, rotation_conj);
   return result;
 }
 
 // Gives the changes in roll, pitch, and yaw required to get from the actual orientation to the desired orientation
-// Goal is in two components: (roll/pitch), and yaw. roll/pitch is in the quadcopter frame and yaw is in the earth frame.
-void GetQuaternionError(RollPitchYaw* result, Quaternion earth2Quadcopter, Quaternion rollPitchGoal, float earth2DesiredYaw_angle) {
-  Quaternion axisX = {0.0f, 1.0f, 0.0f, 0.0f};
-  Quaternion axisZ = {0.0f, 0.0f, 0.0f, 1.0f};
+RollPitchYaw GetQuaternionError(Quaternion earth2Actual, Quaternion earth2Desired) {
+  Quaternion actual2Earth = QuaternionConjugate(earth2Actual);
+  Quaternion actual2Desired;
+  QuaternionsMultiply(&actual2Desired, earth2Desired, actual2Earth);
+  
+  Quaternion vector_axisX = {0.0f, 1.0f, 0.0f, 0.0f};
+  Quaternion vector_axisZ = {0.0f, 0.0f, 0.0f, 1.0f};
+  Quaternion vector_axisXCorrected = QuatRotateVector(actual2Desired, vector_axisX);
+  Quaternion vector_axisZCorrected = QuatRotateVector(actual2Desired, vector_axisZ);
 
-  Quaternion axisXQuadcopter = QuatRotateVector(earth2Quadcopter, axisX);
-  float earth2Quadyaw_angle = atan2f(axisXQuadcopter.y, axisXQuadcopter.x); // this is atan2f(y=y, x=x), not atan2f(x=y, y=x)
-  Quaternion earth2DesiredYaw = {cosf(earth2Quadyaw_angle/2.0f), 0.0f, 0.0f, sin(earth2Quadyaw_angle/2.0f)};
-
-  // rotAx = [x=0, y=0, z=1]
-  // W=cos(alpha/2), X=rotAx_x * sin(alpha/2), Y=rotAx_y * sin(alpha/2), Z=rotAx_z * sin(alpha/2)
-
-  Quaternion earth2Desired;
-  QuaternionsMultiply(&earth2Desired, earth2DesiredYaw, rollPitchGoal);
-
-  Quaternion quadcopter2Desired, quadcopter2Earth;
-  QuaternionConjugate(&quadcopter2Earth, earth2Quadcopter);
-  QuaternionsMultiply(&quadcopter2Desired, earth2Desired, quadcopter2Earth);
-
-  Quaternion axisXCorrected = QuatRotateVector(quadcopter2Desired, axisX);
-  Quaternion axisZCorrected = QuatRotateVector(quadcopter2Desired, axisZ);
-
-  result->roll = atan2f(axisZCorrected.x, axisZCorrected.z);
-  result->pitch = atan2f(axisZCorrected.y, axisZCorrected.z);
-  result->yaw = 0.0f; // FIXME
+  RollPitchYaw result;
+  // Reminder: atan2f's arguments are atan2f(y, x)
+  result.roll = atan2f(vector_axisZCorrected.x, vector_axisZCorrected.z);
+  result.pitch = atan2f(vector_axisZCorrected.y, vector_axisZCorrected.z);
+  result.yaw = atan2f(vector_axisXCorrected.y, vector_axisXCorrected.x);
+  return result;  
 }
 
 // Filter results from GetQuaternionError to improve PID step response
@@ -135,10 +125,9 @@ void PID(float* motorVals, RollPitchYaw rotations, GyroData gyroData, float thru
   VectorScalarAdd(motorVals, thrust - average, motorVals);
 }
 
-void Joystick2Quaternion(Quaternion* joyCmdQuatPtr, int16_t rollInt, int16_t pitchInt, int16_t yawInt) {
-  float roll = rollInt;
-  float pitch = pitchInt;
-  float yaw = yawInt;
+Quaternion Joystick2Quaternion(int16_t rollInt, int16_t pitchInt, int16_t yawInt) {
+  float roll = rollInt, pitch = pitchInt, yaw = yawInt;
+  // Convert joystick values into their corresponding individual rotation as a Quaternion
   yaw *= -PI / 32768.0f / 2.0f;
   roll *= JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
   pitch *= -JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
@@ -146,15 +135,16 @@ void Joystick2Quaternion(Quaternion* joyCmdQuatPtr, int16_t rollInt, int16_t pit
   Quaternion rollQuat = {cosf(roll), 0.0f, sinf(roll), 0.0f};
   Quaternion pitchQuat = {cosf(pitch), sinf(pitch), 0.0f, 0.0f};
   
-  // FIXME: fix comments
-  //// Combine rotations; roll, pitch, then yaw
-  //// Ideally roll and pitch at the same time and then yaw, but that's too complicated
-  Quaternion tmpQuat;
-  //QuaternionsMultiply(&tmpQuat, TrimQuaternion, yawQuat);
-  QuaternionsMultiply(&tmpQuat, pitchQuat, TrimQuaternion);
-  QuaternionsMultiply(joyCmdQuatPtr, rollQuat, tmpQuat);
-  //QuaternionsMultiply(&tmpQuat, pitchQuat, rollQuat);
-  //QuaternionsMultiply(joyCmdQuatPtr, yawQuat, tmpQuat);
+  Quaternion rollPitch, earth2RollPitchTrim, earth2Desired;
+  // Combine roll and pitch into one rotation
+  QuaternionsMultiply(&rollPitch, pitchQuat, rollQuat);
+  // TrimQuaternion = earth2Trimmed
+  // If you reverse this multiply, trim will be from the frame of reference of your pre-trimmed desired rollPitch.
+  // I think that makes less sense than doing the rollPitch from the frame of reference of the trimmed orientation, which is what this does.
+  QuaternionsMultiply(&earth2RollPitchTrim, TrimQuaternion, rollPitch);
+  // Yaw the whole trimmed roll/pitch to the desired orientation
+  QuaternionsMultiply(&earth2Desired, yawQuat, earth2RollPitchTrim);
+  return earth2Desired;
 }
 
 // Takes in a button press and applies trim to the trim quaternion

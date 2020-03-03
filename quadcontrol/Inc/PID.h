@@ -57,13 +57,13 @@ void ApplyOrientationCorrection(Quaternion* orientation);
 void ApplyGyroCorrection(GyroData* gyroData);
 
 // Gives the changes in roll, pitch, and yaw required to get from the actual orientation to the desired orientation
-void GetQuaternionError(RollPitchYaw* result, Quaternion actual, Quaternion desired);
+RollPitchYaw GetQuaternionError(Quaternion actual, Quaternion desired);
 // Filter results from GetQuaternionError to improve PID step response
 void LimitErrors(RollPitchYaw* quatErrors);
 // Takes in values from GetQuaternionError(), gyroscope data, and a thrust value to produce the values which should be applied to the motors
 void PID(float* motorVals, RollPitchYaw rotations, GyroData gyroData, float thrust);
-// Takes in raw values from the joystick and produces a Quaternion representing the desired orientation
-void Joystick2Quaternion(Quaternion* joystick, int16_t roll, int16_t pitch, int16_t yaw);
+// Takes in raw values from the joystick and returns a Quaternion representing the desired orientation
+Quaternion Joystick2Quaternion(int16_t rollInt, int16_t pitchInt, int16_t yawInt);
 // Takes in a button press and applies trim to TrimQuaternion
 void JoystickApplyTrim(uint16_t button);
 

@@ -165,7 +165,7 @@ void callback_ProcessPacket(uint8_t computedChecksum, uint8_t receivedChecksum, 
     GPacket.buttons = (int16_t)(packetBuffer[9] << 8) | (int16_t)(packetBuffer[10]);
     GPacket.checksum = packetBuffer[11];
     // Handle packet
-    Joystick2Quaternion(&joystickOrientation, GPacket.leftRight, GPacket.upDown, GPacket.padLeftRight);
+    joystickOrientation = Joystick2Quaternion(GPacket.leftRight, GPacket.upDown, GPacket.padLeftRight);
     thrust = (GPacket.padUpDown / 2);
     thrust = (thrust / 32768.0f) + 0.5f; // between 0.0f and 1.0f max negative/positive int16_t values
     packetTimeout = uwTick + 100;
@@ -253,7 +253,7 @@ void Quadcontrol() {
       imuGyroDataRaw = imuGyroData; // hold onto raw gyro for logging
       ApplyGyroCorrection(&imuGyroData);
       
-      GetQuaternionError(&orientationErrors, imuOrientation, joystickOrientation);
+      orientationErrors = GetQuaternionError(imuOrientation, joystickOrientation);
       //orientationErrors.pitch += pErrorStep;
       //if (loopCount%150 == 0) pErrorStep *= -1.0f;
       loopCount++; // TODO remove

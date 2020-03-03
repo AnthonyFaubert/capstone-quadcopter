@@ -12,13 +12,10 @@ void QuaternionsMultiply(Quaternion* result, Quaternion a, Quaternion b) {
 }
 
 // conj(a*b) = conj(b)*conj(a), normalized quaternions: q*conj(q) = q*(q^-1) = (q^-1)*q = 1
-void QuaternionConjugate(Quaternion* result, Quaternion a) {
-  result->w = a.w;
-  result->x = -a.x;
-  result->y = -a.y;
-  result->z = -a.z;
+Quaternion QuaternionConjugate(Quaternion a) {
+  Quaternion result = {a.w, -a.x, -a.y, -a.z};
+  return result;
 }
-
 
 // Multiply two 3D vectors
 void Vectors2Multiply(float* result, float* v, float* u) {

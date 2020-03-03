@@ -18,7 +18,7 @@ void QuaternionsMultiply(Quaternion* result, Quaternion a, Quaternion b);
 
 // result = conj(a)
 // conj(a*b) = conj(b)*conj(a), normalized quaternions: q*conj(q) = q*(q^-1) = (q^-1)*q = 1
-void QuaternionConjugate(Quaternion* result, Quaternion a);
+Quaternion QuaternionConjugate(Quaternion a);
 
 // Multiply two 3D vectors (result = v .* u)
 void Vectors2Multiply(float* result, float* v, float* u);
