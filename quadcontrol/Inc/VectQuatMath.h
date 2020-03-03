@@ -20,6 +20,9 @@ void QuaternionsMultiply(Quaternion* result, Quaternion a, Quaternion b);
 // conj(a*b) = conj(b)*conj(a), normalized quaternions: q*conj(q) = q*(q^-1) = (q^-1)*q = 1
 Quaternion QuaternionConjugate(Quaternion a);
 
+// Rotates a 3D vector (stored in a Quaternion struct as W=0,X=x,Y=y,Z=z) by a quaternion
+Quaternion QuaternionRotateVector(Quaternion rotation, Quaternion vector);
+
 // Multiply two 3D vectors (result = v .* u)
 void Vectors2Multiply(float* result, float* v, float* u);
 // Multiply a 3D vector by a scalar (result = scalar * v)

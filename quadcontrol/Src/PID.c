@@ -17,14 +17,6 @@ void ApplyGyroCorrection(GyroData* gyroData) {
   gyroData->y = pitch;
 }
 
-// Rotates a 3D vector stored in a Quaternion struct by a quaternion and then returns the resulting 3D vector stored in a Quaternion struct.
-Quaternion QuatRotateVector(Quaternion rotation, Quaternion vector) {
-  Quaternion result, rotation_conj = QuaternionConjugate(rotation);
-  QuaternionsMultiply(&result, rotation, vector);
-  QuaternionsMultiply(&result, vector, rotation_conj);
-  return result;
-}
-
 // Gives the changes in roll, pitch, and yaw required to get from the actual orientation to the desired orientation
 RollPitchYaw GetQuaternionError(Quaternion earth2Actual, Quaternion earth2Desired) {
   Quaternion actual2Earth = QuaternionConjugate(earth2Actual);
@@ -33,8 +25,8 @@ RollPitchYaw GetQuaternionError(Quaternion earth2Actual, Quaternion earth2Desire
   
   Quaternion vector_axisX = {0.0f, 1.0f, 0.0f, 0.0f};
   Quaternion vector_axisZ = {0.0f, 0.0f, 0.0f, 1.0f};
-  Quaternion vector_axisXCorrected = QuatRotateVector(actual2Desired, vector_axisX);
-  Quaternion vector_axisZCorrected = QuatRotateVector(actual2Desired, vector_axisZ);
+  Quaternion vector_axisXCorrected = QuaternionRotateVector(actual2Desired, vector_axisX);
+  Quaternion vector_axisZCorrected = QuaternionRotateVector(actual2Desired, vector_axisZ);
 
   RollPitchYaw result;
   // Reminder: atan2f's arguments are atan2f(y, x)

@@ -17,6 +17,14 @@ Quaternion QuaternionConjugate(Quaternion a) {
   return result;
 }
 
+// Rotates a 3D vector stored in a Quaternion struct by a quaternion and then returns the resulting 3D vector stored in a Quaternion struct.
+Quaternion QuaternionRotateVector(Quaternion rotation, Quaternion vector) {
+  Quaternion result;
+  QuaternionsMultiply(&result, rotation, vector);
+  QuaternionsMultiply(&result, result, QuaternionConjugate(rotation));
+  return result;
+}
+
 // Multiply two 3D vectors
 void Vectors2Multiply(float* result, float* v, float* u) {
   for (int i = 0; i < 4; i++) {
