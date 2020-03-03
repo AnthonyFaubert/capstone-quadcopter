@@ -17,28 +17,41 @@ void ApplyGyroCorrection(GyroData* gyroData) {
   gyroData->y = pitch;
 }
 
-// Gives the changes in roll, pitch, and yaw required to get from the actual orientation to the desired orientation
-void GetQuaternionError(RollPitchYaw* result, Quaternion actual, Quaternion desired) {
-  // Rotate actual by the opposite of desired, then desired is <1,0,0,0> (rotate by q is q*a*conj(q))
-  // Compute the rotation from actual to desired (invert actual to get back to straight and then go to desired)
-  Quaternion correctionRotation;
-  QuaternionConjugate(&actual, actual);
-  QuaternionsMultiply(&correctionRotation, desired, actual); // Overall rotation of (q*p) is rotate by p and then q
+// Rotates a 3D vector stored in a Quaternion struct by a quaternion and then returns the resulting 3D vector stored in a Quaternion struct.
+Quaternion QuatRotateVector(Quaternion rotation, Quaternion vector) {
+  Quaternion result, rotation_conj;
+  QuaternionConjugate(&rotation_conj, rotation);
+  QuaternionsMultiply(&result, rotation, vector);
+  QuaternionsMultiply(&result, vector, rotation_conj);
+  return result;
+}
 
-  // Convert the quaternion back into something we understand by using it to rotate <0,0,1> (for roll & pitch) and <1,0,0> (for yaw)
-  Quaternion tmpA, tmpB, rotatedVector;
-  Quaternion straight = {0.0f, 0.0f, 0.0f, 1.0f}; // straight = <0,0,1>
-  QuaternionsMultiply(&tmpA, correctionRotation, straight);
-  straight.x = 1.0f; straight.z = 0.0f; // straight = <1,0,0>
-  QuaternionsMultiply(&tmpB, correctionRotation, straight);
-  QuaternionConjugate(&correctionRotation, correctionRotation);
-  QuaternionsMultiply(&rotatedVector, tmpA, correctionRotation);
-  // Overall, rotatedVector = correctionRotation * <0,0,0,1> * correctionRotation^-1 = <0,0,1> rotated by correction
-  result->roll = atan2f(rotatedVector.x, rotatedVector.z);
-  result->pitch = atan2f(rotatedVector.y, rotatedVector.z);
-  QuaternionsMultiply(&rotatedVector, tmpB, correctionRotation);
-  // Overall, rotatedVector = correctionRotation * <0,1,0,0> * correctionRotation^-1 = <1,0,0> rotated by correction
-  result->yaw = atan2f(rotatedVector.y, rotatedVector.x);
+// Gives the changes in roll, pitch, and yaw required to get from the actual orientation to the desired orientation
+// Goal is in two components: (roll/pitch), and yaw. roll/pitch is in the quadcopter frame and yaw is in the earth frame.
+void GetQuaternionError(RollPitchYaw* result, Quaternion earth2Quadcopter, Quaternion rollPitchGoal, float earth2DesiredYaw_angle) {
+  Quaternion axisX = {0.0f, 1.0f, 0.0f, 0.0f};
+  Quaternion axisZ = {0.0f, 0.0f, 0.0f, 1.0f};
+
+  Quaternion axisXQuadcopter = QuatRotateVector(earth2Quadcopter, axisX);
+  float earth2Quadyaw_angle = atan2f(axisXQuadcopter.y, axisXQuadcopter.x); // this is atan2f(y=y, x=x), not atan2f(x=y, y=x)
+  Quaternion earth2DesiredYaw = {cosf(earth2Quadyaw_angle/2.0f), 0.0f, 0.0f, sin(earth2Quadyaw_angle/2.0f)};
+
+  // rotAx = [x=0, y=0, z=1]
+  // W=cos(alpha/2), X=rotAx_x * sin(alpha/2), Y=rotAx_y * sin(alpha/2), Z=rotAx_z * sin(alpha/2)
+
+  Quaternion earth2Desired;
+  QuaternionsMultiply(&earth2Desired, earth2DesiredYaw, rollPitchGoal);
+
+  Quaternion quadcopter2Desired, quadcopter2Earth;
+  QuaternionConjugate(&quadcopter2Earth, earth2Quadcopter);
+  QuaternionsMultiply(&quadcopter2Desired, earth2Desired, quadcopter2Earth);
+
+  Quaternion axisXCorrected = QuatRotateVector(quadcopter2Desired, axisX);
+  Quaternion axisZCorrected = QuatRotateVector(quadcopter2Desired, axisZ);
+
+  result->roll = atan2f(axisZCorrected.x, axisZCorrected.z);
+  result->pitch = atan2f(axisZCorrected.y, axisZCorrected.z);
+  result->yaw = 0.0f; // FIXME
 }
 
 // Filter results from GetQuaternionError to improve PID step response
@@ -50,11 +63,11 @@ void LimitErrors(RollPitchYaw* errors) {
 #ifdef LIMIT_PID_ERROR_PITCH
   if (errors->pitch > LIMIT_PID_ERROR_PITCH) errors->pitch = LIMIT_PID_ERROR_PITCH;
   else if (errors->pitch < -LIMIT_PID_ERROR_PITCH) errors->pitch = -LIMIT_PID_ERROR_PITCH;
-#endif  
+#endif
 #ifdef LIMIT_PID_ERROR_ROLL
   if (errors->roll > LIMIT_PID_ERROR_ROLL) errors->roll = LIMIT_PID_ERROR_ROLL;
   else if (errors->roll < -LIMIT_PID_ERROR_ROLL) errors->roll = -LIMIT_PID_ERROR_ROLL;
-#endif  
+#endif
 }
 
 GyroData limitGyro(GyroData original) {
@@ -137,8 +150,8 @@ void Joystick2Quaternion(Quaternion* joyCmdQuatPtr, int16_t rollInt, int16_t pit
   //// Combine rotations; roll, pitch, then yaw
   //// Ideally roll and pitch at the same time and then yaw, but that's too complicated
   Quaternion tmpQuat;
-  QuaternionsMultiply(&tmpQuat, TrimQuaternion, yawQuat);
-  QuaternionsMultiply(&tmpQuat, pitchQuat, tmpQuat);
+  //QuaternionsMultiply(&tmpQuat, TrimQuaternion, yawQuat);
+  QuaternionsMultiply(&tmpQuat, pitchQuat, TrimQuaternion);
   QuaternionsMultiply(joyCmdQuatPtr, rollQuat, tmpQuat);
   //QuaternionsMultiply(&tmpQuat, pitchQuat, rollQuat);
   //QuaternionsMultiply(joyCmdQuatPtr, yawQuat, tmpQuat);

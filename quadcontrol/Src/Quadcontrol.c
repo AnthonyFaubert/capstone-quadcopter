@@ -41,6 +41,8 @@ Quaternion oriLog[LOG_LENGTH];
 RollPitchYaw pErrorLog[LOG_LENGTH];
 float mValLog[4*LOG_LENGTH];
 float throttleLog[LOG_LENGTH];
+int16_t joyValLog[3*LOG_LENGTH];
+Quaternion desiredQuatLog[LOG_LENGTH];
 
 // Maximum size of a single data chunk (no more than this many chars per printf call)
 #define MAX_TX_CHUNK 100
@@ -99,6 +101,10 @@ int taskPrintLog(bool start) {
 	bytesSent += PRINTF("#name:mVals\n#type:matrix\n#rows:%d\n#columns:4\n", logIndex);
       } else if (logPrintType == 4) {
 	bytesSent += PRINTF("#name:throttle\n#type:matrix\n#rows:%d\n#columns:1\n", logIndex);
+      } else if (logPrintType == 5) {
+	bytesSent += PRINTF("#name:joyVals\n#type:matrix\n#rows:%d\n#columns:3\n", logIndex);
+      } else if (logPrintType == 6) {
+	bytesSent += PRINTF("#name:dQuats\n#type:matrix\n#rows:%d\n#columns:4\n", logIndex);
       } else {
 	PRINTF("LOGEND\n");
 	logPrintType = -1; // Done, go back into waiting to start another log
@@ -115,7 +121,12 @@ int taskPrintLog(bool start) {
       bytesSent += PRINTF("%.3f %.3f %.3f %.3f\n", mValLog[logPrintIndex*4], mValLog[logPrintIndex*4 + 1], mValLog[logPrintIndex*4 + 2], mValLog[logPrintIndex*4 + 3]);
     } else if (logPrintType == 4) { // throttle
       bytesSent += PRINTF("%.3f\n", throttleLog[logPrintIndex]);
+    } else if (logPrintType == 5) { // joystick values
+      bytesSent += PRINTF("%d %d %d\n", joyValLog[3*logPrintIndex], joyValLog[3*logPrintIndex + 1], joyValLog[3*logPrintIndex + 2]);
+    } else if (logPrintType == 6) { // desired orientation
+      bytesSent += PRINTF("%.4f %.4f %.4f %.4f\n", desiredQuatLog[logPrintIndex].w, desiredQuatLog[logPrintIndex].x, desiredQuatLog[logPrintIndex].y, desiredQuatLog[logPrintIndex].z);
     }
+
     logPrintIndex++;
   }
   return bytesSent;
@@ -290,6 +301,10 @@ void Quadcontrol() {
 	    mValLog[logIndex*4 + i] = mVals[i];
 	  }
           throttleLog[logIndex] = thrust;
+	  joyValLog[3*logIndex] = GPacket.leftRight;
+	  joyValLog[3*logIndex + 1] = GPacket.upDown;
+	  joyValLog[3*logIndex + 2] = GPacket.padLeftRight;
+	  desiredQuatLog[logIndex] = joystickOrientation;
 	  logIndex++;
 	}
       }
