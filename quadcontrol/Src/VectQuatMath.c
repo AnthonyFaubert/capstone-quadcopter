@@ -7,9 +7,22 @@
 void QuaternionsMultiply(Quaternion* result, Quaternion a, Quaternion b) {
   result->w = (a.w * b.w) - (a.x * b.x) - (a.y * b.y) - (a.z * b.z);
   result->x = (a.w * b.x) + (a.x * b.w) + (a.y * b.z) - (a.z * b.y);
-  result->y = (a.w * b.y) + (a.y * b.w) + (a.z * b.x) - (a.x * b.z);
-  result->z = (a.w * b.z) + (a.z * b.w) + (a.x * b.y) - (a.y * b.x);
+  result->y = (a.w * b.y) - (a.x * b.z) + (a.y * b.w) + (a.z * b.x);
+  result->z = (a.w * b.z) + (a.x * b.y) - (a.y * b.x) + (a.z * b.w);
 }
+
+// W = 1.w*2.w - 1.b*2.b - 1.c*2.c - 1.d*2.d
+// X = 1.b*2.a + 1.b*2.b
+// Y =
+// Z =
+
+/*
+W = a.w*b.w - a.x*b.x - a.y*b.y - a.z*b.z
+X = a.w*b.x + a.x*b.w + a.y*b.z - a.z*b.y i
+Y = a.w*b.y - a.x*b.z + a.y*b.w + a.z*b.x j
+Z = a.w*b.z + a.x*b.y - a.y*b.x + a.z*b.w k
+ 
+ */
 
 // conj(a*b) = conj(b)*conj(a), normalized quaternions: q*conj(q) = q*(q^-1) = (q^-1)*q = 1
 Quaternion QuaternionConjugate(Quaternion a) {
