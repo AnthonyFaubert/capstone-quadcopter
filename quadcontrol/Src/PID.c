@@ -139,10 +139,10 @@ Quaternion Joystick2Quaternion(int16_t rollInt, int16_t pitchInt, int16_t yawInt
   // Convert joystick values into their corresponding individual rotation as a Quaternion
   yaw *= -PI / 32768.0f / 2.0f;
   roll *= JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
-  pitch *= -JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
+  pitch *= JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
   Quaternion yawQuat = {cosf(yaw), 0.0f, 0.0f, sinf(yaw)};
-  Quaternion rollQuat = {cosf(roll), 0.0f, sinf(roll), 0.0f};
-  Quaternion pitchQuat = {cosf(pitch), sinf(pitch), 0.0f, 0.0f};
+  Quaternion pitchQuat = {cosf(pitch), 0.0f, sinf(pitch), 0.0f};
+  Quaternion rollQuat = {cosf(roll), sinf(roll), 0.0f, 0.0f};
   
   Quaternion rollPitch, earth2RollPitchTrim, earth2Desired;
   // Combine roll and pitch into one rotation
@@ -172,10 +172,10 @@ void JoystickApplyTrim(uint16_t button) {
     QUAT_TRIM_DOWN.w  = w;
     
     float xy = sinf(TRIM_ANGLE_PER_PRESS / 2.0f);
-    QUAT_TRIM_RIGHT.y = xy;
-    QUAT_TRIM_LEFT.y  = -xy;
-    QUAT_TRIM_DOWN.x = xy;
-    QUAT_TRIM_UP.x   = -xy;
+    QUAT_TRIM_RIGHT.x = xy;
+    QUAT_TRIM_LEFT.x  = -xy;
+    QUAT_TRIM_UP.y   = xy;
+    QUAT_TRIM_DOWN.y = -xy;
     
     initDone = true;
   }
