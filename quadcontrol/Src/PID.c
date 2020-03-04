@@ -17,23 +17,17 @@ void ApplyGyroCorrection(GyroData* gyroData) {
   gyroData->y = pitch;
 }
 
-// Gives the changes in roll, pitch, and yaw required to get from the actual orientation to the desired orientation
-RollPitchYaw GetQuaternionError(Quaternion earth2Actual, Quaternion earth2Desired) {
+// Converts a quaternion rotation to an Euler rotation representation
+RollPitchYaw Quaternion2Euler(Quaternion q) {
+  
+}
+
+// Gives rotation required to get from the actual orientation to the desired orientation
+Quaternion GetQuaternionError(Quaternion earth2Actual, Quaternion earth2Desired) {
   Quaternion actual2Earth = QuaternionConjugate(earth2Actual);
   Quaternion actual2Desired;
   QuaternionsMultiply(&actual2Desired, earth2Desired, actual2Earth);
-  
-  Quaternion vector_axisX = {0.0f, 1.0f, 0.0f, 0.0f};
-  Quaternion vector_axisZ = {0.0f, 0.0f, 0.0f, 1.0f};
-  Quaternion vector_axisXCorrected = QuaternionRotateVector(actual2Desired, vector_axisX);
-  Quaternion vector_axisZCorrected = QuaternionRotateVector(actual2Desired, vector_axisZ);
-
-  RollPitchYaw result;
-  // Reminder: atan2f's arguments are atan2f(y, x)
-  result.roll = atan2f(vector_axisZCorrected.x, vector_axisZCorrected.z);
-  result.pitch = atan2f(vector_axisZCorrected.y, vector_axisZCorrected.z);
-  result.yaw = atan2f(vector_axisXCorrected.y, vector_axisXCorrected.x);
-  return result;  
+  return actual2Desired;
 }
 
 // Filter results from GetQuaternionError to improve PID step response

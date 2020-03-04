@@ -56,8 +56,10 @@ void ApplyOrientationCorrection(Quaternion* orientation);
 // Apply IMU physical orientation mismatch correction factor to gyro data
 void ApplyGyroCorrection(GyroData* gyroData);
 
-// Gives the changes in roll, pitch, and yaw required to get from the actual orientation to the desired orientation
-RollPitchYaw GetQuaternionError(Quaternion actual, Quaternion desired);
+// Gives rotation required to get from the actual orientation to the desired orientation
+Quaternion GetQuaternionError(Quaternion actual, Quaternion desired);
+// Converts a quaternion rotation to an Euler rotation representation
+RollPitchYaw Quaternion2Euler(Quaternion q);
 // Filter results from GetQuaternionError to improve PID step response
 void LimitErrors(RollPitchYaw* quatErrors);
 // Takes in values from GetQuaternionError(), gyroscope data, and a thrust value to produce the values which should be applied to the motors

@@ -221,7 +221,7 @@ void Quadcontrol() {
   CalibrateESCs();
   PRINTLN(" Done.");
   
-  Quaternion imuOrientation;
+  Quaternion imuOrientation, oriDiffQuat;
   GyroData imuGyroData, imuGyroDataRaw;
   RollPitchYaw orientationErrors, rawPErrors;
     
@@ -235,6 +235,7 @@ void Quadcontrol() {
   bool e = true;
   bool g = false;
   bool m = false;
+  bool qe = true;
   
   uint32_t schedulePID = 0, schedulePrintInfo = 0;
 
@@ -254,7 +255,8 @@ void Quadcontrol() {
       imuGyroDataRaw = imuGyroData; // hold onto raw gyro for logging
       ApplyGyroCorrection(&imuGyroData);
       
-      orientationErrors = GetQuaternionError(imuOrientation, joystickOrientation);
+      oriDiffQuat = GetQuaternionError(imuOrientation, joystickOrientation);
+      orientationErrors = Quaternion2Euler(oriDiffQuat);
       //orientationErrors.pitch += pErrorStep;
       //if (loopCount%150 == 0) pErrorStep *= -1.0f;
       loopCount++; // TODO remove
@@ -320,11 +322,18 @@ void Quadcontrol() {
     if (uwTick >= schedulePrintInfo) {
       schedulePrintInfo = uwTick + 200; // 5 Hz
       if (packetTimeout == 0) PRINTLN("Wait 4 GPac...");
-      if (q) PRINTF("~QUATS: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", imuOrientation.w, imuOrientation.x, imuOrientation.y, imuOrientation.z);
-      if (j) PRINTF("~JOYQ: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", joystickOrientation.w, joystickOrientation.x, joystickOrientation.y, joystickOrientation.z);
-      if (e) PRINTF("~ERRS: R=%.2f P=%.2f Y=%.2f\n", orientationErrors.roll, orientationErrors.pitch, orientationErrors.yaw);
-      if (g) PRINTF("~GYRO: X=%.2f Y=%.2f Z=%.2f\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
-      if (m) PRINTF("~mvals=[%.2f,%.2f,%.2f,%.2f]\n", mVals[0], mVals[1], mVals[2], mVals[3]);
+      // IMU quat (corrected)
+      if (q) PRINTF("~QC: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", imuOrientation.w, imuOrientation.x, imuOrientation.y, imuOrientation.z);
+      // Joystick quat
+      if (j) PRINTF("~QJ: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", joystickOrientation.w, joystickOrientation.x, joystickOrientation.y, joystickOrientation.z);
+      // Difference quat
+      if (qe) PRINTF("~QE: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", oriDiffQuat.w, oriDiffQuat.x, oriDiffQuat.y, oriDiffQuat.z);
+      // Proportional errors
+      if (e) PRINTF("~P : R=%.2f P=%.2f Y=%.2f\n", orientationErrors.roll, orientationErrors.pitch, orientationErrors.yaw);
+      // Gyro values (corrected)
+      if (g) PRINTF("~GC: X=%.2f Y=%.2f Z=%.2f\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
+      // Motor values
+      if (m) PRINTF("~M : %.2f %.2f %.2f %.2f\n", mVals[0], mVals[1], mVals[2], mVals[3]);
     }
   }
 }
