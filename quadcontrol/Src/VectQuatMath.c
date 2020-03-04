@@ -25,6 +25,10 @@ Quaternion QuaternionRotateVector(Quaternion rotation, Quaternion vector) {
   return result;
 }
 
+float QuaternionCheckMagnitude(Quaternion q) {
+  return q.w*q.w + q.x*q.x + q.y*q.y + q.z*q.z;
+}
+
 // Multiply two 3D vectors
 void Vectors2Multiply(float* result, float* v, float* u) {
   for (int i = 0; i < 4; i++) {

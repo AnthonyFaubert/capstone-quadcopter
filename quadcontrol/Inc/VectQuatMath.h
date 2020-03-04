@@ -23,6 +23,9 @@ Quaternion QuaternionConjugate(Quaternion a);
 // Rotates a 3D vector (stored in a Quaternion struct as W=0,X=x,Y=y,Z=z) by a quaternion
 Quaternion QuaternionRotateVector(Quaternion rotation, Quaternion vector);
 
+// Returns the magnitude of a quaternion, which should always be as close to 1.0f as possible
+float QuaternionCheckMagnitude(Quaternion q);
+
 // Multiply two 3D vectors (result = v .* u)
 void Vectors2Multiply(float* result, float* v, float* u);
 // Multiply a 3D vector by a scalar (result = scalar * v)

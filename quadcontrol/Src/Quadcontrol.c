@@ -11,7 +11,6 @@
 #include "IMU.h"
 #include "Experiments.h" // normally unused
 
-
 #define LPF_PERIOD 25
 #define LPF_TYPE GyroData
 #define LPF_TYPE_INIT {0.0f, 0.0f, 0.0f}
@@ -231,10 +230,10 @@ void Quadcontrol() {
   float pErrorStep = 0.1f;
   int loopCount = 0;
 
-  bool q = false; // TODO: convert to defines?
+  bool q = true; // TODO: convert to defines?
   bool j = true;
   bool e = true;
-  bool g = true;
+  bool g = false;
   bool m = false;
   
   uint32_t schedulePID = 0, schedulePrintInfo = 0;
@@ -249,6 +248,8 @@ void Quadcontrol() {
       
       IMUGetOrientation(&imuOrientation); // FIXME: check for IMU comms error!
       ApplyOrientationCorrection(&imuOrientation);
+      float diff = QuaternionCheckMagnitude(imuOrientation) - 1.0f;
+      if ((diff > 0.001) || (diff < -0.001)) PRINTF("ERR-Q-MAG! %0.8f\n", diff);
       IMUGetGyro(&imuGyroData);
       imuGyroDataRaw = imuGyroData; // hold onto raw gyro for logging
       ApplyGyroCorrection(&imuGyroData);
@@ -317,13 +318,13 @@ void Quadcontrol() {
     task_Uart3RxCheckForPacket();    
     
     if (uwTick >= schedulePrintInfo) {
-      schedulePrintInfo = uwTick + 500; // 2 Hz
+      schedulePrintInfo = uwTick + 200; // 5 Hz
       if (packetTimeout == 0) PRINTLN("Wait 4 GPac...");
-      if (q) PRINTF("   QUATS: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", imuOrientation.w, imuOrientation.x, imuOrientation.y, imuOrientation.z);
-      if (j) PRINTF("JOYQ: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", joystickOrientation.w, joystickOrientation.x, joystickOrientation.y, joystickOrientation.z);
-      if (e) PRINTF("  ERRS: R=%.2f P=%.2f Y=%.2f (all rads)\n", orientationErrors.roll, orientationErrors.pitch, orientationErrors.yaw);
-      if (g) PRINTF("GYRO: X=%.2f Y=%.2f Z=%.2f\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
-      if (m) PRINTF("     mvals=[%.2f,%.2f,%.2f,%.2f]\n", mVals[0], mVals[1], mVals[2], mVals[3]);
+      if (q) PRINTF("~QUATS: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", imuOrientation.w, imuOrientation.x, imuOrientation.y, imuOrientation.z);
+      if (j) PRINTF("~JOYQ: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", joystickOrientation.w, joystickOrientation.x, joystickOrientation.y, joystickOrientation.z);
+      if (e) PRINTF("~ERRS: R=%.2f P=%.2f Y=%.2f\n", orientationErrors.roll, orientationErrors.pitch, orientationErrors.yaw);
+      if (g) PRINTF("~GYRO: X=%.2f Y=%.2f Z=%.2f\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
+      if (m) PRINTF("~mvals=[%.2f,%.2f,%.2f,%.2f]\n", mVals[0], mVals[1], mVals[2], mVals[3]);
     }
   }
 }
