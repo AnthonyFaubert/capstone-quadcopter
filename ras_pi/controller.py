@@ -50,9 +50,19 @@ def get_tilt(): # left analog stick, axes 0 and 1. Axis 1 is up/down and is inve
     ud_motion = int(joystick.get_axis(1) * -32767)
     return (lr_motion, ud_motion)
 
+# hold values when the user lets go
+_get_yt_last_ud_motion = 0
+_get_yt_last_lr_motion = 0
 def get_yt(): # right trackpad used as stick, axes 3 and 4. Axis 4 is up/down and is inverted, fully up is -1
+    global _get_yt_last_ud_motion, _get_yt_last_lr_motion
     lr_motion = int(joystick.get_axis(3) * 32767)
     ud_motion = int(joystick.get_axis(4) * -32767)
+    if (ud_motion == 0) and (lr_motion == 0):
+        ud_motion = _get_yt_last_ud_motion
+        lr_motion = _get_yt_last_lr_motion
+    else:
+        _get_yt_last_ud_motion = ud_motion
+        _get_yt_last_lr_motion = lr_motion
     return (lr_motion, ud_motion)
 
 def connection():
@@ -117,7 +127,7 @@ while not done:
 
     if (manual):
         data = struct.pack('>Bhhhhh', 37, tilt[0], tilt[1], yt[0], yt[1], special)
-    else:
+    #else:
         #data is x_err, x_derivative, y_err, y_derivative, width, width_derivative
         #data = struct.pack('>Bhhhhh', 37, face_data[0], face_dat width, 0, face_data y, special)
 
@@ -126,7 +136,7 @@ while not done:
     print("below is sent data:")
     print(hexify(data))
     ser.write(data)
-    if (special == 5 or cont_freeze):
+    if (special == 5):
         # send multiple E-stops to ensure reception
         ser.write(data)
         ser.write(data)
