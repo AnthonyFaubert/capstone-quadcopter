@@ -4,6 +4,7 @@
 #include "math.h"
 
 Quaternion TrimQuaternion = {1.0f, 0.0f, 0.0f, 0.0f};
+static int forwardTrim = 0, rightTrim = 0;
 
 void ApplyOrientationCorrection(Quaternion* orientation) {
   static Quaternion imuOrientationCorrection = ORIENTATION_CORRECTION_QUATERNION;
@@ -51,6 +52,37 @@ Quaternion GetQuaternionError(Quaternion earth2Actual, Quaternion earth2Desired)
   Quaternion actual2Desired;
   QuaternionsMultiply(&actual2Desired, actual2Earth, earth2Desired);
   return actual2Desired;
+}
+
+RollPitchYaw NewControl(Quaternion imuCorrected, GPacket joystick, float* thrustPtr) {
+  Quaternion vect_axisX = {0.0f, 1.0f, 0.0f, 0.0f};
+  Quaternion vect_axisZ = {0.0f, 0.0f, 0.0f, 1.0f};
+
+  Quaternion vect_axisXimu = QuaternionRotateVector(imuCorrected, vect_axisX);
+  float yawActual = atan2f(vect_axisXimu.y, vect_axisXimu.x);
+  Quaternion imuAntiYaw = {cosf(yawActual/2.0f), 0.0f, 0.0f, -sinf(yawActual/2.0f)};
+  Quaternion imuRollPitch;
+  QuaternionsMultiply(&imuRollPitch, imuAntiYaw, imuCorrected);
+  Quaternion vect_axisZimuNoYaw = QuaternionRotateVector(imuRollPitch, vect_axisZ);
+  float pitchActual = atan2f(vect_axisZimuNoYaw.x, vect_axisZimuNoYaw.z);
+  float rollActual = -atan2f(vect_axisZimuNoYaw.y, vect_axisZimuNoYaw.z);
+  // TODO: compensate thrust based on vect_axisZimuNoYaw.z component
+
+  float rollJoy = joystick.leftRight, pitchJoy = joystick.upDown, yawJoy = joystick.padLeftRight;
+  // Convert joystick values into angles
+  yawJoy *= -PI / 32768.0f / 2.0f;
+  rollJoy *= JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
+  pitchJoy *= JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
+
+  // Trim the joystick
+  rollJoy += TRIM_ANGLE_PER_PRESS * (float)rightTrim;
+  pitchJoy += TRIM_ANGLE_PER_PRESS * (float)forwardTrim;
+
+  RollPitchYaw result;
+  result.roll  = rollJoy  - rollActual;
+  result.pitch = pitchJoy - pitchActual;
+  result.yaw   = yawJoy   - yawActual;
+  return result;
 }
 
 // Filter results from GetQuaternionError to improve PID step response
@@ -181,13 +213,21 @@ void JoystickApplyTrim(uint16_t button) {
   }
   
   switch (button) {
-  case JOYSTICK_BUTTON_TRIM_RIGHT: QuaternionsMultiply(&TrimQuaternion, TrimQuaternion, QUAT_TRIM_RIGHT);
-      break;
-  case JOYSTICK_BUTTON_TRIM_LEFT:  QuaternionsMultiply(&TrimQuaternion, TrimQuaternion, QUAT_TRIM_LEFT);
-      break;
-  case JOYSTICK_BUTTON_TRIM_UP:    QuaternionsMultiply(&TrimQuaternion, TrimQuaternion, QUAT_TRIM_UP);
-      break;
-  case JOYSTICK_BUTTON_TRIM_DOWN:  QuaternionsMultiply(&TrimQuaternion, TrimQuaternion, QUAT_TRIM_DOWN);
-      break;
+  case JOYSTICK_BUTTON_TRIM_RIGHT:
+    QuaternionsMultiply(&TrimQuaternion, TrimQuaternion, QUAT_TRIM_RIGHT);
+    rightTrim++;
+    break;
+  case JOYSTICK_BUTTON_TRIM_LEFT:
+    QuaternionsMultiply(&TrimQuaternion, TrimQuaternion, QUAT_TRIM_LEFT);
+    rightTrim--;
+    break;
+  case JOYSTICK_BUTTON_TRIM_UP:
+    QuaternionsMultiply(&TrimQuaternion, TrimQuaternion, QUAT_TRIM_UP);
+    forwardTrim++;
+    break;
+  case JOYSTICK_BUTTON_TRIM_DOWN:
+    QuaternionsMultiply(&TrimQuaternion, TrimQuaternion, QUAT_TRIM_DOWN);
+    forwardTrim--;
+    break;
   }
 }

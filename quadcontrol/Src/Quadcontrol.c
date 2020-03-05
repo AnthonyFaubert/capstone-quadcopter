@@ -226,9 +226,6 @@ void Quadcontrol() {
   RollPitchYaw orientationErrors, rawPErrors;
     
   float mVals[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  // TODO remove
-  float pErrorStep = 0.2f;
-  int loopCount = 0;
 
   bool q = true; // TODO: convert to defines?
   bool j = true;
@@ -257,9 +254,6 @@ void Quadcontrol() {
       
       oriDiffQuat = GetQuaternionError(imuOrientation, joystickOrientation);
       orientationErrors = Quaternion2Euler(oriDiffQuat);
-      //orientationErrors.pitch += pErrorStep;
-      //if (loopCount%150 == 0) pErrorStep *= -1.0f;
-      //loopCount++; // TODO remove
 
       rawPErrors = orientationErrors; // get pre-limited pErrors
       LimitErrors(&orientationErrors);
@@ -278,9 +272,6 @@ void Quadcontrol() {
 	//experiment_SineWavePitch(logTimestamp, mVals, &thrust);
         //experiment_SingleStepPitch(logTimestamp, mVals, &thrust);
         //experiment_CheckMotorMap(logTimestamp, mVals);
-        //float THRUST_VECTOR_YAW[4] = {1.0f, -1.0f, 1.0f, -1.0f};
-        //VectorScale(mVals, pErrorStep, THRUST_VECTOR_YAW);
-        //VectorScalarAdd(mVals, thrust, mVals);
         
         //for (int i = 0; i < 4; i++) mVals[i] = 0.0f; // disable throttle out
 	uint8_t mErrors = SetMotors(mVals);

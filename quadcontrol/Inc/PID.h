@@ -60,6 +60,8 @@ void ApplyGyroCorrection(GyroData* gyroData);
 Quaternion GetQuaternionError(Quaternion actual, Quaternion desired);
 // Converts a quaternion rotation to an Euler rotation representation
 RollPitchYaw Quaternion2Euler(Quaternion q);
+// New control system takes in corrected IMU, joystick values, and mutable thrust and produces proportional errors
+RollPitchYaw NewControl(Quaternion imuCorrected, GPacket joystick, float* thrustPtr);
 // Filter results from GetQuaternionError to improve PID step response
 void LimitErrors(RollPitchYaw* quatErrors);
 // Takes in values from GetQuaternionError(), gyroscope data, and a thrust value to produce the values which should be applied to the motors
