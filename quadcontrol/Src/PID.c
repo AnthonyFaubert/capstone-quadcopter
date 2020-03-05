@@ -49,7 +49,7 @@ RollPitchYaw Quaternion2Euler(Quaternion q) {
 Quaternion GetQuaternionError(Quaternion earth2Actual, Quaternion earth2Desired) {
   Quaternion actual2Earth = QuaternionConjugate(earth2Actual);
   Quaternion actual2Desired;
-  QuaternionsMultiply(&actual2Desired, earth2Desired, actual2Earth);
+  QuaternionsMultiply(&actual2Desired, actual2Earth, earth2Desired);
   return actual2Desired;
 }
 
