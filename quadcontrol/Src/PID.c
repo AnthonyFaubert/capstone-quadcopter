@@ -54,15 +54,17 @@ Quaternion GetQuaternionError(Quaternion earth2Actual, Quaternion earth2Desired)
   return actual2Desired;
 }
 
-RollPitchYaw NewControl(Quaternion imuCorrected, GPacket joystick, float* thrustPtr) {
+// TODO: better approach, or just remove
+Quaternion imuRollPitch, imuYaw; // temporary globals for printouts
+RollPitchYaw NewControl(Quaternion imuCorrected, GriffinPacket joystick, float* thrustPtr) {
   Quaternion vect_axisX = {0.0f, 1.0f, 0.0f, 0.0f};
   Quaternion vect_axisZ = {0.0f, 0.0f, 0.0f, 1.0f};
 
   Quaternion vect_axisXimu = QuaternionRotateVector(imuCorrected, vect_axisX);
   float yawActual = atan2f(vect_axisXimu.y, vect_axisXimu.x);
-  Quaternion imuAntiYaw = {cosf(yawActual/2.0f), 0.0f, 0.0f, -sinf(yawActual/2.0f)};
-  Quaternion imuRollPitch;
-  QuaternionsMultiply(&imuRollPitch, imuAntiYaw, imuCorrected);
+  /*Quaternion*/ imuYaw = {cosf(yawActual/2.0f), 0.0f, 0.0f, sinf(yawActual/2.0f)};
+  //Quaternion imuRollPitch;
+  QuaternionsMultiply(&imuRollPitch, QuaternionConjugate(imuYaw), imuCorrected);
   Quaternion vect_axisZimuNoYaw = QuaternionRotateVector(imuRollPitch, vect_axisZ);
   float pitchActual = atan2f(vect_axisZimuNoYaw.x, vect_axisZimuNoYaw.z);
   float rollActual = -atan2f(vect_axisZimuNoYaw.y, vect_axisZimuNoYaw.z);

@@ -253,7 +253,8 @@ void Quadcontrol() {
       ApplyGyroCorrection(&imuGyroData);
       
       oriDiffQuat = GetQuaternionError(imuOrientation, joystickOrientation);
-      orientationErrors = Quaternion2Euler(oriDiffQuat);
+      //orientationErrors = Quaternion2Euler(oriDiffQuat);
+      orientationErrors = NewControl(imuOrientation, GPacket, thrust);
 
       rawPErrors = orientationErrors; // get pre-limited pErrors
       LimitErrors(&orientationErrors);
@@ -321,7 +322,7 @@ void Quadcontrol() {
       // Joystick quat
       if (j) PRINTF("~QJ: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", joystickOrientation.w, joystickOrientation.x, joystickOrientation.y, joystickOrientation.z);
       // Difference quat
-      if (qe) PRINTF("~QE: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", oriDiffQuat.w, oriDiffQuat.x, oriDiffQuat.y, oriDiffQuat.z);
+      if (qe) PRINTF("~QE: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", imuRollPitch.w, imuRollPitch.x, imuRollPitch.y, imuRollPitch.z);
       // Proportional errors
       if (e) PRINTF("~P : R=%.2f P=%.2f Y=%.2f\n", orientationErrors.roll, orientationErrors.pitch, orientationErrors.yaw);
       // Gyro values (corrected)
