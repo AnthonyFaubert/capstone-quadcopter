@@ -28,31 +28,30 @@ function processQuatJSON(data) {
     setQuat(q);
 }
 
-var buttonQC, buttonQJ, buttonQE;
+var buttons = {};
+function updateButtons() {
+    for (var btnK in buttons) {
+	if (buttons.hasOwnProperty(btnK)) {
+	    if (btnK == viewQuat) {
+		buttons[btnK].attr('disabled', 'disabled');
+	    } else {
+		buttons[btnK].removeAttr('disabled');
+	    }
+	}
+    }
+}
+
 $(function() {
     console.log("hello");
     setInterval(function() {
 	$.getJSON( "/latestQuaternion.py", processQuatJSON);
     }, 100);
-    buttonQC = $('input', $('#QC').parent());
-    buttonQJ = $('input', $('#QJ').parent());
-    buttonQE = $('input', $('#QE').parent());
-    buttonQC.click(function() {
-	viewQuat = 'QC';
-	buttonQC.attr('disabled', 'disabled');
-	buttonQJ.removeAttr('disabled');
-	buttonQE.removeAttr('disabled');
-    });
-    buttonQJ.click(function() {
-	viewQuat = 'QJ';
-	buttonQJ.attr('disabled', 'disabled');
-	buttonQC.removeAttr('disabled');
-	buttonQE.removeAttr('disabled');
-    });
-    buttonQE.click(function() {
-	viewQuat = 'QE';
-	buttonQE.attr('disabled', 'disabled');
-	buttonQJ.removeAttr('disabled');
-	buttonQC.removeAttr('disabled');
+    var available = ['QC', 'QJ', 'QE'];
+    available.forEach(function(v, i) {
+	buttons[v] = $('input', $('#' + v).parent());
+	buttons[v].click(function() {
+	    viewQuat = v;
+	    updateButtons();
+	});
     });
 });

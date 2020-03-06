@@ -3,7 +3,7 @@ var geometry, material, mesh;
 var rendererHeight,
   	rendererWidth;
 
-const WIDTH_FACTOR = 0.49, HEIGHT_FACTOR = 0.8;
+const WIDTH_FACTOR = 0.49, HEIGHT_FACTOR = 0.9;
 
 const AXIS_LENGTH = 430,
     TRACE_SEGMENTS = 25;
