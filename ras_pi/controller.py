@@ -13,13 +13,17 @@ UART_BAUD_RATE = 460800
 LOOP_RATE = 80 # Hz
 DATA_LENGTH = 12
 manual = True
-use_socket = False
+use_socket = True
 # establishing the socket connection
 if (use_socket):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect(('localhost', 8000))
-    print("connection established!")
-    s.setblocking(0)
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect(('localhost', 8000))
+        print("connection established!")
+        s.setblocking(0)
+    except:
+        use_socket = False
+        print("Could not find socket")
 
 # intialize pygame
 pygame.init()
@@ -70,12 +74,27 @@ def connection():
         return False
     else:
         return True
+
+def send_button(butt):
+    data = struct.pack('>BhhhhhB',0x25, 0, 0, 0, 0, butt, (0x25+butt))
+    ser.write(data)
+    if (butt == 5):
+        ser.write(data)
+        ser.write(data)
+        print('Sent e-stop!')
+        time.sleep(3)
+
+def calc_auto_js(x_err, x_der, y_err, y_der, w_err, w_der):
+    return (0,0,0,0,0)
     
 ser.reset_input_buffer()
 ser.reset_output_buffer()
 lastSend = -1
 worstLoopTime = -1
 cont_freeze_frames = -1
+last_change_timestamp = -1
+prev_auto = -1
+axis2init = False
 done = False
 
 # main program loop
@@ -88,8 +107,8 @@ while not done:
         if event.type == pygame.QUIT: # If user clicked close.
             done = True # Flag that we are done so we exit this loop.
         elif event.type == pygame.JOYBUTTONDOWN:
-            if (event.button == 6 or event.button == 7):
-                special = 5
+            if (event.button == 5):
+                send_button(5) # e-stop
             elif (event.button == 0):
                 special = 1
             elif (event.button == 1):
@@ -98,6 +117,38 @@ while not done:
                 special = 3
             elif (event.button == 3):
                 special = 4
+            elif (event.button == 4):
+                if (use_socket):
+                    sock_send = struct.pack('>b', 4)
+                    s.send(sock_send)
+                else:
+                    print('cannot take picture, not connected to haar.py')
+                pass
+            elif (event.button == 6):
+                special = 6 # reset flight log
+                pass
+            elif (event.button == 7):
+                send_button(7) # start quad motors
+                pass
+    
+
+    if(last_change_timestamp == -1):
+        last_change_timestamp = time.time()
+
+    if(not axis2init and joystick.get_axis(2)==0.0):
+        auto = -32767
+    else:
+        auto = int(joystick.get_axis(2) * 32767)
+        axis2init = True
+
+    if (auto == -32767):
+        manual = True
+    elif (prev_auto != auto):
+        last_change_timestamp = time.time()
+        prev_auto = auto
+        manual = False
+    if (not manual and (time.time() - last_change_timestamp) > 1):
+            send_button(5)
 
     #receive data from haar.py via socket for face position in frame
     if (use_socket):
@@ -108,7 +159,7 @@ while not done:
         face_data_end = len(face_data_bytes) - face_data_extra_num
         final_face_bytes = face_data_bytes[face_data_start:face_data_end]
         # face_data is in format x_err, x_derivative, y_err, y_derivative, width, width_derivative
-        face_data = struct.unpack('>hhhhhh', final_face_bytes)
+        [x_err, x_der, y_err, y_der, w_err, w_der] = struct.unpack('>hhhhhh', final_face_bytes)
 
     # get controller joystick values
     tilt = get_tilt()
@@ -121,33 +172,32 @@ while not done:
     if (prev_tilt == tilt and prev_yt == yt and tilt != (0,0) and yt != (0,0)):
         cont_freeze_frames += 1
         if (cont_freeze_frames > 10):
-            special = 5
+            send_button(5)
     else:
         cont_freeze_frames = 0
 
-    if (manual):
+    if (manual or not use_socket): # condition should be set to 'manual'
         data = struct.pack('>Bhhhhh', 37, tilt[0], tilt[1], yt[0], yt[1], special)
-    #else:
+    else:
+        auto_joystick = calc_auto_js(x_err, x_der, y_err, y_der, w_err, w_der)
         #data is x_err, x_derivative, y_err, y_derivative, width, width_derivative
-        #data = struct.pack('>Bhhhhh', 37, face_data[0], face_dat width, 0, face_data y, special)
+        if (special == 0):
+            data = struct.pack('>Bhhhhh', 37, *auto_joystick)
+        else:
+            data = struct.pack('>Bhhhhh', 37, *auto_joystick[:-1], special)
 
     checksum = sum(data) & 0xFF
     data += struct.pack('>B', checksum)
     print("below is sent data:")
     print(hexify(data))
     ser.write(data)
-    if (special == 5):
-        # send multiple E-stops to ensure reception
-        ser.write(data)
-        ser.write(data)
-        #done = True
-        time.sleep(3) # give time to receive all debug UART data before ending
+
     timeDiff = time.time() - lastSend
-    if (lastSend != -1) and (timeDiff > 0.030):
+    if (lastSend != -1) and (timeDiff > 0.050):
         loopTime = time.time() - loopTime
         print("ERROR: %f seconds in between packet sends!" % timeDiff)
         print("This loop time: %f. Worst loop time: %f." % (loopTime, worstLoopTime))
-            #time.sleep(15)
+        time.sleep(15)
     lastSend = time.time()
     print()
     special = 0
@@ -164,6 +214,8 @@ while not done:
     loopTime = time.time() - loopTime
     if loopTime > worstLoopTime:
         worstLoopTime = loopTime
+
+    print('auto value:%d' %auto)
 
 #turn off motors
 ser.close()
