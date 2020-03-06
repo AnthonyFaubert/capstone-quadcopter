@@ -5,6 +5,7 @@
 #include "stdbool.h"
 #include "stdint.h"
 #include "VectQuatMath.h"
+#include "Quadcontrol.h"
 
 // Set max bank angle to 22.5 degrees
 #define JOYSTICK_MAX_ANGLE (PI / 8.0f)

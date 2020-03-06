@@ -144,7 +144,7 @@ void emergencyStop() {
 }
 
 static GriffinPacket GPacket;
-static float thrust;
+float thrust;
 static Quaternion joystickOrientation = {1.0f, 0.0f, 0.0f, 0.0f};
 static uint32_t packetTimeout = 0, lastRXLoop = 0;
 static uint32_t ValidCount = 0, InvalidCount = 0; // TODO: rename to include "Packet"
@@ -254,7 +254,7 @@ void Quadcontrol() {
       
       oriDiffQuat = GetQuaternionError(imuOrientation, joystickOrientation);
       //orientationErrors = Quaternion2Euler(oriDiffQuat);
-      orientationErrors = NewControl(imuOrientation, GPacket, thrust);
+      orientationErrors = NewControl(imuOrientation, GPacket, &thrust);
 
       rawPErrors = orientationErrors; // get pre-limited pErrors
       LimitErrors(&orientationErrors);
