@@ -6,6 +6,8 @@
     <title>Autonomous Aerial Vision</title>
     <link rel="stylesheet" type="text/css" href="/css/main.css" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/threejs/r84/three.min.js"></script>
+    <script src="/js/quaternionsonline.js"></script>
     <script src="/js/status.js"></script>
   </head>
   <body>
@@ -36,7 +38,11 @@
 	    <tr><td>GC</td><td id="GC"></td><td></td></tr>
 	    <tr><td>M</td><td id="M"></td><td></td></tr>
 	  </table>
-	  <iframe src="/quaternionsonline/index.html" width="100%" height="1000px"></iframe>
+	  <div id="renderDiv" width="100%" height="600em"></div>
+          <div>
+            <input id='showAxisCheckbox' type='checkbox' onchange='showAxisCheckboxChanged()'></input>
+            <div class='inlineCheckboxLabel' onclick='switchShowAxis()' style="display: inline;">Show axis of rotation</div>
+          </div>
 	</div>
       </div>
     
