@@ -30,6 +30,15 @@
 	    a visual aid of the quaternion values can be viewed below</p>
 	  <br />
 
+	  <div id="renderDiv" width="100%" height="600em"></div>
+          <table><tr>
+	      <td>
+		<input id='showAxisCheckbox' type='checkbox' onchange='showAxisCheckboxChanged()'></input>
+		<div class='inlineCheckboxLabel' onclick='switchShowAxis()' style="display: inline;">Show axis of rotation</div>
+	      </td>
+	      <td>Debug information / quaternion view selector below</td>
+          </tr></table>
+	  <br />
 	  <table>
 	    <tr><td>QC</td><td id="QC"></td><td><input type="button" value="View"/></td></tr>
 	    <tr><td>QJ</td><td id="QJ"></td><td><input type="button" value="View"/></td></tr>
@@ -38,11 +47,6 @@
 	    <tr><td>GC</td><td id="GC"></td><td></td></tr>
 	    <tr><td>M</td><td id="M"></td><td></td></tr>
 	  </table>
-	  <div id="renderDiv" width="100%" height="600em"></div>
-          <div>
-            <input id='showAxisCheckbox' type='checkbox' onchange='showAxisCheckboxChanged()'></input>
-            <div class='inlineCheckboxLabel' onclick='switchShowAxis()' style="display: inline;">Show axis of rotation</div>
-          </div>
 	</div>
       </div>
     
