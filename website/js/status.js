@@ -12,8 +12,8 @@ function setQuat(q) {
     vectorQuaternion.normalize();
     updateRotationAxis();
     updateVectorVisuals();
-    updateRotationInfo();
-    renderer.render(namespace.scene, namespace.camera);
+    //updateRotationInfo();
+    renderer.render(scene, camera);
 }
 
 

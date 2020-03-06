@@ -31,7 +31,8 @@ $(function() {
     rendererHeight = rendererWidth * HEIGHT_FACTOR;
     aspectRatio = rendererWidth / rendererHeight;
 
-    camera = new THREE.PerspectiveCamera(75, aspectRatio, 1, 10000);
+    camera = new THREE.PerspectiveCamera(60, aspectRatio, 1, 10000);
+    camera.up = new THREE.Vector3(0, 0, 1);
     turnCamera();
 
     scene = new THREE.Scene();
@@ -72,20 +73,20 @@ function initGrid() {
         var gridLineGeomY = new THREE.Geometry();
 
         if (i == 0) {
-            gridLineGeomX.vertices.push(new THREE.Vector3(dist, 0, -AXIS_LENGTH));
-            gridLineGeomX.vertices.push(new THREE.Vector3(dist, 0,  0));
+            gridLineGeomX.vertices.push(new THREE.Vector3(dist, -AXIS_LENGTH, 0));
+            gridLineGeomX.vertices.push(new THREE.Vector3(dist,  0, 0));
 
-            gridLineGeomY.vertices.push(new THREE.Vector3(-AXIS_LENGTH, 0, dist));
-            gridLineGeomY.vertices.push(new THREE.Vector3(           0, 0, dist));
+            gridLineGeomY.vertices.push(new THREE.Vector3(-AXIS_LENGTH, dist, 0));
+            gridLineGeomY.vertices.push(new THREE.Vector3(           0, dist, 0));
 
             scene.add(new THREE.Line(gridLineGeomX, gridLineMatThick));
             scene.add(new THREE.Line(gridLineGeomY, gridLineMatThick));
         } else {
-            gridLineGeomX.vertices.push(new THREE.Vector3(dist, 0, -AXIS_LENGTH));
-            gridLineGeomX.vertices.push(new THREE.Vector3(dist, 0,  AXIS_LENGTH));
+            gridLineGeomX.vertices.push(new THREE.Vector3(dist, -AXIS_LENGTH, 0));
+            gridLineGeomX.vertices.push(new THREE.Vector3(dist,  AXIS_LENGTH, 0));
 
-            gridLineGeomY.vertices.push(new THREE.Vector3(-AXIS_LENGTH, 0, dist));
-            gridLineGeomY.vertices.push(new THREE.Vector3( AXIS_LENGTH, 0, dist));
+            gridLineGeomY.vertices.push(new THREE.Vector3(-AXIS_LENGTH, dist, 0));
+            gridLineGeomY.vertices.push(new THREE.Vector3( AXIS_LENGTH, dist, 0));
 
             scene.add(new THREE.Line(gridLineGeomX, gridLineMat));
             scene.add(new THREE.Line(gridLineGeomY, gridLineMat));
@@ -210,10 +211,13 @@ function handlePointerMove(x, y) {
 }
 
 function turnCamera() {
-    camera.position.x = Math.sin(cameraPos.x) * 1000 * Math.cos(cameraPos.y);
-    camera.position.z = Math.cos(cameraPos.x) * 1000 * Math.cos(cameraPos.y);
-    camera.position.y = Math.sin(cameraPos.y) * 1000;
+    camera.position.x = -Math.sin(cameraPos.x) * 1000 * Math.cos(cameraPos.y);
+    camera.position.y = Math.cos(cameraPos.x) * 1000 * Math.cos(cameraPos.y);
+    camera.position.z = Math.sin(cameraPos.y) * 1000;
     camera.lookAt(new THREE.Vector3(0,0,0));
+    //console.log(a);
+    //camera.applyQuaternion(a);
+//    camera.quaternion = camera.quaternion.multiply(camRotQuat);
     //console.log(cameraPos.x + "  " + cameraPos.y);
 }
 
