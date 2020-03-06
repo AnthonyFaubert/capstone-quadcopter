@@ -26,14 +26,9 @@ var animation = false, showAxis = false;
 var rotationAxisObject = new THREE.Line();
 
 
-init();
-animate();
-
-function init() {
-    setAnimation(true);
-
-    rendererWidth = document.getElementById("renderDiv").clientWidth;
-    rendererHeight = Math.min(document.getElementById("renderDiv").clientHeight, window.innerHeight * HEIGHT_FACTOR);
+$(function() {
+    rendererWidth = $('#content').width();
+    rendererHeight = rendererWidth * HEIGHT_FACTOR;
     aspectRatio = rendererWidth / rendererHeight;
 
     camera = new THREE.PerspectiveCamera(75, aspectRatio, 1, 10000);
@@ -52,6 +47,7 @@ function init() {
     renderer.setSize(rendererWidth, rendererHeight);
     renderer.setClearColor( 0xffffff, 1 );
 
+    console.log(renderer.domElement);
     document.getElementById("renderDiv").appendChild(renderer.domElement);
 
     window.addEventListener('resize', onWindowResize, false);
@@ -61,7 +57,9 @@ function init() {
     document.addEventListener('touchmove', handleTouchMove, false);
     document.addEventListener('touchstart', handleTouchStart, false);
     document.addEventListener('touchend', handleTouchEnd, false);
-}
+    
+    animate();
+});
 
 function initGrid() {
     var GRID_SEGMENT_COUNT = 5;
@@ -182,8 +180,8 @@ function initRotationAxis() {
 }
 
 function onWindowResize() {
-    rendererWidth = document.getElementById("renderDiv").clientWidth;
-    rendererHeight = Math.min(document.getElementById("renderDiv").clientHeight, window.innerHeight * HEIGHT_FACTOR);
+    rendererWidth = $('#content').width();
+    rendererHeight = rendererWidth * HEIGHT_FACTOR;
     renderer.setSize(rendererWidth, rendererHeight);
     camera.aspect = rendererWidth / rendererHeight;
     camera.updateProjectionMatrix();
@@ -376,10 +374,6 @@ function formatNumberValue(x) {
     return string;
 }
 
-function inputSelected() {
-    setAnimation(false);
-}
-
 function checkEnter(event, category) {
     if (event.keyCode == 13) {
         if (category == "quaternion") {applyQuaternionRotation();
@@ -552,17 +546,11 @@ function sliderClick(id) {
 }
 
 function setAnimation(on) {
-    animation = on;
-    document.getElementById("animationCheckbox").checked = animation;
+    animation = false;
 }
-
-function animationCheckboxChanged() {
-    animation = document.getElementById("animationCheckbox").checked;
-}
-
-function switchAnimation() {
-    setAnimation(!animation);
-}
+function animationCheckboxChanged() {}
+function inputSelected() {}
+function switchAnimation() {}
 
 function showAxisCheckboxChanged() {
     setShowAxis(document.getElementById("showAxisCheckbox").checked);

@@ -1,21 +1,19 @@
 
-namespace = null;
-
 function newQuat(q) {
-    return new namespace.THREE.Quaternion(q['x'], q['y'], q['z'], q['w']);
+    return new THREE.Quaternion(q['x'], q['y'], q['z'], q['w']);
 }
 
 function new3DVec(x, y, z) {
-    return new namespace.THREE.Vector3(x, y, z);
+    return new THREE.Vector3(x, y, z);
 }
 
 function setQuat(q) {
-    namespace.vectorQuaternion = q;
-    namespace.vectorQuaternion.normalize();
-    namespace.updateRotationAxis();
-    namespace.updateVectorVisuals();
-    namespace.updateRotationInfo();
-    namespace.renderer.render(namespace.scene, namespace.camera);
+    vectorQuaternion = q;
+    vectorQuaternion.normalize();
+    updateRotationAxis();
+    updateVectorVisuals();
+    updateRotationInfo();
+    renderer.render(namespace.scene, namespace.camera);
 }
 
 
@@ -32,12 +30,7 @@ function processQuatJSON(data) {
 
 var buttonQC, buttonQJ, buttonQE;
 $(function() {
-    iframe = $('iframe')[0];
-    namespace = iframe.contentWindow;
     console.log("hello");
-    setTimeout(function() {
-	$('#animationCheckbox', $('iframe').contents()).prop('checked', false).trigger('change');
-    }, 1000);
     setInterval(function() {
 	$.getJSON( "/latestQuaternion.py", processQuatJSON);
     }, 100);
