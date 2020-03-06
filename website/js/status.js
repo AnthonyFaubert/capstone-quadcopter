@@ -26,8 +26,6 @@ function processQuatJSON(data) {
 	    $('#' + key).text(data[key]['s']);
 	}
     }
-    //q = newQuat(data['QC']);
-    //q = newQuat(data['QJ']);
     q = newQuat(data[viewQuat]);
     setQuat(q);
 }

@@ -1,0 +1,46 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Autonomous Aerial Vision</title>
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="/js/status.js"></script>
+  </head>
+  <body>
+    <div class="main_page">
+      <div class="center">
+	<img src="/img/aav_logo.png" alt="AAV Logo" class="floating_element" height="200" width="400"/>
+      </div>
+
+      <div class="content_section floating_element">
+        <div class="section_header">
+          Autonomous Facial Recognition Quadcopter 
+        </div>
+        <div class="content_section_text">
+	  <p>Return to <a href="/index.html">home page</a>.</p>
+	  <br />
+	  <h3>Quadcopter Quaternions</h3>
+	  <br />
+	  <p>During our project, we utilize and IMU and PID loop as a way to control the orientation of the quadcopter. Therefore, we needed 
+	    to have a solid understanding of quaternions. For those interested in the quaternion values of the current quadcopter's orientation, 
+	    a visual aid of the quaternion values can be viewed below</p>
+	  <br />
+
+	  <table>
+	    <tr><td>QC</td><td id="QC"></td><td><input type="button" value="View"/></td></tr>
+	    <tr><td>QJ</td><td id="QJ"></td><td><input type="button" value="View"/></td></tr>
+	    <tr><td>QE</td><td id="QE"></td><td><input type="button" value="View"/></td></tr>
+	    <tr><td>P</td><td id="P"></td><td></td></tr>
+	    <tr><td>GC</td><td id="GC"></td><td></td></tr>
+	    <tr><td>M</td><td id="M"></td><td></td></tr>
+	  </table>
+	  <iframe src="/quaternionsonline/index.html" width="100%" height="1000px"></iframe>
+	</div>
+      </div>
+    
+    </div>
+  </body>
+</html>
+
