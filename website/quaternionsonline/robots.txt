@@ -1,0 +1,6 @@
+# robots.txt of quaternions.online
+
+User-agent: *
+Disallow: /analytics/index.php
+Disallow: 404.html
+Disallow: database_control

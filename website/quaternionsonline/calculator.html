@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang='en'>
+    <head>
+        <title>Quaternions - Calculator</title>
+        <meta name="description" content="Visualising Quaternions, Converting to and from Euler Angles, Explanation of Quaternions">
+        <meta name="keywords" content="Quaternion, Quaternions, Visualisation, Visualization, Calculator, Conversion, convert, Explanation, Rotation, rotate">
+        <meta charset="UTF-8">
+        <meta name=viewport content="width=device-width, initial-scale=1">
+        <meta property="og:image" content="/logo.png" />
+        <meta property="og:image:type" content="image/png" />
+
+
+        <link rel='stylesheet' href='css/bootstrap.min.css'>
+        <link rel="stylesheet" type="text/css" href="css/style_mobile.css" media="screen, handheld" />
+        <link rel="stylesheet" type="text/css" href="css/style.css" media="screen  and (min-width: 40.5em)" />
+
+        <!-- Piwik -->
+        <script type="text/javascript">
+            var _paq = _paq || [];
+            _paq.push(["setDomains", ["*.quaternions.online"]]);
+            _paq.push(['trackPageView']);
+            _paq.push(['enableLinkTracking']);
+            (function() {
+                var u="//quaternions.online/analytics/";
+                _paq.push(['setTrackerUrl', u+'piwik.php']);
+                _paq.push(['setSiteId', 1]);
+                var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+                g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+            })();
+        </script>
+        <noscript><p><img src="analytics/piwik.php%3Fidsite=1" style="border:0;" alt="" /></p></noscript>
+        <!-- End Piwik Code -->
+
+    </head>
+    <body>
+        <nav class='mynavbar'>
+            <div class='mynavbar-container'>
+                <div class='mynavbar-header'>
+                    <a class='nav-text' href='index.html'>
+                        Quaternions
+                    </a>
+                </div>
+                <div>
+                    <ul class='mynavbar-table'>
+                         <li class='navbar-button-up'> 
+                            <a class='nav-text' href='index.html'>Visualisation</a></li>
+
+                         <li class='navbar-button-down'> 
+                            <a class='nav-text' href='calculator.html'>Calculator</a></li>
+
+                         <li class='navbar-button-up'> 
+                            <a class='nav-text' href='explanation.html'>Explanation</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        
+<main class='background'>
+    <h1 class='big-title'>Calculator Under Construction...</h1>
+    <h2 class='medium-title'>Features to come:</h2>
+    <ul class='feature-list'>
+        <li>Conversion between Quaternions, Euler Angles, Rotation Matrices, etc.</li>
+        <li>Chaining of multiple Rotations</li>
+        <li>All Rotations visualised!</li>
+    </ul>
+    <br><br><br><br><br>
+    <div class='center-text'>
+    <b>By the way:</b>
+    <br>Thanks to everyone leaving comments in the feedback section. It means a lot!
+    </div>
+
+</main>
+
+
+        <section id='feedback-section'>
+            <div class='container'>
+                <h2 class='section-title' id='feedback-title'>Give me your feedback!</h2>
+                <form>
+                    <textarea id='message_area' class='form-control contact-input message' name='message' maxlength='1980' placeholder='Thanks for the feedback ☺'></textarea>
+                    <input class='btn btn-default contact-submit' type='button' value='Submit' onclick="submitFeedback()">
+                </form>
+            </div>
+        </section>
+
+        <footer>
+            &copy; 2016
+            <a href='imprint.html'>Imprint</a>
+        </footer>
+    </body>
+
+    <script>
+        var checkJStext = document.getElementById("checkJStext");
+        checkJStext.parentNode.removeChild(checkJStext);
+    </script>
+    <script src="js/three.min.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/feedback.js"></script>
+</html>
