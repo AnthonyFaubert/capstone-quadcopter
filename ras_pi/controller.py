@@ -95,6 +95,15 @@ cont_freeze_frames = -1
 last_change_timestamp = -1
 prev_auto = -1
 axis2init = False
+
+# initial values for x, y, and w errors and derivatives in case auto is triggered before finding a face
+x_err = 0
+x_der = 0
+y_err = 0
+y_der = 0
+w_err = 0
+w_der = 0
+
 done = False
 
 # main program loop
@@ -157,9 +166,10 @@ while not done:
         face_data_extra = face_data_bytes[((len(face_data_bytes)) - face_data_extra_num):]
         face_data_start = len(face_data_bytes) - 12 - face_data_extra_num
         face_data_end = len(face_data_bytes) - face_data_extra_num
-        final_face_bytes = face_data_bytes[face_data_start:face_data_end]
-        # face_data is in format x_err, x_derivative, y_err, y_derivative, width, width_derivative
-        [x_err, x_der, y_err, y_der, w_err, w_der] = struct.unpack('>hhhhhh', final_face_bytes)
+        if (face_data_start >= 0): # this is true when we have recieved at least one packet
+            final_face_bytes = face_data_bytes[face_data_start:face_data_end]
+            # face_data is in format x_err, x_derivative, y_err, y_derivative, width, width_derivative
+            [x_err, x_der, y_err, y_der, w_err, w_der] = struct.unpack('>hhhhhh', final_face_bytes)
 
     # get controller joystick values
     tilt = get_tilt()
