@@ -16,7 +16,6 @@ mainWorkspace/settings/
 # INC Files
 quadcontrol/Inc/gpio.h
 quadcontrol/Inc/i2c.h
-quadcontrol/Inc/main.h
 quadcontrol/Inc/spi.h
 quadcontrol/Inc/stm32f4xx_hal_conf.h
 quadcontrol/Inc/stm32f4xx_it.h
