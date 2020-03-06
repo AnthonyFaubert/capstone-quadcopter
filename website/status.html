@@ -5,6 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Autonomous Aerial Vision</title>
     <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="/css/status.css" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/threejs/r84/three.min.js"></script>
     <script src="/js/quaternionsonline.js"></script>
@@ -25,13 +26,12 @@
 	  <br />
 	  <h3>Quadcopter Quaternions</h3>
 	  <br />
-	  <p>During our project, we utilize and IMU and PID loop as a way to control the orientation of the quadcopter. Therefore, we needed 
-	    to have a solid understanding of quaternions. For those interested in the quaternion values of the current quadcopter's orientation, 
-	    a visual aid of the quaternion values can be viewed below</p>
-	  <br />
+	  <p>The quadcopter uses quaternions to represent its orientation in space and use it to compute angles for feedback to the motors. The problem is that quaternions are very difficult to understand on their own. We needed a better way to debug the parts of our code that involved quaternions, so we found <a href="http://quaternions.online/">quaternions.online</a> and adapted their quaternion viewer to our project. On this page, you can use our adapted viewer to monitor the orientation of the quadcopter and other calculated quaternions in real time.
+	  </p>
+	  <p>Click and drag to adjust the viewport. Try out various buttons at the bottom to see what they do!</p>
 
 	  <div id="renderDiv" width="100%" height="600em"></div>
-          <table><tr>
+          <table class="options"><tr>
 	      <td>
 		<input id='showAxisCheckbox' type='checkbox' onchange='showAxisCheckboxChanged()'></input>
 		<div class='inlineCheckboxLabel' onclick='switchShowAxis()' style="display: inline;">Show axis of rotation</div>
@@ -39,13 +39,13 @@
 	      <td>Debug information / quaternion view selector below</td>
           </tr></table>
 	  <br />
-	  <table>
-	    <tr><td>QC</td><td id="QC"></td><td><input type="button" value="View"/></td></tr>
+	  <table class="quadcopter_status">
+	    <tr><td>Quadcopter Orientation</td><td id="QC"></td><td><input type="button" value="View"/></td></tr>
 	    <tr><td>QJ</td><td id="QJ"></td><td><input type="button" value="View"/></td></tr>
 	    <tr><td>QE</td><td id="QE"></td><td><input type="button" value="View"/></td></tr>
-	    <tr><td>P</td><td id="P"></td><td></td></tr>
-	    <tr><td>GC</td><td id="GC"></td><td></td></tr>
-	    <tr><td>M</td><td id="M"></td><td></td></tr>
+	    <tr><td>Proportional Errors (PID input)</td><td id="P"></td><td></td></tr>
+	    <tr><td>Quadcopter Rotation Rates (PID input)</td><td id="GC"></td><td></td></tr>
+	    <tr><td>Motor Values (PID output)</td><td id="M"></td><td></td></tr>
 	  </table>
 	</div>
       </div>

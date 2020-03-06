@@ -26,6 +26,7 @@ function processQuatJSON(data) {
     }
     q = newQuat(data[viewQuat]);
     setQuat(q);
+    updateButtons();
 }
 
 var buttons = {};
@@ -51,7 +52,6 @@ $(function() {
 	buttons[v] = $('input', $('#' + v).parent());
 	buttons[v].click(function() {
 	    viewQuat = v;
-	    updateButtons();
 	});
     });
 });
