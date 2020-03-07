@@ -141,8 +141,8 @@ GyroData limitGyro(GyroData original) {
  */
 // positive roll thrust will make roll tape go down, similar for rest
 // Motor vectors which define which directions are which
-float THRUST_VECTOR_ROLL[4] = {1.0f, 0.0f, -1.0f, 0.0f};
-float THRUST_VECTOR_PITCH[4] = {0.0f, -1.0f, 0.0f, 1.0f};
+float THRUST_VECTOR_ROLL[4] = {0.0f, -1.0f, 0.0f, 1.0f};
+float THRUST_VECTOR_PITCH[4] = {-1.0f, 0.0f, 1.0f, 0.0f};
 float THRUST_VECTOR_YAW[4] = {1.0f, -1.0f, 1.0f, -1.0f};
 void PID(float* motorVals, RollPitchYaw rotations, GyroData gyroData, float thrust) {
   float rollVect[4], pitchVect[4], yawVect[4];
@@ -155,8 +155,8 @@ void PID(float* motorVals, RollPitchYaw rotations, GyroData gyroData, float thru
   gyroData = limitGyro(gyroData);
   // derivativeMVals = Derivative commands
   float derivativeMVals[4];
-  VectorScale(rollVect, GAIN_DERIVATIVE_ROLL * gyroData.x, THRUST_VECTOR_ROLL);
-  VectorScale(pitchVect, GAIN_DERIVATIVE_PITCH * gyroData.y, THRUST_VECTOR_PITCH);
+  VectorScale(rollVect, GAIN_DERIVATIVE_ROLL * gyroData.y, THRUST_VECTOR_ROLL);
+  VectorScale(pitchVect, GAIN_DERIVATIVE_PITCH * gyroData.x, THRUST_VECTOR_PITCH);
   VectorScale(yawVect, GAIN_DERIVATIVE_YAW * gyroData.z, THRUST_VECTOR_YAW);
   Vectors3Add(derivativeMVals, rollVect, pitchVect, yawVect);
   
