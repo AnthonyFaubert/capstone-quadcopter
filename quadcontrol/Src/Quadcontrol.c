@@ -221,7 +221,7 @@ void Quadcontrol() {
   CalibrateESCs();
   PRINTLN(" Done.");
   
-  Quaternion imuOrientation, oriDiffQuat;
+  Quaternion imuOrientation, imuOrientationRaw;
   GyroData imuGyroData, imuGyroDataRaw;
   RollPitchYaw orientationErrors, rawPErrors;
     
@@ -245,6 +245,7 @@ void Quadcontrol() {
       schedulePID = uwTick + 20; // 50 Hz
       
       IMUGetOrientation(&imuOrientation); // FIXME: check for IMU comms error!
+      imuOrientationRaw = imuOrientation;
       ApplyOrientationCorrection(&imuOrientation);
       float diff = QuaternionCheckMagnitude(imuOrientation) - 1.0f;
       if ((diff > 0.001) || (diff < -0.001)) PRINTF("ERR-Q-MAG! %0.8f\n", diff);
@@ -252,7 +253,7 @@ void Quadcontrol() {
       imuGyroDataRaw = imuGyroData; // hold onto raw gyro for logging
       ApplyGyroCorrection(&imuGyroData);
       
-      oriDiffQuat = GetQuaternionError(imuOrientation, joystickOrientation);
+      //oriDiffQuat = GetQuaternionError(imuOrientation, joystickOrientation);
       //orientationErrors = Quaternion2Euler(oriDiffQuat);
       orientationErrors = NewControl(imuOrientation, GPacket, &thrust);
 
