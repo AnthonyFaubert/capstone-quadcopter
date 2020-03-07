@@ -14,159 +14,102 @@
           
         </span>
       </div>
-<!--      <div class="table_of_contents floating_element">
-        <div class="section_header section_header_grey">
-          TABLE OF CONTENTS
-        </div>
-        <div class="table_of_contents_item floating_element">
-          <a href="#about">About</a>
-        </div>
-        <div class="table_of_contents_item floating_element">
-          <a href="#changes">Changes</a>
-        </div>
-        <div class="table_of_contents_item floating_element">
-          <a href="#scope">Scope</a>
-        </div>
-        <div class="table_of_contents_item floating_element">
-          <a href="#files">Config files</a>
-        </div>
-      </div>
--->
+      
       <div class="content_section floating_element">
-
-
-        <div class="section_header">
-          <div id="about"></div>
-         Autonomous Facial Recognition Quadcopter 
-        </div>
-        <div class="content_section_text">
+        <div class="section_header">Autonomous Facial Recognition Quadcopter</div>
+	<div class="content_section_text">
+	  
 	  <h3>About us!</h3>
-	  <p></p>
+	  <p></p><br />
 	  <p>
-	  	<br> As the Autonomous Aerial Vision team, we are completing an 
-		Embedded Systems Capstone project that leverages the skills 
-		we have already developed while learning new ones. For our 
-		project, we chose to build a quadcopter that tracks user 
-		facial movement and can follow user movement. <br> <br>
-		To accomplish 
-		this task, we are incorporating computer vision and facial 
-		tracking into our design. The quadcopter will also be capable 
-		of uploading various kinds of data, such as GPS data and video 
-		streaming, to this web server for users to easily view. The 
-		Raspberry Pi will handle those computer vision and web-serving 
-		tasks, while the STM32F4 microcontroller handles the flight-critical 
-		functions of the quadcopter. The Raspberry Pi will need to effectively 
-		communicate results from its computer vision tasks in facial tracking to 
-    the STM32F4 so that the quadcopter can react to real-time data.  <br> <br>
-    
-    Our project is also open-source and can be found here: <a href="https://github.com/AnthonyFaubert/capstone-quadcopter" target="_blank">github</a>.<br>
-    <br>
+	    As the Autonomous Aerial Vision team, we are completing an 
+	    Embedded Systems Capstone project that leverages the skills 
+	    we have already developed while learning new ones. For our 
+	    project, we chose to build a quadcopter that tracks user 
+	    facial movement and can follow user movement.
+	    <br /><br />
+	    To accomplish 
+	    this task, we are incorporating computer vision and facial 
+	    tracking into our design. The quadcopter will also be capable 
+	    of uploading various kinds of data, such as GPS data and video 
+	    streaming, to this web server for users to easily view. The 
+	    Raspberry Pi will handle those computer vision and web-serving 
+	    tasks, while the STM32F4 microcontroller handles the flight-critical 
+	    functions of the quadcopter. The Raspberry Pi will need to effectively 
+	    communicate results from its computer vision tasks in facial tracking to 
+	    the STM32F4 so that the quadcopter can react to real-time data.
+	    <br /><br />
+	    
+	    Our project is also open-source and can be found here: <a href="https://github.com/AnthonyFaubert/capstone-quadcopter" target="_blank">github</a>.
+	    <br /><br />
 	  </p>
 	  <table>
-		<tr>
-			<th>
-				<a href="/flight_logs/" target="_blank">View Flight Logs!</a>
-			</th>
-			<th>
-				<a href="/flight_pics/" target="_blank">View Flight Pics!</a>
-      </th>
-      <th>
-        <a href="/components.html">Components</a>
-      </th>
-    </tr>
-    <tr>
-      <th></th>
-      <th>
-        <br>
-        <a href="/status.html">Quadcopter Status</a>	
-      </th>
-    </tr>
+	    <tr>
+	      <th><a href="/flight_logs/" target="_blank">View Flight Logs!</a></th>
+	      <th><a href="/flight_pics/" target="_blank">View Flight Pics!</a></th>
+	      <th><a href="/components.html">Components</a></th>
+	    </tr>
+	    <tr>
+	      <th><br /><a href="/latestLog.py" target="_blank">View Latest Flight Log!</a></th>
+	      <th><br /><a href="/latestPic.py" target="_blank">View Latest Flight Pic!</a></th>
+	      <th><br /><a href="/status.html">Quadcopter Status</a></th>
+	    </tr>
 	  </table>
- 	  <p><br></p>
-    
-    <div class="section_header">
-        <div id="controller"></div>
-        Quadcopter Controller Instructions
-    </div>
-    <br>
-    <p> For manual control of the quadcopter, our team utilizes various components of a Steam Controller. The controls can be found below. </p>
-    <table>
-      <tr><td><img src="/img/Steam-Controller.jpeg" alt="Steam Controller" class="floating_element" width="100%"></td></tr>
-      <tr><td> <br><img src="/img/Steam-Controller-back.jpeg" alt="Steam Controller Back" class="floating_element" width="100%"></td></tr>
-    </table>
-    </div>
-    <br><p> Button Decode:</p><br>
-    <table style="text-align:left">
-        <tr>
-            <td style="padding-bottom:10px">
-                1. Throttle and yaw analog "joystick" : This joystick is actually a trackpad that functions as a joystick and provides 
-                haptic feedback. Up and down on this joystick control the total throttle sent to the quadcopter, and left and right on 
-                the joystick control the directional yaw.
-            </td>
-        </tr>
-        <tr>
-            <td style="padding-bottom:10px">
-                2. This joystick is to direct the direction of the quadcopter. Its operations is similar to how an user directs its 
-                characters in video games; however, in this case, the character is the quadcopter. 
-            </td>
-        </tr>
-        <tr>
-            <td style="padding-bottom:10px">
-                3. The four buttons are used as a "trim" function for the IMU. The trim adjusts what the IMU considers a "flat" orientation. 
-                Each button is used to adjust each leg of the quadcopter (Y: front leg, B: right leg, A: back leg, and X: left leg). 
-            </td>
-        </tr>
-        <tr>
-            <td style="padding-bottom:10px">
-                4. The left center button can be used to reset the data acquisition process on the quadcopter.
-            </td>
-        </tr> 
-        <tr>
-          <td style="padding-bottom:10px">
-                5. The right center button can be used to start the quadcopter's flight.
-          </td>
-        </tr>
-        <tr>
-          <td style="padding-bottom:10px">
-                6. This bumper is used to Emergency Stop the quadcopter. This feature was added as a safety feature for users. 
-                When the button is pressed, the quadcopter operations stop and the motors stop spinning.
-          </td>
-        </tr>
-        <tr>
-          <td style="padding-bottom:10px">
-                7. This bumper is used to take a camera frame and turn it into an image that will be uploaded to this website's flight pics section!
-          </td>
-        </tr>
-        <tr>
-          <td style="padding-bottom:10px">
-                8. This trigger is used to initiate automatic control of the quadcopter. Automatic control consists of using the facial tracking
-                algorithm that is being processed on the RPi. The yaw of the quadcopter will then rotate to follow a targeted face for as long 
-                as the trigger is being held. 
-          </td>
-        </tr>
-    </table>
-        </div>
-        <div class="section_header">
-          <div id="bugs"></div>
-                Contact Us
-        </div>
-        <div class="content_section_text">
-          <p>
-	  	If you want to get in contact with any member of our team, please
-		feel free to reach out to us! We can be emailed at aavquad@gmail.com.
-          </p>
-        </div>
-	<h4>Debug files (to be moved later)</h4>
-	<p>
-		<a href="/debug.txt">Click here to download debug stuff!</a>	
-		<a href="/debug.txt" target="_blank">Click here to open debug stuff in a new tab!</a>
-	</p>
+ 	  <p></p><br />
+	</div>
 	
+	<div class="section_header">Quadcopter Controller Instructions</div>
+	<div class="content_section_text">
+	  <br />
+	  <p> For manual control of the quadcopter, our team utilizes various components of a Steam Controller. The controls can be found below. </p>
+	  <img src="/img/Steam-Controller.jpeg" alt="Steam Controller" class="floating_element" width="100%" />
+	  <br /><br />
+	  <img src="/img/Steam-Controller-back.jpeg" alt="Steam Controller Back" class="floating_element" width="100%" />
+	  <br /><br />
+	  <p> Button Decode:</p>
+	  <br />
+	  <table style="text-align:left">
+	    <tr><td style="padding-bottom:10px">
+		1. Throttle and yaw analog "joystick" : This joystick is actually a trackpad that functions as a joystick and provides 
+		haptic feedback. Up and down on this joystick control the total throttle sent to the quadcopter, and left and right on 
+		the joystick control the directional yaw.
+	    </td></tr>
+	    <tr><td style="padding-bottom:10px">
+		2. This joystick is to direct the direction of the quadcopter. Its operations is similar to how an user directs its 
+		characters in video games; however, in this case, the character is the quadcopter. 
+	    </td></tr>
+	    <tr><td style="padding-bottom:10px">
+		3. The four buttons are used as a "trim" function for the IMU. The trim adjusts what the IMU considers a "flat" orientation. 
+		Each button is used to adjust each leg of the quadcopter (Y: front leg, B: right leg, A: back leg, and X: left leg). 
+	    </td></tr>
+	    <tr><td style="padding-bottom:10px">
+		4. The left center button can be used to reset the data acquisition process on the quadcopter.
+	    </td></tr> 
+	    <tr><td style="padding-bottom:10px">
+		5. The right center button can be used to start the quadcopter's flight.
+	    </td></tr>
+	    <tr><td style="padding-bottom:10px">
+		6. This bumper is used to Emergency Stop the quadcopter. This feature was added as a safety feature for users. 
+		When the button is pressed, the quadcopter operations stop and the motors stop spinning.
+	    </td></tr>
+	    <tr><td style="padding-bottom:10px">
+		7. This bumper is used to take a camera frame and turn it into an image that will be uploaded to this website's flight pics section!
+	    </td></tr>
+	    <tr><td style="padding-bottom:10px">
+		8. This trigger is used to initiate automatic control of the quadcopter. Automatic control consists of using the facial tracking
+		algorithm that is being processed on the RPi. The yaw of the quadcopter will then rotate to follow a targeted face for as long 
+		as the trigger is being held. 
+	    </td></tr>
+	  </table>
+	</div>
+	
+	<div class="section_header">Contact Us</div>
+	<div class="content_section_text">
+	  If you want to get in contact with any member of our team, please
+	  feel free to reach out to us! We can be emailed at aavquad@gmail.com.
+	</div>
 
       </div>
-    </div>
-    <div class="validator">
     </div>
   </body>
 </html>
-

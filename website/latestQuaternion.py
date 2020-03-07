@@ -2,8 +2,9 @@
 
 import glob, os, json
 
-#print("Content-type:text/html\r\n\r\n")
-print("Content-type:application/json\r\n\r\n")
+#print('Content-type:text/html')
+print('Content-type:application/json')
+print()
 
 fileList = glob.glob('/var/www/html/flight_logs/*')
 latest = max(fileList, key=os.path.getctime)
