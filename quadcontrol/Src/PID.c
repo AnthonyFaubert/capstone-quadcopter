@@ -74,9 +74,9 @@ RollPitchYaw NewControl(Quaternion imuCorrected, GriffinPacket joystick, float* 
 
   float rollJoy = joystick.leftRight, pitchJoy = joystick.upDown, yawJoy = joystick.padLeftRight;
   // Convert joystick values into angles
-  yawJoy *= -PI / 32768.0f / 2.0f;
-  rollJoy *= JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
-  pitchJoy *= JOYSTICK_MAX_ANGLE / 32768.0f / 2.0f;
+  yawJoy *= -PI / 32768.0f;
+  rollJoy *= JOYSTICK_MAX_ANGLE / 32768.0f;
+  pitchJoy *= JOYSTICK_MAX_ANGLE / 32768.0f;
 
   // Trim the joystick
   rollJoy += TRIM_ANGLE_PER_PRESS * (float)rightTrim;
