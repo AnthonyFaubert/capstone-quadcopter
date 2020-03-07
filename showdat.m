@@ -1,6 +1,6 @@
 #!/usr/bin/octave -qf
 
-SAMPLE_RATE = 50;
+SAMPLE_RATE = 100;
 
 IMAGE_ASPECT_RATIO = [0 0 16 9]; # leave the first two zero and ignore them
 IMAGE_SCALE = 1.5;
@@ -34,8 +34,8 @@ time = 0:1/SAMPLE_RATE:(numPoints-1)/SAMPLE_RATE;
 fft_f = (0:numPoints-1) * SAMPLE_RATE/numPoints;
 
 CORRECTION_ANGLE = 50 * pi/180; # 50 degrees
-gyroRoll = gyroRaw(:, 1)*sin(CORRECTION_ANGLE) - gyroRaw(:, 2)*cos(CORRECTION_ANGLE);
-gyroPitch = gyroRaw(:, 1)*cos(CORRECTION_ANGLE) + gyroRaw(:, 2)*sin(CORRECTION_ANGLE);
+gyroPitch = -gyroRaw(:, 1)*sin(CORRECTION_ANGLE) - gyroRaw(:, 2)*cos(CORRECTION_ANGLE);
+gyroRoll = gyroRaw(:, 1)*cos(CORRECTION_ANGLE) + gyroRaw(:, 2)*sin(CORRECTION_ANGLE);
 
 fft_gx = fft(gyroRaw(:, 1));
 fft_gy = fft(gyroRaw(:, 2));
@@ -45,6 +45,10 @@ fft_gp = fft(gyroPitch);
 fft_proll = fft(pErrsRaw(:, 1));
 fft_ppitch = fft(pErrsRaw(:, 2));
 fft_pyaw = fft(pErrsRaw(:, 3));
+
+cmdRoll = mVals(:, 4) - mVals(:, 2);
+cmdPitch = mVals(:, 3) - mVals(:, 1);
+cmdYaw = mVals(:, 1) - mVals(:, 3) + mVals(:, 2) - mVals(:, 4);
 
 %{
 # SingleStepPitch experiment
@@ -180,6 +184,30 @@ plot(time, throttle, 'k');
 ## endif
 xlabel("Time (s)");
 ylabel("Throttle (unitless, 0=0% thrust, 1=100% thrust)");
+if (outFile != 0)
+  print(IMAGE_DPI, sprintf("%s_throttle.png", outFile));
+endif
+
+
+if (outFile == 0)
+  figure();
+else
+  clf;
+endif
+hold on;
+title("PID debug graph");
+plot(time, throttle);
+plot(time, cmdRoll);
+plot(time, cmdPitch);
+plot(time, cmdYaw);
+plot(time, gyroRoll / 50);
+plot(time, gyroPitch / 50);
+plot(time, gyroRaw(:, 3) / 50);
+plot(time, pErrsRaw(:, 1));
+plot(time, pErrsRaw(:, 2));
+plot(time, pErrsRaw(:, 3));
+xlabel("Time (s)");
+legend('throttle (scale [0, 1])', 'roll command (scale [0, 1])', 'pitch command (scale [0, 1])', 'yaw command (scale [0, 2])', 'gyro roll (50 degrees/sec)', 'gyro pitch (50 degrees/sec)', 'gyro yaw (50 degrees/sec)', 'roll error (radians)', 'pitch error (radians)', 'yaw error (radians)');
 if (outFile != 0)
   print(IMAGE_DPI, sprintf("%s_throttle.png", outFile));
 endif
