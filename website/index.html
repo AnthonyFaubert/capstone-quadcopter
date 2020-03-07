@@ -61,44 +61,46 @@
 	<div class="section_header">Quadcopter Controller Instructions</div>
 	<div class="content_section_text">
 	  <br />
-	  <p> For manual control of the quadcopter, our team utilizes various components of a Steam Controller. The controls can be found below. </p>
+	  <p>
+	    Users can interact with our quadcopter through the use of a Steam Controller.
+	    You can find the parts of the Steam Controller that we use and their functional descriptions below.
+	  </p>
 	  <img src="/img/Steam-Controller.jpeg" alt="Steam Controller" class="floating_element" width="100%" />
 	  <br /><br />
 	  <img src="/img/Steam-Controller-back.jpeg" alt="Steam Controller Back" class="floating_element" width="100%" />
 	  <br /><br />
-	  <p> Button Decode:</p>
+	  <p>Button Function Descriptions:</p>
 	  <br />
 	  <table style="text-align:left">
 	    <tr><td style="padding-bottom:10px">
-		1. Throttle and yaw analog "joystick" : This joystick is actually a trackpad that functions as a joystick and provides 
-		haptic feedback. Up and down on this joystick control the total throttle sent to the quadcopter, and left and right on 
-		the joystick control the directional yaw.
+		1. Throttle and yaw analog "joystick": This joystick is actually a trackpad that functions as a joystick and provides haptic feedback.
+		Up and down on this joystick control the total throttle sent to the quadcopter, and left and right on the joystick control the directional yaw.
 	    </td></tr>
 	    <tr><td style="padding-bottom:10px">
-		2. This joystick is to direct the direction of the quadcopter. Its operations is similar to how an user directs its 
-		characters in video games; however, in this case, the character is the quadcopter. 
+		2. Roll and pitch joystick: This joystick is to direct the direction of the quadcopter.
+		Its operations is similar to how an user directs its characters in video games; however, in this case, the character is the quadcopter. 
 	    </td></tr>
 	    <tr><td style="padding-bottom:10px">
-		3. The four buttons are used as a "trim" function for the IMU. The trim adjusts what the IMU considers a "flat" orientation. 
+		3. Trim buttons: The four buttons are used as a "trim" function for the IMU.
+		The trim adjusts what the IMU considers a "flat" orientation. 
 		Each button is used to adjust each leg of the quadcopter (Y: front leg, B: right leg, A: back leg, and X: left leg). 
 	    </td></tr>
 	    <tr><td style="padding-bottom:10px">
-		4. The left center button can be used to reset the data acquisition process on the quadcopter.
+		4. Reset DAQ button: The left center button can be used to reset the data acquisition process on the quadcopter.
 	    </td></tr> 
 	    <tr><td style="padding-bottom:10px">
-		5. The right center button can be used to start the quadcopter's flight.
+		5. Start button: The right center button can be used to start the quadcopter's flight.
 	    </td></tr>
 	    <tr><td style="padding-bottom:10px">
-		6. This bumper is used to Emergency Stop the quadcopter. This feature was added as a safety feature for users. 
-		When the button is pressed, the quadcopter operations stop and the motors stop spinning.
+		6. Emergency stop button: This bumper is used to Emergency Stop the quadcopter.
+		This safety feature shuts off the motors until the quadcopter is reset.
 	    </td></tr>
 	    <tr><td style="padding-bottom:10px">
-		7. This bumper is used to take a camera frame and turn it into an image that will be uploaded to this website's flight pics section!
+		7. Camera button: This bumper is used to take a camera frame and turn it into an image that will be uploaded to this website's flight pics section!
 	    </td></tr>
 	    <tr><td style="padding-bottom:10px">
-		8. This trigger is used to initiate automatic control of the quadcopter. Automatic control consists of using the facial tracking
-		algorithm that is being processed on the RPi. The yaw of the quadcopter will then rotate to follow a targeted face for as long 
-		as the trigger is being held. 
+		8. Auto-mode trigger: This trigger is used to initiate automatic control of the quadcopter.
+		Automatic control consists of using the facial tracking algorithm that is being processed on the RPi. The yaw of the quadcopter will then rotate to follow a targeted face for as long as the trigger is being held. 
 	    </td></tr>
 	  </table>
 	</div>
