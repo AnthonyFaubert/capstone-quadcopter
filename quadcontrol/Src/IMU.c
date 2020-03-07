@@ -7,7 +7,7 @@
 static uint8_t GPwrMode = NormalG;     // Gyro power mode
 static uint8_t Gscale   = GFS_2000DPS; // Gyro full scale
 //uint8_t Godr	 	= GODR_250Hz;  // Gyro sample rate
-static uint8_t Gbw      = GBW_47Hz;   // Gyro bandwidth
+static uint8_t Gbw      = GBW_116Hz;   // Gyro bandwidth
 // Accel config
 static uint8_t Ascale   = AFS_16G;   // Accel full scale
 static uint8_t APwrMode = NormalA;   // Accel power mode

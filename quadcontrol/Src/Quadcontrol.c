@@ -242,7 +242,7 @@ void Quadcontrol() {
     
     // Get IMU data and run PID loop, updating PWM values
     if (uwTick >= schedulePID) {
-      schedulePID = uwTick + 20; // 50 Hz
+      schedulePID = uwTick + 10; // 100 Hz
       
       IMUGetOrientation(&imuOrientation); // FIXME: check for IMU comms error!
       imuOrientationRaw = imuOrientation;
@@ -327,7 +327,7 @@ void Quadcontrol() {
       // Proportional errors
       if (e) PRINTF("~P : R=%.2f P=%.2f Y=%.2f\n", orientationErrors.roll, orientationErrors.pitch, orientationErrors.yaw);
       // Gyro values (corrected)
-      if (g) PRINTF("~GC: X=%.2f Y=%.2f Z=%.2f\n", imuGyroData.x, imuGyroData.y, imuGyroData.z);
+      if (g) PRINTF("~GC: X=%.2f Y=%.2f Z=%.2f\n", imuGyroDataRaw.x, imuGyroDataRaw.y, imuGyroDataRaw.z);
       // Motor values
       if (m) PRINTF("~M : %.2f %.2f %.2f %.2f\n", mVals[0], mVals[1], mVals[2], mVals[3]);
     }
