@@ -321,7 +321,7 @@ void Quadcontrol() {
       if (q) PRINTF("~QC: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", imuOrientation.w, imuOrientation.x, imuOrientation.y, imuOrientation.z);
       // Joystick quat
       if (j) PRINTF("~QJ: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", joystickOrientation.w, joystickOrientation.x, joystickOrientation.y, joystickOrientation.z);
-      // Difference quat
+      // IMU quat (corrected) without yaw
       if (qe) PRINTF("~QE: W=%.2f X=%.2f Y=%.2f Z=%.2f\n", imuRollPitch.w, imuRollPitch.x, imuRollPitch.y, imuRollPitch.z);
       // Proportional errors
       if (e) PRINTF("~P : R=%.2f P=%.2f Y=%.2f\n", orientationErrors.roll, orientationErrors.pitch, orientationErrors.yaw);
