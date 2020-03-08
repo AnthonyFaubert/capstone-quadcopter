@@ -26,18 +26,17 @@
 //#define LIMIT_GYRO_ERROR_PITCH 50.0f
 //#define LIMIT_GYRO_ERROR_YAW 50.0f
 
-// Gain values for PID
-
-#define GAIN_PROPORTIONAL_ROLL  0.24f
-#define GAIN_PROPORTIONAL_PITCH 0.24f
-#define GAIN_PROPORTIONAL_YAW   0.3f
-#define GAIN_DERIVATIVE_ROLL   -0.0013f
-#define GAIN_DERIVATIVE_PITCH  0.0013f
-#define GAIN_DERIVATIVE_YAW    -0.001f
+// Gain values for PID, all test comments done on vertical string test
+#define GAIN_PROPORTIONAL_ROLL  0.09f//0.18 was roughly where it started to oscillate too heavily
+#define GAIN_PROPORTIONAL_PITCH 0.12f//0.16 was roughly where it started to oscillate too heavily
+#define GAIN_PROPORTIONAL_YAW   0.25f//0.4f was where it oscillated
+#define GAIN_DERIVATIVE_ROLL   -0.0008f//0.0018 was a bit over where it would begin oscillating, 0.0015 was below
+#define GAIN_DERIVATIVE_PITCH  0.00065f//0.0013 was where it began oscillating
+#define GAIN_DERIVATIVE_YAW    -0.008f//-0.004f
 
 #define ORIENTATION_CORRECTION_QUATERNION {0.9063077870366499f, 0.0f, 0.0f, 0.42261826174069944f}
-#define GYRO_CORRECTION_COSINE 0.6427876096865394f
-#define GYRO_CORRECTION_SINE 0.766044443118978f
+#define GYRO_CORRECTION_COSINE 0.66262004821f
+#define GYRO_CORRECTION_SINE 0.74895572078f
 
 
 typedef struct {
