@@ -34,7 +34,7 @@ time = 0:1/SAMPLE_RATE:(numPoints-1)/SAMPLE_RATE;
 fft_f = (0:numPoints-1) * SAMPLE_RATE/numPoints;
 
 CORRECTION_ANGLE = 50 * pi/180; # 50 degrees
-gyroPitch = -gyroRaw(:, 1)*sin(CORRECTION_ANGLE) - gyroRaw(:, 2)*cos(CORRECTION_ANGLE);
+gyroPitch = -(gyroRaw(:, 1)*sin(CORRECTION_ANGLE) - gyroRaw(:, 2)*cos(CORRECTION_ANGLE));
 gyroRoll = gyroRaw(:, 1)*cos(CORRECTION_ANGLE) + gyroRaw(:, 2)*sin(CORRECTION_ANGLE);
 
 fft_gx = fft(gyroRaw(:, 1));
@@ -48,7 +48,9 @@ fft_pyaw = fft(pErrsRaw(:, 3));
 
 cmdRoll = mVals(:, 4) - mVals(:, 2);
 cmdPitch = mVals(:, 3) - mVals(:, 1);
-cmdYaw = mVals(:, 1) - mVals(:, 3) + mVals(:, 2) - mVals(:, 4);
+cmdYaw = mVals(:, 1) - mVals(:, 2) + mVals(:, 3) - mVals(:, 4);
+
+motorClips = sum((mVals < 0) | (mVals > 1), 2) > 0;
 
 %{
 # SingleStepPitch experiment
@@ -206,8 +208,9 @@ plot(time, gyroRaw(:, 3) / 50);
 plot(time, pErrsRaw(:, 1));
 plot(time, pErrsRaw(:, 2));
 plot(time, pErrsRaw(:, 3));
+plot(time, motorClips);
 xlabel("Time (s)");
-legend('throttle (scale [0, 1])', 'roll command (scale [0, 1])', 'pitch command (scale [0, 1])', 'yaw command (scale [0, 2])', 'gyro roll (50 degrees/sec)', 'gyro pitch (50 degrees/sec)', 'gyro yaw (50 degrees/sec)', 'roll error (radians)', 'pitch error (radians)', 'yaw error (radians)');
+legend('throttle (scale [0, 1])', 'roll command (scale [0, 1])', 'pitch command (scale [0, 1])', 'yaw command (scale [0, 2])', 'gyro roll (50 degrees/sec)', 'gyro pitch (50 degrees/sec)', 'gyro yaw (50 degrees/sec)', 'roll error (radians)', 'pitch error (radians)', 'yaw error (radians)', 'motor clipping (0=not clipped, 1=clipped)');
 if (outFile != 0)
   print(IMAGE_DPI, sprintf("%s_throttle.png", outFile));
 endif
