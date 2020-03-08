@@ -204,6 +204,26 @@ void task_CheckButton() {
   }
 }
 
+float getRollFreqSweepCmd(uint32_t uwTick, uint32_t logTimestamp, int SAMPLE_RATE) {
+  const float amplitude = 0.10f;
+  static float frequencies[10] = {1.0f, 1.2f, 1.4f, 1.6f, 1.8f, 2.0f, 2.2f, 2.4f, 2.6f};
+  float t = (uwTick-logTimestamp)/1000.0f;
+  static float phase = 0f;
+  int findex = (int) t;
+  if ( findex >= 10 ) {
+    return 0.0f;
+  }
+   
+  if ( t < 1.0 ) {
+    phase = 2.0f*PI*frequencies[0]*t;
+    return amplitude * cosf(phase);
+  } else {
+    phase += 2.0f*PI*(1.0f/SAMPLE_RATE)*frequencies[findex];
+    return amplitude * cosf(phase);
+  }
+}
+
+
 // Main program entry point
 void Quadcontrol() {
   Uart3RxConfig();
@@ -274,7 +294,11 @@ void Quadcontrol() {
 	//experiment_SineWavePitch(logTimestamp, mVals, &thrust);
         //experiment_SingleStepPitch(logTimestamp, mVals, &thrust);
         //experiment_CheckMotorMap(logTimestamp, mVals);
-        
+	float rollCmd = getRollFreqSweepCmd(uwTick, logTimestamp, 100);
+	float THRUST_VECTOR_ROLL[4] = {0.0f, -1.0f, 0.0f, 1.0f};
+	VectorScale(mVals, rollCmd, THRUST_VECTOR_ROLL);
+	VectorScalarAdd(mVals, thrust, mVals);
+	
         //for (int i = 0; i < 4; i++) mVals[i] = 0.0f; // disable throttle out
 	uint8_t mErrors = SetMotors(mVals);
         if (mErrors & SETMOTORS_NOT_LINEARIZABLE) {
