@@ -11,6 +11,8 @@
 #include "IMU.h"
 #include "Experiments.h" // normally unused
 
+#include "math.h" // TODO: remove
+
 #define LPF_PERIOD 25
 #define LPF_TYPE GyroData
 #define LPF_TYPE_INIT {0.0f, 0.0f, 0.0f}
@@ -205,10 +207,10 @@ void task_CheckButton() {
 }
 
 float getRollFreqSweepCmd(uint32_t uwTick, uint32_t logTimestamp, int SAMPLE_RATE) {
-  const float amplitude = 0.10f;
-  static float frequencies[10] = {1.0f, 1.2f, 1.4f, 1.6f, 1.8f, 2.0f, 2.2f, 2.4f, 2.6f};
+  const float amplitude = 0.05f;
+  static float frequencies[10] = {1.0f, 1.1f, 1.2f, 1.3f, 1.4f, 1.5f, 1.6f, 1.7f, 1.8f};
   float t = (uwTick-logTimestamp)/1000.0f;
-  static float phase = 0f;
+  static float phase = 0.0f;
   int findex = (int) t;
   if ( findex >= 10 ) {
     return 0.0f;
@@ -294,10 +296,12 @@ void Quadcontrol() {
 	//experiment_SineWavePitch(logTimestamp, mVals, &thrust);
         //experiment_SingleStepPitch(logTimestamp, mVals, &thrust);
         //experiment_CheckMotorMap(logTimestamp, mVals);
-	float rollCmd = getRollFreqSweepCmd(uwTick, logTimestamp, 100);
+	/*
+        float rollCmd = getRollFreqSweepCmd(uwTick, logTimestamp, 100);
 	float THRUST_VECTOR_ROLL[4] = {0.0f, -1.0f, 0.0f, 1.0f};
 	VectorScale(mVals, rollCmd, THRUST_VECTOR_ROLL);
 	VectorScalarAdd(mVals, thrust, mVals);
+*/
 	
         //for (int i = 0; i < 4; i++) mVals[i] = 0.0f; // disable throttle out
 	uint8_t mErrors = SetMotors(mVals);
