@@ -7,7 +7,18 @@ import socket
 import imutils
 import struct
 
-use_socket = False
+from picamera import PiCamera
+from picamera.array import PiRGBArray
+cam = PiCamera()
+cam.rotation = 90
+cam.resolution = (640, 480)
+cam.framerate = 32
+rawCapture = PiRGBArray(cam, size=cam.resolution)
+time.sleep(0.1) # "allow the camera to warmup"
+
+use_socket = True
+#s = None
+#conn = None
 # establishing socket connection
 if (use_socket):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -34,11 +45,15 @@ no_face_frames = 0
 prev_center = [319, 179]
 prev_size = 100
 loop_time = -1
+x_diff = 0
+y_diff = 0
+w_diff = 0
 
 # main program loop
-while(cap.isOpened() and (not face_cascade.empty())):
+for frame in cam.capture_continuous(rawCapture, format="bgr", use_video_port=True):
     start_cap = time.time()
-    ret, img = cap.read()
+    #ret, img = cap.read()
+    img = frame.array
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     end_cap = time.time()
     delta_cap = (end_cap - start_cap) * 1000
@@ -53,27 +68,29 @@ while(cap.isOpened() and (not face_cascade.empty())):
     for (x,y,w,h) in faces:
         face_det = True
         center = [x + (0.5*w), y + (0.5*h)]
-        size = [w, h]
+        size = w
         img = cv2.rectangle(img, (x,y), (x+w,y+h), (0,0,255), 2)
         # check to see if this face is the same as face from last frame
-        if (abs(center[0] - prev_center[0]) < (30*(consec_missed+1))
-            and abs(center[1] - prev_center[1]) < (30*(consec_missed+1))
-            and size[0] < (prev_size[0]*2) and size[0] > (prev_size[0]*0.5)
-            and size[1] < (prev_size[1]*2) and size[1] > (prev_size[1]*0.5)):
+        if (abs(center[0] - prev_center[0]) < (100*(consec_missed+1))
+            and abs(center[1] - prev_center[1]) < (100*(consec_missed+1))
+            and size < (prev_size*3) and size > (prev_size*0.33)):
             if(loop_time == -1):
                 d_time = 0.005
             else:
                 d_time = time.time() - loop_time
-            x_diff = (center[0] - prev_center[0])/d_time
+            x_diff = (center[0] - prev_center[0])/(d_time)
             y_diff = (center[1] - prev_center[1])/d_time
-            w_diff = (size[0] - prev_size[0])/d_time
+            w_diff = (size - prev_size)/d_time
             loop_time = time.time()
             prev_center = [x + (0.5*w), y + (0.5*h)]
             prev_size = w
             img = cv2.rectangle(img, (x,y), (x+w,y+h), (0,255,0), 2)
 
     if (use_socket):
-        rec_bytes = conn.recv(1)
+        try:
+            rec_bytes = conn.recv(1)
+        except BlockingIOError as e:
+            rec_bytes = b''
         if(len(rec_bytes) == 1):
             d = datetime.datetime.now()
             image_file_path = "/var/www/html/flight_pics/pic_%04d-%02d-%02d_%02d.%02d.%02d.png" % (d.year, d.month, d.day, d.hour, d.minute, d.second)
@@ -89,8 +106,20 @@ while(cap.isOpened() and (not face_cascade.empty())):
         consec_missed += 1
         
     if (use_socket):
-        send_data = struct.pack('>hhhhhh', x_err, x_diff, y_err, y_diff, prev_size, w_diff)
-            conn.send(send_data)
+        if (x_diff > 32767):
+            x_diff = 32767
+        if (x_diff < -32767):
+            x_diff = -32767
+        if (y_diff > 32767):
+            y_diff = 32767
+        if (y_diff < -32767):
+            y_diff = -32767
+        if (w_diff > 32767):
+            w_diff = 32767
+        if (w_diff < -32767):
+            w_diff = -32767
+        send_data = struct.pack('>hhhhhh', int(x_err), int(x_diff), int(y_err), int(y_diff), int(prev_size), int(w_diff))
+        conn.send(send_data)
 
     if (consec_missed > 1000):
         consec_missed = 20
@@ -105,7 +134,9 @@ while(cap.isOpened() and (not face_cascade.empty())):
     delta_show = (end_show - start_show) * 1000
     print("%.2f ms to show image" %delta_show)
 
+    rawCapture.truncate(0) # clear the stream to get the actual next frame
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
+conn.close()
 s.close()

@@ -91,19 +91,8 @@ def calc_auto_js(x_err, x_der, y_err, y_der, w_err, w_der):
     manualYaw = _get_yt_last_lr_motion
     if _autoYaw == None:
         _autoYaw = manualYaw
-    diff = int(x_err / 7.0)
-    if diff > 70:
-        diff = 70
-    if diff < -70:
-        diff = -70
-    _autoYaw += diff
     print(x_err)
-    if _autoYaw > 32767:
-        _autoYaw += -(32767*2)
-    if _autoYaw < -32767:
-        _autoYaw += (32767*2)
-    
-    return (*get_tilt(), _autoYaw, manualThrottle, 0)
+    return (0, 0, _autoYaw, manualThrottle, 0)
     
 ser.reset_input_buffer()
 ser.reset_output_buffer()
@@ -121,8 +110,6 @@ y_err = 0
 y_der = 0
 w_err = 0
 w_der = 0
-
-face_data_extra = 0
 
 done = False
 
@@ -181,10 +168,7 @@ while not done:
 
     #receive data from haar.py via socket for face position in frame
     if (use_socket):
-        try:
-            face_data_bytes = face_data_extra + s.recv(1000)
-        except BlockingIOError as e:
-            face_data_bytes = b''
+        face_data_bytes = face_data_extra + s.recv(1000)
         face_data_extra_num = len(face_data_bytes) % 12
         face_data_extra = face_data_bytes[((len(face_data_bytes)) - face_data_extra_num):]
         face_data_start = len(face_data_bytes) - 12 - face_data_extra_num
@@ -204,9 +188,8 @@ while not done:
 
     if (prev_tilt == tilt and prev_yt == yt and tilt != (0,0) and yt != (0,0)):
         cont_freeze_frames += 1
-        # TODO: re-enable, but also include auto left trigger axis
-        #if (cont_freeze_frames > 10):
-            #send_button(5)
+        if (cont_freeze_frames > 10):
+            send_button(5)
     else:
         cont_freeze_frames = 0
 
@@ -241,11 +224,11 @@ while not done:
     print()
     special = 0
 
-    #if (use_socket):
+    if (use_socket):
         # receive data from UART for angle of face
-        #angle_rec = ser.read(ser.in_waiting)
+        angle_rec = ser.read(ser.in_waiting)
         # send data to haar.py
-        #s.send(angle_rec[-1])
+        s.send(angle_rec[-1])
 
     if (ser.in_waiting > 0):
         ser.ready_to_send = True
