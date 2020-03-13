@@ -1,0 +1,20 @@
+ack
+emacs
+apache2
+jstest-gtk
+screen
+arduino
+
+libopencv-dev
+libdlib-dev
+python3-opencv
+libatlas3-base
+octave
+
+sc-controller // probably not installed with APT
+// added /etc/systemd/system/sc_daemon.service
+
+// python 3 opencv, DLIB, and probably others
+
+# pip3 packages
+imutils

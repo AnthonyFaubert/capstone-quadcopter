@@ -1,0 +1,3 @@
+#!/bin/bash
+
+sudo nice -n -10 ./controller.py

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+export LOG_DIR=/var/www/html/flight_logs
+export LATEST_NAME=`ls -1tr $LOG_DIR/ | tail -1`
+
+tail -f $LOG_DIR/$LATEST_NAME
