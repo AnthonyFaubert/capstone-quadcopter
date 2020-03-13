@@ -1,5 +1,14 @@
 #!/usr/bin/python3
 
+# This program is the client side of the socket connection and must be run after
+# the 'haar2.py' program.
+# This is responsible for sending Steam Controller signals to the
+# Discovery Board over UART. It also receives values from the 'haar2.py'
+# script for the automatic control function.
+
+# created by Griffin Hardy, Tony Faubert, Lisa Qing, and David Joslin for
+# EE/CSE 475 Emebdded Systems Capstone, Winter Quarter 2020
+
 import pygame
 import time
 import datetime
@@ -29,8 +38,6 @@ if (use_socket):
 pygame.init()
 pygame.joystick.init()
 
-#screen = pygame.display.set_mode((100, 100))
-#pygame.display.set_caption("My Game")
 clock = pygame.time.Clock()
 
 # initialize the joystick object that is the Steam controller
@@ -46,9 +53,11 @@ debug_file = open(debug_str,'wb')
 ser = serial.Serial(port="/dev/ttyS0", baudrate=UART_BAUD_RATE, write_timeout=None, timeout=None)
 special = 0
 
+# function that returns a readable version of a byte string
 def hexify(bs):
     return ''.join('{:02x}'.format(x) for x in bs)
 
+# function to get the left analog stick values
 def get_tilt(): # left analog stick, axes 0 and 1. Axis 1 is up/down and is inverted with fully up being -1
     lr_motion = int(joystick.get_axis(0) * 32767)
     ud_motion = int(joystick.get_axis(1) * -32767)
@@ -57,6 +66,7 @@ def get_tilt(): # left analog stick, axes 0 and 1. Axis 1 is up/down and is inve
 # hold values when the user lets go
 _get_yt_last_ud_motion = 0
 _get_yt_last_lr_motion = 0
+# function to get the value of the right "analog stick"
 def get_yt(): # right trackpad used as stick, axes 3 and 4. Axis 4 is up/down and is inverted, fully up is -1
     global _get_yt_last_ud_motion, _get_yt_last_lr_motion
     lr_motion = int(joystick.get_axis(3) * 32767)
@@ -69,21 +79,25 @@ def get_yt(): # right trackpad used as stick, axes 3 and 4. Axis 4 is up/down an
         _get_yt_last_lr_motion = lr_motion
     return (lr_motion, ud_motion)
 
+# function that returns true if the Steam controller is connected, false otherwise
 def connection():
     if (pygame.joystick.get_count() == 0):
         return False
     else:
         return True
 
-def send_button(butt):
-    data = struct.pack('>BhhhhhB',0x25, 0, 0, 0, 0, butt, (0x25+butt))
+# function to send the packet that is just a button value to the Discovery Board
+def send_button(button):
+    data = struct.pack('>BhhhhhB',0x25, 0, 0, 0, 0, button, (0x25+button))
     ser.write(data)
-    if (butt == 5):
+    if (button == 5):
         ser.write(data)
         ser.write(data)
         print('Sent e-stop!')
         time.sleep(3)
 
+# function to calculate the joystick values to send across when the auto
+# functionality is turned on
 _autoYaw = None
 def calc_auto_js(x_err, x_der, y_err, y_der, w_err, w_der):
     global _get_yt_last_ud_motion, _get_yt_last_lr_motion, _autoYaw
@@ -104,7 +118,8 @@ def calc_auto_js(x_err, x_der, y_err, y_der, w_err, w_der):
         _autoYaw += (32767*2)
     
     return (*get_tilt(), _autoYaw, manualThrottle, 0)
-    
+
+# intial values for variables
 ser.reset_input_buffer()
 ser.reset_output_buffer()
 lastSend = -1
@@ -123,7 +138,6 @@ w_err = 0
 w_der = 0
 
 face_data_extra = 0
-
 done = False
 
 # main program loop
@@ -164,19 +178,21 @@ while not done:
     if(last_change_timestamp == -1):
         last_change_timestamp = time.time()
 
+    # return value of axis2 on joystick in case it had not been pressed.
     if(not axis2init and joystick.get_axis(2)==0.0):
         auto = -32767
     else:
         auto = int(joystick.get_axis(2) * 32767)
         axis2init = True
-
+    
+    # Conditional checks to see if automatic mode is initiated
     if (auto == -32767):
         manual = True
     elif (prev_auto != auto):
         last_change_timestamp = time.time()
         prev_auto = auto
         manual = False
-    if (not manual and (time.time() - last_change_timestamp) > 1):
+if (not manual and (time.time() - last_change_timestamp) > 1): # true if controller turns off, sends e-stop
             send_button(5)
 
     #receive data from haar.py via socket for face position in frame
@@ -204,9 +220,6 @@ while not done:
 
     if (prev_tilt == tilt and prev_yt == yt and tilt != (0,0) and yt != (0,0)):
         cont_freeze_frames += 1
-        # TODO: re-enable, but also include auto left trigger axis
-        #if (cont_freeze_frames > 10):
-            #send_button(5)
     else:
         cont_freeze_frames = 0
 
@@ -229,7 +242,7 @@ while not done:
         print('auto')
     print("below is sent data:")
     print(hexify(data))
-    ser.write(data)
+    ser.write(data) # send data over UART
 
     timeDiff = time.time() - lastSend
     if (lastSend != -1) and (timeDiff > 0.050):
@@ -239,17 +252,11 @@ while not done:
         time.sleep(15)
     lastSend = time.time()
     print()
-    special = 0
-
-    #if (use_socket):
-        # receive data from UART for angle of face
-        #angle_rec = ser.read(ser.in_waiting)
-        # send data to haar.py
-        #s.send(angle_rec[-1])
+    special = 0 # reset the special value
 
     if (ser.in_waiting > 0):
         ser.ready_to_send = True
-        debug_file.write(ser.read(ser.in_waiting))
+        debug_file.write(ser.read(ser.in_waiting)) # write to the debug file
     loopTime = time.time() - loopTime
     if loopTime > worstLoopTime:
         worstLoopTime = loopTime
