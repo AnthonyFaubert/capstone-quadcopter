@@ -1,0 +1,8 @@
+
+table.quadcopter_status td:first-child {
+    text-align: left;
+}
+
+table.quadcopter_status, table.options {
+    width: 40em;
+}

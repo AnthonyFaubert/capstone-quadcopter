@@ -25,6 +25,15 @@ div.center {
     width: 50%;
 }
 
+div#logodiv, img#logo {
+    position: static;
+    width: auto;
+}
+
+img#logo {
+    width: 80%;
+}
+
 div.center2 {
     display: block;
     margin-left: auto;
@@ -33,7 +42,7 @@ div.center2 {
 
 div.main_page {
     position: relative;
-    display: table;
+//    display: table;
 
     width: 800px;
 
@@ -160,10 +169,12 @@ div.section_header_grey {
     float: center;
 }
 
+/*
 .floating_element_left {
     position: relative;
     float: left;
 }
+*/
 
 div.table_of_contents_item a,
 div.content_section_text a {
