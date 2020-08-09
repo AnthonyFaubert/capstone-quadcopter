@@ -36,6 +36,7 @@ BUILD_DIR = build
 ######################################
 # C sources
 C_SOURCES =  \
+Src/Quadcontrol.c Src/IMU.c Src/Uart3.c Src/VectQuatMath.c Src/PID.c Src/MiscPeripherals.c Src/Experiments.c \
 Src/main.c \
 Src/gpio.c \
 Src/adc.c \
