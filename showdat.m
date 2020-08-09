@@ -198,19 +198,20 @@ else
 endif
 hold on;
 title("PID debug graph");
-plot(time, throttle);
-plot(time, cmdRoll);
+#plot(time, throttle);
+#plot(time, cmdRoll);
 plot(time, cmdPitch);
-plot(time, cmdYaw);
+#plot(time, cmdYaw);
 plot(time, gyroRoll / 50);
 plot(time, gyroPitch / 50);
 plot(time, gyroRaw(:, 3) / 50);
-plot(time, pErrsRaw(:, 1));
-plot(time, pErrsRaw(:, 2));
-plot(time, pErrsRaw(:, 3));
+#plot(time, pErrsRaw(:, 1));
+#plot(time, pErrsRaw(:, 2));
+#plot(time, pErrsRaw(:, 3));
 plot(time, motorClips);
 xlabel("Time (s)");
-legend('throttle (scale [0, 1])', 'roll command (scale [0, 1])', 'pitch command (scale [0, 1])', 'yaw command (scale [0, 2])', 'gyro roll (50 degrees/sec)', 'gyro pitch (50 degrees/sec)', 'gyro yaw (50 degrees/sec)', 'roll error (radians)', 'pitch error (radians)', 'yaw error (radians)', 'motor clipping (0=not clipped, 1=clipped)');
+#legend('throttle (scale [0, 1])', 'roll command (scale [0, 1])', 'pitch command (scale [0, 1])', 'yaw command (scale [0, 2])', 'gyro roll (50 degrees/sec)', 'gyro pitch (50 degrees/sec)', 'gyro yaw (50 degrees/sec)', 'roll error (radians)', 'pitch error (radians)', 'yaw error (radians)', 'motor clipping (0=not clipped, 1=clipped)');
+legend('pitch command (scale [0, 1])', 'gyro roll (50 degrees/sec)', 'gyro pitch (50 degrees/sec)', 'gyro yaw (50 degrees/sec)', 'motor clipping (0=not clipped, 1=clipped)');
 if (outFile != 0)
   print(IMAGE_DPI, sprintf("%s_throttle.png", outFile));
 endif
